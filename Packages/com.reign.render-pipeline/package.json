@@ -1,0 +1,22 @@
+{
+  "name": "com.reign.render-pipeline",
+  "description": "Portable Forward & Deferred render pipeline for Low/High-End Mobile, Console & PC",
+  "version": "0.0.0",
+  "unity": "2020.3",
+  "unityRelease": "18f1",
+  "displayName": "Reign RP",
+  "dependencies": {
+    "com.unity.render-pipelines.core": "14.0.8"
+  },
+  "keywords": [
+    "graphics",
+    "performance",
+    "portable",
+    "rendering",
+    "mobile",
+    "console",
+    "pc",
+    "render",
+    "pipeline"
+  ]
+}

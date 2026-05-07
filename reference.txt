@@ -1,0 +1,25 @@
+ToneMapping shader: https://github.com/TheRealMJP/BakingLab/blob/master/BakingLab/ACES.hlsl
+
+SSS: https://www.alanzucconi.com/2017/08/30/fast-subsurface-scattering-2/
+https://www.alanzucconi.com/2017/08/30/fast-subsurface-scattering-1/
+
+OIT without compute shaders
+https://jcgt.org/published/0002/02/09/
+https://twitter.com/morgan3d/status/413676289166295041
+
+Color = RGB (A alpha or opaque emissive multiplier)
+Normal = RGB (A not used)
+Material = R (roughness), G (metallic), B (thickness) (A optional gloss value)
+Emissive (optional for opaque but required for transparent objects)
+
+https://registry.khronos.org/
+
+GLES ref:
+* https://registry.khronos.org/OpenGL-Refpages/
+* https://registry.khronos.org/OpenGL-Refpages/es2.0/
+* https://registry.khronos.org/OpenGL-Refpages/es3/html/glGet.xhtml
+
+Vulkan ref:
+* https://registry.khronos.org/vulkan/
+* https://registry.khronos.org/vulkan/specs/1.0/html/index.html
+* https://registry.khronos.org/vulkan/specs/1.0/html/chap32.html#limits-minmax

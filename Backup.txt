@@ -1,0 +1,17 @@
+<< Dither Shader Code >>
+
+SAMPLER(sampler_DitherTex);
+TEXTURE2D(_DitherTex);
+float4 _DitherPattern_TexelSize;
+
+real ditherClip = SAMPLE_TEXTURE2D(_DitherTex, sampler_DitherTex, i.uv * compositingSize.xy * (1.0 / 8.0)).x;
+real gray = dot(o.color, real3(.3333, .3333, .3333));
+ditherClip = step(ditherClip, gray);
+if (ditherClip <= .5) o.color = materialParams.color * .01;
+o.color *= 2.0;// brightness base color
+
+real ditherClip = SAMPLE_TEXTURE2D(_DitherTex, sampler_DitherTex, uv * compositingSize.xy * (1.0 / 8.0)).x;
+real gray = dot(o.color, real3(.3333, .3333, .3333));
+ditherClip = step(ditherClip, gray);
+if (ditherClip <= .5) discard;
+o.color = pointLight_Color;
