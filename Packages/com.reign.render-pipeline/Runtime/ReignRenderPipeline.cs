@@ -569,28 +569,33 @@ namespace Reign.SRP
 		{
             if (asset.useRenderPasses)
             {
+				if (asset.renderPassesMultiCameraClear)
+				{
+					cmd.Clear();
+
+					// set viewport
+					if (!xrRenderPassInfo.isXRActive) cmd.SetViewport(camera.pixelRect);
+
+					// clear
+					ClearRenderPass(renderPassDesc);
+
+					// invoke
+					context.ExecuteCommandBuffer(cmd);
+					context.Submit();
+				}
+
+				// start render pass
                 context.BeginRenderPass(renderPassDesc.width, renderPassDesc.height, 1, renderPassDesc.attachments, renderPassDesc.depthIndex);
                 context.BeginSubPass(renderPassDesc.attachmentIndices);
 
-				/*if (!asset.enableComposition)
+				// set viewport
+				if (!xrRenderPassInfo.isXRActive)
 				{
 					cmd.Clear();
 					cmd.SetViewport(camera.pixelRect);
 					context.ExecuteCommandBuffer(cmd);
-				}*/
-
-				if (xrRenderPassInfo.isXRActive)
-				{
-					cmd.Clear();
-					var r = camera.pixelRect;
-					r.x *= xrRenderPassInfo.parameter.viewport.x;
-					r.y *= xrRenderPassInfo.parameter.viewport.y;
-					r.width *= xrRenderPassInfo.parameter.viewport.width;
-					r.height *= xrRenderPassInfo.parameter.viewport.height;
-					cmd.SetViewport(r);
-					context.ExecuteCommandBuffer(cmd);
 				}
-            }
+			}
 			else
 			{
 				cmd.Clear();
@@ -605,52 +610,43 @@ namespace Reign.SRP
 					cmd.SetRenderTarget(renderPassDesc.renderTarget_First, renderPassDesc.renderTarget_Depth);
 				}
 
-                //if (!asset.enableComposition) cmd.SetViewport(camera.pixelRect);
-				if (xrRenderPassInfo.isXRActive)
-				{
-					//float offset = 0, mul = .5f;
-					//if (xrRenderPassInfo.eyePass == 1) offset = .5f;
-					//Debug.Log(xrRenderPassInfo.parameter.viewport);
-					var s = new Vector2(xrRenderPassInfo.pass.renderTargetDesc.width, xrRenderPassInfo.pass.renderTargetDesc.height);
-					var viewR = xrRenderPassInfo.parameter.viewport;
-					var r = new Rect
-					(
-						viewR.x * s.x,
-						viewR.y * s.y,
-						viewR.width * s.x,
-						viewR.height * s.y
-					);
-					cmd.SetViewport(r);
-				}
+				// set viewport
+                if (!xrRenderPassInfo.isXRActive) cmd.SetViewport(camera.pixelRect);
 
-                // clear color and depth (NOTE: only clear with first color-targets clear color for performance)
-				bool clearColor = false, clearDepth = false;
-				var mainClearColor = Color.clear;
-				for (int i = 0; i != renderPassDesc.attachments.Length; ++i)
-				{
-					ref var target = ref renderPassDesc.targets[i];
-					if (target.clear)
-					{
-						if (target.renderTargetFormat == RenderTextureFormat.Depth)
-						{
-							clearDepth = true;
-						}
-						else if (!clearColor)
-						{
-							clearColor = true;
-							mainClearColor = target.clearColor;
-						}
-					}
-				}
-
-				if (clearColor || clearDepth)
-				{
-					cmd.ClearRenderTarget(clearDepth, clearColor, mainClearColor);
-				}
+                // clear
+				ClearRenderPass(renderPassDesc);
 
 				context.ExecuteCommandBuffer(cmd);
 			}
         }
+
+		private void ClearRenderPass(in RenderPassDesc renderPassDesc)
+		{
+			// clear color and depth (NOTE: only clear with first color-targets clear color for performance)
+			bool clearColor = false, clearDepth = false;
+			var firstClearColor = Color.clear;
+			for (int i = 0; i != renderPassDesc.attachments.Length; ++i)
+			{
+				ref var target = ref renderPassDesc.targets[i];
+				if (target.clear)
+				{
+					if (target.renderTargetFormat == RenderTextureFormat.Depth)
+					{
+						clearDepth = true;
+					}
+					else if (!clearColor)
+					{
+						clearColor = true;
+						firstClearColor = target.backgroundColor;
+					}
+				}
+			}
+
+			if (clearColor || clearDepth)
+			{
+				cmd.ClearRenderTarget(clearDepth, clearColor, firstClearColor);
+			}
+		}
 
 		private void EndRenderPass(in ScriptableRenderContext context)
 		{

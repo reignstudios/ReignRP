@@ -8,8 +8,12 @@ namespace Reign.SRP
 	[CreateAssetMenu(menuName = "Reign/ReignRenderPipelineAsset")]
 	public class ReignRenderPipelineAsset : RenderPipelineAsset
     {
+		internal static ReignRenderPipelineAsset singleton;
+
 		public bool hdr;
 		public bool useRenderPasses = true;
+		[Tooltip("If UseRenderPasses is on and you have multiple cameras that clear the same target buffer")]
+		public bool renderPassesMultiCameraClear = false;
 
 		public int compositionDivision = 1, fullscreenSwapchainResolutionDivision = 1;
 		public int maxLights = -1;
@@ -78,6 +82,7 @@ namespace Reign.SRP
 
 		protected override RenderPipeline CreatePipeline()
         {
+			singleton = this;
             return new ReignRenderPipeline(this);
         }
     }
