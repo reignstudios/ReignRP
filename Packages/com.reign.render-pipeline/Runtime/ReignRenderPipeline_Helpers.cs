@@ -168,9 +168,9 @@ namespace Reign.SRP
         private class CameraResource
 		{
 			public int frame;
-			public Camera camera;
-			public ReignRenderPipeline pipeline;
-			private ReignRenderPipelineAsset asset;
+			public readonly Camera camera;
+			public readonly ReignRenderPipeline pipeline;
+			private readonly ReignRenderPipelineAsset asset;
 
             public RenderTexture cameraTargetTexture;
             public RenderTargetIdentifier cameraTargetTextureID, cameraTargetDepthTextureID;
@@ -233,7 +233,7 @@ namespace Reign.SRP
             {
                 int compositionDepthBit = (int)asset.compositionDepthBit;
                 #if UNITY_EDITOR
-                if (camera.cameraType == CameraType.SceneView || camera.cameraType == CameraType.Preview) compositionDepthBit = 24;
+                if (camera.cameraType == CameraType.SceneView || camera.cameraType == CameraType.Preview) compositionDepthBit = 24;// assume 24
                 #endif
                 return compositionDepthBit;
             }
@@ -277,8 +277,8 @@ namespace Reign.SRP
                     {
                         cameraTargetTextureID = BuiltinRenderTextureType.CameraTarget;// swap-buffer
                         cameraTargetDepthTextureID = BuiltinRenderTextureType.Depth;// swap-buffer
-                        cameraTargetFormat = asset.hdr ? RenderTextureFormat.ARGB2101010 : RenderTextureFormat.ARGB32;
-                        cameraTargetDepth = 24;
+                        cameraTargetFormat = asset.hdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;// assume defaults
+                        cameraTargetDepth = 24;// assume 24
                         widthRenderTarget = Screen.width;
                         heightRenderTarget = Screen.height;
                     }
