@@ -73,10 +73,11 @@ namespace Reign.SRP
 		public static int graphicsShaderLevel { get; private set; }
 		public static bool isOpenGL { get; private set; }
 
-		private static List<XRDisplaySubsystem> xrSubsystemList;
-		private static XRRenderPassInfo xrRenderPassInfo = new XRRenderPassInfo();
+		private List<XRDisplaySubsystem> xrSubsystemList;
+		private XRRenderPassInfo xrRenderPassInfo = new XRRenderPassInfo();
+		public static bool xrActive => singleton != null ? singleton.xrRenderPassInfo.isXRActive : false;
 
-		public delegate void CustomDraw(Camera camera, in ScriptableRenderContext context, in CullingResults cullResults);
+		public delegate void CustomDraw(Camera camera, CommandBuffer cmd, in ScriptableRenderContext context, in CullingResults cullResults);
 		public static event CustomDraw DrawCustom_PreOpaque, DrawCustom_PostOpaque, DrawCustom_PreTransparent, DrawCustom_PostTransparent;
 
 		public ReignRenderPipeline(ReignRenderPipelineAsset asset)
@@ -369,9 +370,6 @@ namespace Reign.SRP
             }
             if ((camera.depthTextureMode & depthTextureMode) == 0) camera.depthTextureMode = depthTextureMode;
 
-			// clear camera pre
-			ClearCameraPre(ref context, camera, cameraResource, depthTextureMode);
-
 			// setup lighting
 			var lights = cullResults.visibleLights;
 			int directionalLight_Count = 0;
@@ -430,10 +428,10 @@ namespace Reign.SRP
 			context.Submit();
 
 			// start opaque render pass
-			StartRenderPass(context, cameraResource.forwardRenderPass_Opaque, camera);
+			StartRenderPass(context, cameraResource.forwardRenderPass_Opaque, cameraResource);
 			
 			// draw custom pre-opaque objects
-			DrawCustom_PreOpaque?.Invoke(camera, context, cullResults);
+			DrawCustom_PreOpaque?.Invoke(camera, cmd, context, cullResults);
 
 			// draw custom opaque objects
 			DrawCustomUnlitObjects(ref context, ref cullResults, QueueRange.Opaque, camera);
@@ -442,7 +440,7 @@ namespace Reign.SRP
 			DrawObjects(ref context, ref cullResults, lightModeID_Opaque, QueueRange.Opaque, camera, null, specialRenderParams);
 
 			// draw custom post-opaque objects
-			DrawCustom_PostOpaque?.Invoke(camera, context, cullResults);
+			DrawCustom_PostOpaque?.Invoke(camera, cmd, context, cullResults);
 
 			// finish opaque render pass
 			EndRenderPass(context);
@@ -457,13 +455,13 @@ namespace Reign.SRP
 			}
 
 			// start lighting render pass
-			StartRenderPass(context, cameraResource.forwardRenderPass_Transparent, camera);
+			StartRenderPass(context, cameraResource.forwardRenderPass_Transparent, cameraResource);
 
-			// clear camera post (after opaque)
-            ClearCameraPost(ref context, camera);
+			// clear skybox (after opaque)
+            ClearSkybox(ref context, camera);
 
             // draw custom pre-transparent objects
-            DrawCustom_PreTransparent?.Invoke(camera, context, cullResults);
+            DrawCustom_PreTransparent?.Invoke(camera, cmd, context, cullResults);
 
 			// draw custom transparent objects
 			DrawCustomUnlitObjects(ref context, ref cullResults, QueueRange.Transparent, camera);
@@ -472,7 +470,7 @@ namespace Reign.SRP
 			DrawObjects(ref context, ref cullResults, lightModeID_Transparent, QueueRange.Transparent, camera, null, specialRenderParams);
 
 			// draw custom post-transparent objects
-			DrawCustom_PostTransparent?.Invoke(camera, context, cullResults);
+			DrawCustom_PostTransparent?.Invoke(camera, cmd, context, cullResults);
 
 			// draw unuspported objects & editor gizmos
 			DrawErrorObjectsAndPreGizmos(ref context, ref cullResults, camera);
@@ -504,15 +502,16 @@ namespace Reign.SRP
 				cmd.DrawMesh(blitMesh, Matrix4x4.identity, blitMaterial);
 				context.ExecuteCommandBuffer(cmd);
 			}
-			else if (xrRenderPassInfo.isXRActive)
+			else if (xrRenderPassInfo.isXRActive && asset.xrPreview)
 			{
+				#if UNITY_EDITOR || UNITY_STANDALONE
 				bool draw = false;
 				var eye = XRSettings.gameViewRenderMode;
 				var r = camera.pixelRect;
 				if (xrRenderPassInfo.eyePass < 0)
 				{
 					r = camera.pixelRect;
-					draw = true;
+					draw = eye == GameViewRenderMode.BothEyes;
 				}
 				else
 				{
@@ -543,7 +542,8 @@ namespace Reign.SRP
 							draw = true;
 						}
 					}
-					cmd.SetViewport(r);
+
+					if (eye == GameViewRenderMode.OcclusionMesh) draw = true;
 				}
 
 				if (draw)
@@ -555,6 +555,7 @@ namespace Reign.SRP
 					cmd.DrawMesh(BlitMesh.meshFlipped, Matrix4x4.identity, blitMaterial);
 					context.ExecuteCommandBuffer(cmd);
 				}
+				#endif
 			}
 
 			// standard camera finish
@@ -565,8 +566,9 @@ namespace Reign.SRP
             context.Submit();
         }
 
-		private void StartRenderPass(in ScriptableRenderContext context, in RenderPassDesc renderPassDesc, Camera camera)
+		private void StartRenderPass(in ScriptableRenderContext context, in RenderPassDesc renderPassDesc, CameraResource cameraResource)
 		{
+			var camera = cameraResource.camera;
             if (asset.useRenderPasses)
             {
 				if (asset.renderPassesMultiCameraClear)
@@ -588,9 +590,15 @@ namespace Reign.SRP
                 context.BeginRenderPass(renderPassDesc.width, renderPassDesc.height, 1, renderPassDesc.attachments, renderPassDesc.depthIndex);
                 context.BeginSubPass(renderPassDesc.attachmentIndices);
 
-				// set viewport
-				if (!xrRenderPassInfo.isXRActive)
+				// prep
+				if (xrRenderPassInfo.isXRActive)
 				{
+					// draw occlusion mesh
+					DrawOcclusionMesh(cameraResource);
+				}
+				else
+				{
+					// set viewport
 					cmd.Clear();
 					cmd.SetViewport(camera.pixelRect);
 					context.ExecuteCommandBuffer(cmd);
@@ -615,6 +623,9 @@ namespace Reign.SRP
 
                 // clear
 				ClearRenderPass(renderPassDesc);
+
+				// draw occlusion mesh
+				if (xrRenderPassInfo.isXRActive) DrawOcclusionMesh(cameraResource);
 
 				context.ExecuteCommandBuffer(cmd);
 			}
@@ -714,7 +725,7 @@ namespace Reign.SRP
 			#endif
 
 			// finish XR eye rendering
-			if (IsXREnabled(camera))
+			if (xrRenderPassInfo.isXRActive)
 			{
 				context.StopMultiEye(camera);
 				if (xrRenderPassInfo.eyePass >= 0) context.StereoEndRender(camera, xrRenderPassInfo.eyePass, xrRenderPassInfo.eyePass != 0);
@@ -722,106 +733,13 @@ namespace Reign.SRP
 			}
 		}
 
-		private void ClearCameraPre(ref ScriptableRenderContext context, Camera camera, CameraResource cameraResource, DepthTextureMode depthTextureMode)
+		private void DrawOcclusionMesh(CameraResource cameraResource)
 		{
-			// pre-clear if needed
-			/*cmd.Clear();
-			if (!IsXREnabled(camera) || XRSettings.stereoRenderingMode == XRSettings.StereoRenderingMode.MultiPass)
-			{
-				// set target to clear
-				if (asset.enableEffectCompositing)
-				{
-					if (depthTextureMode == DepthTextureMode.MotionVectors)
-					{
-						cmd.SetRenderTarget(cameraResource.velocityTexture);// clear velocity texture
-						cmd.ClearRenderTarget(false, true, Color.clear);
-					}
-
-					cmd.SetRenderTarget(cameraResource.colorTextureID, cameraResource.depthTextureID);
-				}
-				else
-				{
-					cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-				}
-
-				// set viewport
-				cmd.SetViewport(camera.pixelRect);
-
-				// clear target
-				if (camera.cameraType == CameraType.Preview)
-				{
-					cmd.ClearRenderTarget(true, true, Color.black);
-				}
-				else if (camera.clearFlags == CameraClearFlags.SolidColor)
-				{
-					cmd.ClearRenderTarget(true, true, camera.backgroundColor.linear);
-				}
-				else if (camera.clearFlags == CameraClearFlags.Depth || camera.clearFlags == CameraClearFlags.Skybox)
-				{
-					cmd.ClearRenderTarget(true, false, Color.black);
-				}
-			}
-			else
-			{
-				if (camera.clearFlags == CameraClearFlags.SolidColor)
-				{
-					if (asset.enableEffectCompositing)
-					{
-						CoreUtils.SetRenderTarget(cmd, cameraResource.colorTextureID, cameraResource.depthTextureID, ClearFlag.All, camera.backgroundColor.linear);
-					}
-					else
-					{
-						CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, ClearFlag.All, camera.backgroundColor.linear);
-					}
-				}
-				else if (camera.clearFlags == CameraClearFlags.Depth || camera.clearFlags == CameraClearFlags.Skybox)
-				{
-					if (asset.enableEffectCompositing)
-					{
-						CoreUtils.SetRenderTarget(cmd, cameraResource.colorTextureID, cameraResource.depthTextureID, ClearFlag.Depth, camera.backgroundColor.linear);
-					}
-					else
-					{
-						CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, ClearFlag.Depth, camera.backgroundColor.linear);
-					}
-				}
-				else
-				{
-					if (asset.enableEffectCompositing)
-					{
-						CoreUtils.SetRenderTarget(cmd, cameraResource.colorTextureID, cameraResource.depthTextureID, ClearFlag.None, Color.black);
-					}
-					else
-					{
-						CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, ClearFlag.None, Color.black);
-					}
-				}
-			}
-			context.ExecuteCommandBuffer(cmd);*/
-
-			/*// clip invisible pixels
-            #if UNITY_EDITOR
-            if (IsXREnabled(camera) && XRSettings.gameViewRenderMode == GameViewRenderMode.OcclusionMesh)
-            {
-                cmd.Clear();
-                //XRUtils.DrawOcclusionMesh(cmd, camera);
-				var r = camera.pixelRect;
-				cmd.DrawOcclusionMesh(new RectInt((int)r.x, (int)r.y, (int)r.width, (int)r.height));
-                context.ExecuteCommandBuffer(cmd);
-            }
-            #else
-            if (IsXREnabled(camera))
-            {
-                cmd.Clear();
-                //XRUtils.DrawOcclusionMesh(cmd, camera);
-				var r = camera.pixelRect;
-				cmd.DrawOcclusionMesh(new RectInt((int)r.x, (int)r.y, (int)r.width, (int)r.height));
-                context.ExecuteCommandBuffer(cmd);
-            }
-            #endif*/
+			// clip invisible pixels stencil
+			cmd.DrawOcclusionMesh(new RectInt(0, 0, cameraResource.widthComposited, cameraResource.heightComposited));
 		}
 
-		private void ClearCameraPost(ref ScriptableRenderContext context, Camera camera)
+		private void ClearSkybox(ref ScriptableRenderContext context, Camera camera)
 		{
 			// post-clear if needed
 			if (camera.clearFlags == CameraClearFlags.Skybox && RenderSettings.skybox)
@@ -886,15 +804,11 @@ namespace Reign.SRP
 			drawSettings.enableInstancing = true;
 
 			// draw objects
-			#if UNITY_2021
-			context.DrawRenderers(cullResults, ref drawSettings, ref filterSettings);
-			#else
 			var renderListParams = new RendererListParams(cullResults, drawSettings, filterSettings);
 			var renderContext = context.CreateRendererList(ref renderListParams);
 			cmd.Clear();
 			cmd.DrawRendererList(renderContext);
 			context.ExecuteCommandBuffer(cmd);
-			#endif
 		}
 
 		private Color GetSceneAmbientColor()

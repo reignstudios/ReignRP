@@ -275,6 +275,7 @@ namespace Reign.SRP
                 bool clearDepth = clearMode != CameraClearFlags.Nothing;
                 bool clearColor = clearMode != CameraClearFlags.Nothing && clearMode != CameraClearFlags.Depth;
                 Color backgroundColor = camera.backgroundColor;
+                var xrRenderPassInfo = pipeline.xrRenderPassInfo;
                 cameraTargetTexture = camera.targetTexture;
                 if (!cameraTargetTexture)
                 {

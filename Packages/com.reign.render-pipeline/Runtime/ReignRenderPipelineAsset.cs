@@ -8,7 +8,7 @@ namespace Reign.SRP
 	[CreateAssetMenu(menuName = "Reign/ReignRenderPipelineAsset")]
 	public class ReignRenderPipelineAsset : RenderPipelineAsset
     {
-		internal static ReignRenderPipelineAsset singleton;
+		public static ReignRenderPipelineAsset singleton { get; private set; }
 
 		public bool hdr;
 		public bool useRenderPasses = true;
@@ -44,7 +44,7 @@ namespace Reign.SRP
 		[Tooltip("Processes Motion Vectors (disable to increase performance)")]
 		public bool enableMotionVectors = false;
 
-		[Tooltip("Show VR preview in App Window (Auto disabled on mobile platforms)")]
+		[Tooltip("Show VR preview in App Window or Editor (ignored on mobile HMDs platforms)")]
 		public bool xrPreview = true;
 		public GameViewRenderMode xrPreviewMode = GameViewRenderMode.BothEyes;
 
