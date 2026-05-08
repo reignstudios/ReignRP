@@ -192,16 +192,7 @@ namespace Reign.SRP
 			public Matrix4x4 clipToWorld;
 
             public Matrix4x4 viewMat, projMat, viewProjMat;
-
-            private CommonTextureFormat[] colorTextureFallbacks, normalTextureFallbacks;
-            private bool isHDRNormals;
-
-            public Texture2D pointLightTexture_Count, pointLightTexture_Positions, pointLightTexture_Colors;
-            public NativeArray<byte> pointLightArrayPtr_Count;
-            public NativeArray<Vector4h> pointLightArrayPtr_Positions;
-            public NativeArray<Vector4> pointLightArrayPtr_Positions32;
-            public NativeArray<Vector4h> pointLightArrayPtr_Colors;
-            public bool pointLight_32BitTexturesEnabled;
+            private CommonTextureFormat[] colorTextureFallbacks;
 
             public CameraResource(Camera camera, ReignRenderPipeline pipeline)
 			{
@@ -221,12 +212,6 @@ namespace Reign.SRP
                 {
                     CommonTextureFormat.Float_16,
                     CommonTextureFormat.UFloat_10,
-                    CommonTextureFormat.UINT_A2_RGB10,
-                };
-
-                normalTextureFallbacks = new CommonTextureFormat[]
-                {
-                    CommonTextureFormat.Float_16,
                     CommonTextureFormat.UINT_A2_RGB10,
                 };
             }
@@ -273,7 +258,7 @@ namespace Reign.SRP
                 // camera target info
                 var clearMode = camera.clearFlags;
                 bool clearDepth = clearMode != CameraClearFlags.Nothing;
-                bool clearColor = clearMode != CameraClearFlags.Nothing && clearMode != CameraClearFlags.Depth;
+                bool clearColor = clearMode == CameraClearFlags.Color;
                 Color backgroundColor = camera.backgroundColor;
                 var xrRenderPassInfo = pipeline.xrRenderPassInfo;
                 cameraTargetTexture = camera.targetTexture;
@@ -306,63 +291,6 @@ namespace Reign.SRP
                     cameraTargetDepth = cameraTargetTexture.depth;
                     widthRenderTarget = cameraTargetTexture.width;
                     heightRenderTarget = cameraTargetTexture.height;
-                }
-
-				// forward+ light buffers
-			    int cellWidth;
-			    int cellHeight;
-			    int pixelWidth;
-			    int pixelHeight;
-                float ratio = heightComposited / (float)widthComposited;
-                if (ratio <= 1)
-                {
-                    cellWidth = asset.forwardPlusCellCount;
-                    cellHeight = (int)(cellWidth * ratio);
-                }
-                else
-                {
-                    ratio = widthComposited / (float)heightComposited;
-                    cellHeight = asset.forwardPlusCellCount;
-                    cellWidth = (int)(cellHeight * ratio);
-                }
-
-                pixelWidth = cellWidth * asset.forwardPlusCellSize;
-                pixelHeight = cellHeight * asset.forwardPlusCellSize;
-
-                if (cellWidth == 0) cellWidth = 1;
-                if (cellHeight == 0) cellHeight = 1;
-                if (pixelWidth == 0) pixelWidth = 1;
-                if (pixelHeight == 0) pixelHeight = 1;
-
-                if
-                (
-                    !pointLightTexture_Count || pointLightTexture_Count.width != cellWidth || pointLightTexture_Count.height != cellHeight ||
-                    !pointLightTexture_Positions || pointLightTexture_Positions.width != pixelWidth || pointLightTexture_Positions.height != pixelHeight ||
-                    !pointLightTexture_Colors || pointLightTexture_Colors.width != pixelWidth || pointLightTexture_Colors.height != pixelHeight
-                )
-                {
-                    DisposeForwardPlusResources();
-                        
-                    pointLightTexture_Count = new Texture2D(cellWidth, cellHeight, GraphicsFormat.R8_UNorm, TextureCreationFlags.None);
-                    pointLightArrayPtr_Count = new NativeArray<byte>(cellWidth * cellHeight, Allocator.Persistent);
-                    SetTextureSamplerState(pointLightTexture_Count, FilterMode.Point, TextureWrapMode.Clamp, false);
-
-                    pointLight_32BitTexturesEnabled = asset.allow32BitTextures && texturesSupported_32Bit;
-                    if (pointLight_32BitTexturesEnabled)
-                    {
-                        pointLightTexture_Positions = new Texture2D(pixelWidth, pixelHeight,  GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
-                        pointLightArrayPtr_Positions32 = new NativeArray<Vector4>(pixelWidth * pixelHeight, Allocator.Persistent);
-                    }
-                    else
-                    {
-                        pointLightTexture_Positions = new Texture2D(pixelWidth, pixelHeight, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None);
-                        pointLightArrayPtr_Positions = new NativeArray<Vector4h>(pixelWidth * pixelHeight, Allocator.Persistent);
-                    }
-                    SetTextureSamplerState(pointLightTexture_Positions, FilterMode.Point, TextureWrapMode.Clamp, false);
-
-                    pointLightTexture_Colors = new Texture2D(pixelWidth, pixelHeight, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None);
-                    pointLightArrayPtr_Colors = new NativeArray<Vector4h>(pixelWidth * pixelHeight, Allocator.Persistent);
-                    SetTextureSamplerState(pointLightTexture_Colors, FilterMode.Point, TextureWrapMode.Clamp, false);
                 }
 
                 // compositing
@@ -482,21 +410,7 @@ namespace Reign.SRP
                     forwardRenderPass_Transparent.Dispose();
                     deferredRenderPass_Opaque.Dispose();
                     deferredRenderPass_Transparent.Dispose();
-
-                    DisposeForwardPlusResources();
                 }
-            }
-
-            private void DisposeForwardPlusResources()
-            {
-                DisposeNativeArray(pointLightArrayPtr_Count);
-                DisposeNativeArray(pointLightArrayPtr_Positions);
-                DisposeNativeArray(pointLightArrayPtr_Positions32);
-                DisposeNativeArray(pointLightArrayPtr_Colors);
-
-                DisposeTexture(ref pointLightTexture_Count);
-                DisposeTexture(ref pointLightTexture_Positions);
-                DisposeTexture(ref pointLightTexture_Colors);
             }
 
             private static RenderTexture GetTemporaryRenderTexture(RenderTextureDescriptor desc)
