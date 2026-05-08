@@ -69,7 +69,6 @@ namespace Reign.SRP
 
 		public static int cpuThreadCount { get; private set; }
 		public static bool texturesSupported_32Bit { get; private set; }
-		public static bool canSampleMSAATextures { get; private set; }
         public static GraphicsDeviceType graphicsDeviceType { get; private set; }
 		public static int graphicsShaderLevel { get; private set; }
 		public static bool isOpenGL { get; private set; }
@@ -120,7 +119,6 @@ namespace Reign.SRP
             graphicsShaderLevel = SystemInfo.graphicsShaderLevel;
 			isOpenGL = graphicsDeviceType == GraphicsDeviceType.OpenGLCore || graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
 			texturesSupported_32Bit = SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, GraphicsFormatUsage.Sample) && SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, GraphicsFormatUsage.SetPixels);
-			canSampleMSAATextures = !isOpenGL && SystemInfo.supportsMultisampledTextures > 0;
 		}
 
 		private void CheckResourceInit()
@@ -503,7 +501,7 @@ namespace Reign.SRP
 
 				// resolve MSAA texture if needed
 				cmd.Clear();
-				if (asset.compositionMSAA != MSAA_Level.Off && !canSampleMSAATextures)
+				if (asset.compositionMSAA != MSAA_Level.Off)
 				{
 					cameraResource.ResolveCompositedMSAATexture(cmd, cameraResource.compositingTextures[0]);
 					finalTextureID = cameraResource.compositingTexturesID[0];
