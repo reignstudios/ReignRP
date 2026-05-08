@@ -16,3 +16,4 @@ Further there are other ways to increase performance beyond BuiltInRP.
 * Simpler shader options
 * Shader complexity reduction options
 * Simpler shadow options
+* Optimized skybox clearing
