@@ -30,6 +30,10 @@ public class DisplaySystemSpecs : MonoBehaviour
 
 	private void OnGUI()
 	{
+		#if !UNITY_EDITOR && !UNITY_STANDALONE
+		if (Reign.SRP.ReignRenderPipeline.xrActive) return;
+		#endif
+		
 		var rect = new Rect(10, 10, 100, 20);
 		GUI.Label(rect, fps);
 
@@ -38,6 +42,7 @@ public class DisplaySystemSpecs : MonoBehaviour
 		GUI.Label(rect, osInfo);
 
 		rect.y += 20;
+		rect.height *= 2;
 		GUI.Label(rect, platformInfo);
 	}
 }

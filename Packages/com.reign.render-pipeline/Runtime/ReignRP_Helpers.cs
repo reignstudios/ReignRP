@@ -150,7 +150,7 @@ namespace Reign.SRP
         }
     }
 
-    public partial class ReignRenderPipeline
+    public partial class ReignRP
     {
         private struct ShaderVars
         {
@@ -169,7 +169,7 @@ namespace Reign.SRP
 		{
 			public int frame;
 			public readonly Camera camera;
-			public readonly ReignRenderPipeline pipeline;
+			public readonly ReignRP pipeline;
 			private readonly ReignRenderPipelineAsset asset;
 
             public RenderTexture cameraTargetTexture;
@@ -194,7 +194,7 @@ namespace Reign.SRP
             public Matrix4x4 viewMat, projMat, viewProjMat;
             private CommonTextureFormat[] colorTextureFallbacks;
 
-            public CameraResource(Camera camera, ReignRenderPipeline pipeline)
+            public CameraResource(Camera camera, ReignRP pipeline)
 			{
 				this.camera = camera;
 				this.pipeline = pipeline;

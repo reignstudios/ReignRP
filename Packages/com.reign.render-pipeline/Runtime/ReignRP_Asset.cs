@@ -83,7 +83,7 @@ namespace Reign.SRP
 		protected override RenderPipeline CreatePipeline()
         {
 			singleton = this;
-            return new ReignRenderPipeline(this);
+            return new ReignRP(this);
         }
     }
 

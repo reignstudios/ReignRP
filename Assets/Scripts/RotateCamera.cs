@@ -18,7 +18,7 @@ public class RotateCamera : MonoBehaviour
 
 	private void Update()
 	{
-		if (Reign.SRP.ReignRenderPipeline.xrActive) return;
+		if (Reign.SRP.ReignRP.xrActive) return;
 
 		transform.position = center + (new Vector3(Mathf.Cos(rot), .25f, Mathf.Sin(rot)) * distance);
 		transform.LookAt(center);

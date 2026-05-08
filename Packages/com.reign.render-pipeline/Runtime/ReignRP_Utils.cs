@@ -38,7 +38,7 @@ namespace Reign.SRP
 		public XRDisplaySubsystem.XRRenderParameter parameter;
 	}
 
-    public partial class ReignRenderPipeline
+    public partial class ReignRP
     {
         public static void SetTextureSamplerState(Texture texture, FilterMode filter, TextureWrapMode wrap, bool anisoFiltering)
 		{

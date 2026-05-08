@@ -17,7 +17,7 @@ using UnityEditor;
 
 namespace Reign.SRP
 {
-    public sealed partial class ReignRenderPipeline : RenderPipeline
+    public sealed partial class ReignRP : RenderPipeline
     {
 		#if UNITY_EDITOR
 		private Material errorMaterial;
@@ -39,7 +39,7 @@ namespace Reign.SRP
 		public const string lightModeID_Opaque = "Reign_Opaque";
         public const string lightModeID_Transparent = "Reign_Transparent";
 
-        public static ReignRenderPipeline singleton { get; private set; }
+        public static ReignRP singleton { get; private set; }
 		private ReignRenderPipelineAsset asset;
 
 		#if !UNITY_EDITOR
@@ -80,7 +80,7 @@ namespace Reign.SRP
 		public delegate void CustomDraw(Camera camera, CommandBuffer cmd, in ScriptableRenderContext context, in CullingResults cullResults);
 		public static event CustomDraw DrawCustom_PreOpaque, DrawCustom_PostOpaque, DrawCustom_PreTransparent, DrawCustom_PostTransparent;
 
-		public ReignRenderPipeline(ReignRenderPipelineAsset asset)
+		public ReignRP(ReignRenderPipelineAsset asset)
 		{
 			singleton = this;
 			this.asset = asset;
