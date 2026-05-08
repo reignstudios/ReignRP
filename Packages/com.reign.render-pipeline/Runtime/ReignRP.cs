@@ -69,6 +69,7 @@ namespace Reign.SRP
 
 		public static int cpuThreadCount { get; private set; }
 		public static bool texturesSupported_32Bit { get; private set; }
+		public static bool canSampleMSAATextures { get; private set; }
         public static GraphicsDeviceType graphicsDeviceType { get; private set; }
 		public static int graphicsShaderLevel { get; private set; }
 		public static bool isOpenGL { get; private set; }
@@ -119,6 +120,7 @@ namespace Reign.SRP
             graphicsShaderLevel = SystemInfo.graphicsShaderLevel;
 			isOpenGL = graphicsDeviceType == GraphicsDeviceType.OpenGLCore || graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
 			texturesSupported_32Bit = SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, GraphicsFormatUsage.Sample) && SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, GraphicsFormatUsage.SetPixels);
+			canSampleMSAATextures = !isOpenGL && SystemInfo.supportsMultisampledTextures > 0;
 		}
 
 		private void CheckResourceInit()
@@ -422,13 +424,14 @@ namespace Reign.SRP
 
 			// set special data
 			cmd.Clear();
-            cmd.SetGlobalVector("compositingSize", new Vector4(cameraResource.widthComposited, cameraResource.heightComposited, 1.0f / cameraResource.widthComposited, 1.0f / cameraResource.heightComposited));
+            if (asset.enableComposition) cmd.SetGlobalVector("targetSize", new Vector4(cameraResource.widthComposited, cameraResource.heightComposited, 1.0f / cameraResource.widthComposited, 1.0f / cameraResource.heightComposited));
+            else cmd.SetGlobalVector("targetSize", new Vector4(cameraResource.widthTarget, cameraResource.heightTarget, 1.0f / cameraResource.widthTarget, 1.0f / cameraResource.heightTarget));
             cmd.SetGlobalMatrix("clipToWorld", cameraResource.clipToWorld);
 			context.ExecuteCommandBuffer(cmd);
 			context.Submit();
 
 			// start opaque render pass
-			StartRenderPass(context, cameraResource.forwardRenderPass_Opaque, cameraResource);
+			StartRenderPass(context, cameraResource.renderPass_Opaque, cameraResource);
 			
 			// draw custom pre-opaque objects
 			DrawCustom_PreOpaque?.Invoke(camera, cmd, context, cullResults);
@@ -455,7 +458,7 @@ namespace Reign.SRP
 			}
 
 			// start lighting render pass
-			StartRenderPass(context, cameraResource.forwardRenderPass_Transparent, cameraResource);
+			StartRenderPass(context, cameraResource.renderPass_Transparent, cameraResource);
 
 			// clear skybox (after opaque)
             ClearSkybox(ref context, camera);
@@ -495,10 +498,23 @@ namespace Reign.SRP
 				var blitMesh = BlitMesh.mesh;
 				#endif
 				
+				// grab initial target
+				var finalTextureID = cameraResource.colorTextureID;
+
+				// resolve MSAA texture if needed
 				cmd.Clear();
+				if (asset.compositionMSAA != MSAA_Level.Off && !canSampleMSAATextures)
+				{
+					cameraResource.ResolveCompositedMSAATexture(cmd, cameraResource.compositingTextures[0]);
+					finalTextureID = cameraResource.compositingTexturesID[0];
+				}
+				
+				// Post-Processing
+				// TODO
+				
+				// copy final result
 				cmd.SetRenderTarget(cameraResource.cameraTargetTextureID);
-				cmd.SetGlobalTexture("_BlitTex", cameraResource.colorTextureID);
-				cmd.SetViewport(camera.pixelRect);
+				cmd.SetGlobalTexture("_BlitTex", finalTextureID);
 				cmd.DrawMesh(blitMesh, Matrix4x4.identity, blitMaterial);
 				context.ExecuteCommandBuffer(cmd);
 			}
@@ -576,7 +592,7 @@ namespace Reign.SRP
 					cmd.Clear();
 
 					// set viewport
-					if (!xrRenderPassInfo.isXRActive) cmd.SetViewport(camera.pixelRect);
+					if (!xrRenderPassInfo.isXRActive) cmd.SetViewport(cameraResource.viewport);
 
 					// clear
 					ClearRenderPass(renderPassDesc);
@@ -587,7 +603,7 @@ namespace Reign.SRP
 				}
 
 				// start render pass
-                context.BeginRenderPass(renderPassDesc.width, renderPassDesc.height, 1, renderPassDesc.attachments, renderPassDesc.depthIndex);
+                context.BeginRenderPass(renderPassDesc.width, renderPassDesc.height, renderPassDesc.msaaSamples, renderPassDesc.attachments, renderPassDesc.depthIndex);
                 context.BeginSubPass(renderPassDesc.attachmentIndices);
 
 				// prep
@@ -600,7 +616,7 @@ namespace Reign.SRP
 				{
 					// set viewport
 					cmd.Clear();
-					cmd.SetViewport(camera.pixelRect);
+					cmd.SetViewport(cameraResource.viewport);
 					context.ExecuteCommandBuffer(cmd);
 				}
 			}
@@ -619,7 +635,7 @@ namespace Reign.SRP
 				}
 
 				// set viewport
-                if (!xrRenderPassInfo.isXRActive) cmd.SetViewport(camera.pixelRect);
+                if (!xrRenderPassInfo.isXRActive) cmd.SetViewport(cameraResource.viewport);
 
                 // clear
 				ClearRenderPass(renderPassDesc);

@@ -20,12 +20,6 @@ namespace Reign.SRP
 		[Tooltip("Uses closes lights to camera")]
 		public bool sortPointLights = false;
 
-        [Tooltip("Cells for longest dimension")]
-		public int forwardPlusCellCount = 16;
-        [Tooltip("Pixel Width/Height for cell index storage")]
-		public int forwardPlusCellSize = 8;
-		public bool allow32BitTextures;
-
 		public bool enableComposition = false;
 		public bool compositionDepthClone = false;
 		public MSAA_Level compositionMSAA = MSAA_Level.Off;
@@ -51,6 +45,7 @@ namespace Reign.SRP
 		public ReignRenderPipelineResources resources;
 		public override Shader terrainDetailGrassShader => (resources != null && resources.shaders != null) ? resources.shaders.terrainGrassShader : null;
 		public override Shader terrainDetailGrassBillboardShader => (resources != null && resources.shaders != null) ? resources.shaders.terrainGrassBillboardShader : null;
+		public override string renderPipelineShaderTag => "ReignRP";
 
 		private void Awake()
 		{
@@ -75,9 +70,6 @@ namespace Reign.SRP
 
 			if (fullscreenSwapchainResolutionDivision < 1) fullscreenSwapchainResolutionDivision = 1;
 			else if (fullscreenSwapchainResolutionDivision > 8) fullscreenSwapchainResolutionDivision = 8;
-
-			if (forwardPlusCellCount <= 0) forwardPlusCellCount = 1;
-			if (forwardPlusCellSize <= 0) forwardPlusCellSize = 1;
 		}
 
 		protected override RenderPipeline CreatePipeline()

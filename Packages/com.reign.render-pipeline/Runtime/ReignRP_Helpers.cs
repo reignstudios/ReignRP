@@ -48,8 +48,9 @@ namespace Reign.SRP
         public NativeArray<int> attachmentIndices;
         public int[] renderTargetMappings;
         public int firstIndex, depthIndex;
+        public int msaaSamples;
 
-        public RenderPassDesc(int width, int height, RenderPassDescTarget[] targets)
+        public RenderPassDesc(int width, int height, RenderPassDescTarget[] targets, int msaaSamples)
         {
             isInit = true;
 
@@ -60,6 +61,7 @@ namespace Reign.SRP
             renderTarget_Depth = BuiltinRenderTextureType.None;
             firstIndex = -1;
             depthIndex = -1;
+            this.msaaSamples = msaaSamples;
 
             // check if depth index exists
             for (int i = 0; i != targets.Length; ++i)
@@ -178,14 +180,17 @@ namespace Reign.SRP
             public int cameraTargetDepth;
 
             public RenderTexture depthTexture, depthTextureClone;
-			public RenderTexture colorTexture, compositingFinalTexture;
+			public RenderTexture colorTexture;
+            public RenderTexture[] compositingTextures;
 			//public RenderTexture velocityTexture;
 
             public RenderTargetIdentifier depthTextureID, depthTextureCloneID;
-			public RenderTargetIdentifier colorTextureID, compositingFinalTextureID;
+			public RenderTargetIdentifier colorTextureID;
+            public RenderTargetIdentifier[] compositingTexturesID;
             public RenderTargetIdentifier velocityTextureID;
-            public RenderPassDesc forwardRenderPass_Opaque, forwardRenderPass_Transparent;
-			public int width, height, widthComposited, heightComposited, widthRenderTarget, heightRenderTarget;
+            public RenderPassDesc renderPass_Opaque, renderPass_Transparent;
+			public int widthTarget, heightTarget, widthComposited, heightComposited;
+            public Rect viewport;
             public float texelWidth, texelHeight;
 			public Matrix4x4 cameraViewProj_Last;
 			public Matrix4x4 clipToWorld;
@@ -198,14 +203,6 @@ namespace Reign.SRP
 				this.camera = camera;
 				this.pipeline = pipeline;
 				asset = pipeline.asset;
-				width = camera.pixelWidth;
-				height = camera.pixelHeight;
-                widthComposited = width / asset.compositionDivision;
-                heightComposited = height / asset.compositionDivision;
-                widthRenderTarget = -1;
-                heightRenderTarget = -1;
-                texelWidth = 1f / width;
-                texelHeight = 1f / height;
                 
                 colorTextureFallbacks = new CommonTextureFormat[]
                 {
@@ -241,12 +238,6 @@ namespace Reign.SRP
 			{
 				frame = 0;
 
-                // current camera specs
-                width = camera.pixelWidth;
-				height = camera.pixelHeight;
-                widthComposited = width / asset.compositionDivision;
-                heightComposited = height / asset.compositionDivision;
-
 				// calculate special matricies
 				cameraViewProj_Last = camera.previousViewProjectionMatrix;
                 viewMat = camera.worldToCameraMatrix;
@@ -260,6 +251,7 @@ namespace Reign.SRP
                 bool clearColor = clearMode == CameraClearFlags.Color;
                 Color backgroundColor = camera.backgroundColor;
                 var xrRenderPassInfo = pipeline.xrRenderPassInfo;
+                viewport = camera.rect;
                 cameraTargetTexture = camera.targetTexture;
                 if (!cameraTargetTexture)
                 {
@@ -269,8 +261,9 @@ namespace Reign.SRP
                         cameraTargetDepthTextureID = xrRenderPassInfo.pass.renderTarget;
                         cameraTargetFormat = xrRenderPassInfo.pass.renderTargetDesc.colorFormat;
                         cameraTargetDepth = xrRenderPassInfo.pass.renderTargetDesc.depthBufferBits;
-                        widthRenderTarget = xrRenderPassInfo.pass.renderTargetDesc.width;
-                        heightRenderTarget = xrRenderPassInfo.pass.renderTargetDesc.height;
+                        widthTarget = xrRenderPassInfo.pass.renderTargetDesc.width;
+                        heightTarget = xrRenderPassInfo.pass.renderTargetDesc.height;
+                        viewport = new Rect(0, 0, 1, 1);// force full texture
                     }
                     else
                     {
@@ -278,8 +271,8 @@ namespace Reign.SRP
                         cameraTargetDepthTextureID = BuiltinRenderTextureType.Depth;// swap-buffer
                         cameraTargetFormat = asset.hdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;// assume defaults
                         cameraTargetDepth = 24;// assume 24
-                        widthRenderTarget = Screen.width;
-                        heightRenderTarget = Screen.height;
+                        widthTarget = Screen.width;
+                        heightTarget = Screen.height;
                     }
                 }
                 else
@@ -288,16 +281,26 @@ namespace Reign.SRP
                     cameraTargetDepthTextureID = cameraTargetTexture;
                     cameraTargetFormat = cameraTargetTexture.format;
                     cameraTargetDepth = cameraTargetTexture.depth;
-                    widthRenderTarget = cameraTargetTexture.width;
-                    heightRenderTarget = cameraTargetTexture.height;
+                    widthTarget = cameraTargetTexture.width;
+                    heightTarget = cameraTargetTexture.height;
                 }
 
                 // compositing
                 if (asset.enableComposition)
 				{
-                    int compositionDepthBit = GetCompositedDepthBit();
-
+                    widthComposited = widthTarget / asset.compositionDivision;
+                    heightComposited = heightTarget / asset.compositionDivision;
+                    
+                    viewport.x *= widthComposited;
+                    viewport.y *= heightComposited;
+                    viewport.width *= widthComposited;
+                    viewport.height *= heightComposited;
+                    
+                    texelWidth = 1f / widthComposited;
+                    texelHeight = 1f / heightComposited;
+                    
                     // depth texture
+                    int compositionDepthBit = GetCompositedDepthBit();
                     var desc = new RenderTextureDescriptor(widthComposited, heightComposited, RenderTextureFormat.Depth, compositionDepthBit);
                     desc.msaaSamples = (int)asset.compositionMSAA;
 				    depthTexture = GetTemporaryRenderTexture(desc);
@@ -318,73 +321,95 @@ namespace Reign.SRP
 					colorTexture = GetTemporaryRenderTexture(desc);
 					colorTextureID = colorTexture;
                     SetTextureSamplerState(colorTexture, FilterMode.Point, TextureWrapMode.Clamp, false);
+                    
+                    // compositing textures
+                    desc.msaaSamples = 1;// no MSAA on final textures
+                    if (compositingTextures == null)
+                    {
+                        compositingTextures = new RenderTexture[2];
+                        compositingTexturesID = new RenderTargetIdentifier[2];
+                    }
+                    for (int i = 0; i != 2; ++i)
+                    {
+                        compositingTextures[i] = GetTemporaryRenderTexture(desc);
+                        compositingTexturesID[i] = compositingTextures[i];
+                        SetTextureSamplerState(compositingTextures[i], FilterMode.Point, TextureWrapMode.Clamp, false);
+                    }
 
                     // render-pass desc
-                    if (!forwardRenderPass_Opaque.isInit)
+                    if (!renderPass_Opaque.isInit)
                     {
                         var targets = new RenderPassDescTarget[2]
                         {
                             new RenderPassDescTarget(depthTextureID, depthTexture.format, depthTexture.depth, false, true, clearDepth, backgroundColor),
                             new RenderPassDescTarget(colorTextureID, colorTexture.format, 0, false, true, clearColor, backgroundColor)
                         };
-                        forwardRenderPass_Opaque = new RenderPassDesc(widthComposited, heightComposited, targets);
+                        renderPass_Opaque = new RenderPassDesc(widthComposited, heightComposited, targets, (int)asset.compositionMSAA);
                     }
                     else
                     {
-                        forwardRenderPass_Opaque.UpdateSize(widthComposited, heightComposited);
-                        forwardRenderPass_Opaque.UpdateTarget(new RenderPassDescTarget(depthTextureID, depthTexture.format, depthTexture.depth, false, true, clearDepth, backgroundColor), 0);
-                        forwardRenderPass_Opaque.UpdateTarget(new RenderPassDescTarget(colorTextureID, colorTexture.format, 0, false, true, clearColor, backgroundColor), 1);
+                        renderPass_Opaque.UpdateSize(widthComposited, heightComposited);
+                        renderPass_Opaque.UpdateTarget(new RenderPassDescTarget(depthTextureID, depthTexture.format, depthTexture.depth, false, true, clearDepth, backgroundColor), 0);
+                        renderPass_Opaque.UpdateTarget(new RenderPassDescTarget(colorTextureID, colorTexture.format, 0, false, true, clearColor, backgroundColor), 1);
                     }
 
-                    if (!forwardRenderPass_Transparent.isInit)
+                    if (!renderPass_Transparent.isInit)
                     {
                         var targets = new RenderPassDescTarget[2]
                         {
                             new RenderPassDescTarget(depthTextureID, depthTexture.format, depthTexture.depth, true, true),
                             new RenderPassDescTarget(colorTextureID, colorTexture.format, 0, true, true)
                         };
-                        forwardRenderPass_Transparent = new RenderPassDesc(widthComposited, heightComposited, targets);
+                        renderPass_Transparent = new RenderPassDesc(widthComposited, heightComposited, targets, (int)asset.compositionMSAA);
                     }
                     else
                     {
-                        forwardRenderPass_Transparent.UpdateSize(widthComposited, heightComposited);
-                        forwardRenderPass_Transparent.UpdateTarget(new RenderPassDescTarget(depthTextureID, depthTexture.format, depthTexture.depth, true, true), 0);
-                        forwardRenderPass_Transparent.UpdateTarget(new RenderPassDescTarget(colorTextureID, colorTexture.format, 0, true, true), 1);
+                        renderPass_Transparent.UpdateSize(widthComposited, heightComposited);
+                        renderPass_Transparent.UpdateTarget(new RenderPassDescTarget(depthTextureID, depthTexture.format, depthTexture.depth, true, true), 0);
+                        renderPass_Transparent.UpdateTarget(new RenderPassDescTarget(colorTextureID, colorTexture.format, 0, true, true), 1);
                     }
 				}
                 else
                 {
+                    viewport.x *= widthTarget;
+                    viewport.y *= heightTarget;
+                    viewport.width *= widthTarget;
+                    viewport.height *= heightTarget;
+                    
+                    texelWidth = 1f / widthTarget;
+                    texelHeight = 1f / heightTarget;
+                    
                     // render-pass desc
-                    if (!forwardRenderPass_Opaque.isInit)
+                    if (!renderPass_Opaque.isInit)
                     {
                         var targets = new RenderPassDescTarget[2]
                         {
                             new RenderPassDescTarget(cameraTargetDepthTextureID, RenderTextureFormat.Depth, cameraTargetDepth, false, true, clearDepth, backgroundColor),
                             new RenderPassDescTarget(cameraTargetTextureID, cameraTargetFormat, 0, false, true, clearColor, backgroundColor)
                         };
-                        forwardRenderPass_Opaque = new RenderPassDesc(widthRenderTarget, heightRenderTarget, targets);
+                        renderPass_Opaque = new RenderPassDesc(widthTarget, heightTarget, targets, 1);
                     }
                     else
                     {
-                        forwardRenderPass_Opaque.UpdateSize(widthRenderTarget, heightRenderTarget);
-                        forwardRenderPass_Opaque.UpdateTarget(new RenderPassDescTarget(cameraTargetDepthTextureID, RenderTextureFormat.Depth, cameraTargetDepth, false, true, clearDepth, backgroundColor), 0);
-                        forwardRenderPass_Opaque.UpdateTarget(new RenderPassDescTarget(cameraTargetTextureID, cameraTargetFormat, 0, false, true, clearColor, backgroundColor), 1);
+                        renderPass_Opaque.UpdateSize(widthTarget, heightTarget);
+                        renderPass_Opaque.UpdateTarget(new RenderPassDescTarget(cameraTargetDepthTextureID, RenderTextureFormat.Depth, cameraTargetDepth, false, true, clearDepth, backgroundColor), 0);
+                        renderPass_Opaque.UpdateTarget(new RenderPassDescTarget(cameraTargetTextureID, cameraTargetFormat, 0, false, true, clearColor, backgroundColor), 1);
                     }
 
-                    if (!forwardRenderPass_Transparent.isInit)
+                    if (!renderPass_Transparent.isInit)
                     {
                         var targets = new RenderPassDescTarget[2]
                         {
                             new RenderPassDescTarget(cameraTargetDepthTextureID, RenderTextureFormat.Depth, cameraTargetDepth, true, true),
                             new RenderPassDescTarget(cameraTargetTextureID, cameraTargetFormat, 0, true, true)
                         };
-                        forwardRenderPass_Transparent = new RenderPassDesc(widthRenderTarget, heightRenderTarget, targets);
+                        renderPass_Transparent = new RenderPassDesc(widthTarget, heightTarget, targets, 1);
                     }
                     else
                     {
-                        forwardRenderPass_Transparent.UpdateSize(widthRenderTarget, heightRenderTarget);
-                        forwardRenderPass_Transparent.UpdateTarget(new RenderPassDescTarget(cameraTargetDepthTextureID, RenderTextureFormat.Depth, cameraTargetDepth, true, true), 0);
-                        forwardRenderPass_Transparent.UpdateTarget(new RenderPassDescTarget(cameraTargetTextureID, cameraTargetFormat, 0, true, true), 1);
+                        renderPass_Transparent.UpdateSize(widthTarget, heightTarget);
+                        renderPass_Transparent.UpdateTarget(new RenderPassDescTarget(cameraTargetDepthTextureID, RenderTextureFormat.Depth, cameraTargetDepth, true, true), 0);
+                        renderPass_Transparent.UpdateTarget(new RenderPassDescTarget(cameraTargetTextureID, cameraTargetFormat, 0, true, true), 1);
                     }
                 }
             }
@@ -400,12 +425,15 @@ namespace Reign.SRP
                 ReleaseTempRenderTexture(ref depthTextureClone);
 				ReleaseTempRenderTexture(ref colorTexture);
 				//ReleaseTempRenderTexture(ref velocityTexture);
-				ReleaseTempRenderTexture(ref compositingFinalTexture);
+                if (compositingTextures != null)
+                {
+                    for (int i = 0; i != compositingTextures.Length; ++i) ReleaseTempRenderTexture(ref compositingTextures[i]);
+                }
 
                 if (fullDispose)
                 {
-                    forwardRenderPass_Opaque.Dispose();
-                    forwardRenderPass_Transparent.Dispose();
+                    renderPass_Opaque.Dispose();
+                    renderPass_Transparent.Dispose();
                 }
             }
 
@@ -413,6 +441,12 @@ namespace Reign.SRP
             {
                 cmd.CopyTexture(depthTextureID, depthTextureCloneID);
                 cmd.SetGlobalTexture("_CameraDepthTexture", depthTextureCloneID, RenderTextureSubElement.Depth);
+            }
+            
+            public void ResolveCompositedMSAATexture(CommandBuffer cmd, RenderTexture target)
+            {
+                cmd.SetRenderTarget(colorTextureID);
+                cmd.ResolveAntiAliasedSurface(colorTexture, target);
             }
         }
     }

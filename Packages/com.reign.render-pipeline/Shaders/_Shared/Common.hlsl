@@ -133,7 +133,7 @@ SAMPLER(sampler_CameraDepthTexture);
 float4x4 clipToWorld;//, worldToClip;
 
 // compositing
-float4 compositingSize;
+float4 targetSize;
 
 // ======================================
 // lightmapping

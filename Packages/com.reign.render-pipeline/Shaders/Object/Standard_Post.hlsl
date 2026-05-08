@@ -99,7 +99,7 @@ PS_OUT frag(VS_OUT i)
     
     // get position
     float3 pos = i.pos;
-    //float2 posUV = i.positionCS.xy / compositingSize.xy;
+    //float2 posUV = i.positionCS.xy / targetSize.xy;
 
     // get eye direction
     real3 eyeDir = normalize(pos - _WorldSpaceCameraPos);
