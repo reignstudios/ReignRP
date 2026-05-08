@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -209,5 +210,62 @@ namespace Reign.SRP
 			var data = (byte*)ptr;
 			for (int i = 0; i != size; ++i) data[i] = 0;
 		}
+
+		private static RenderTexture GetTemporaryRenderTexture(RenderTextureDescriptor desc)
+        {
+            desc.width = Mathf.Max(1, desc.width);
+            desc.height = Mathf.Max(1, desc.height);
+
+            var texture = RenderTexture.GetTemporary(desc);
+            if (!texture.IsCreated()) texture.Create();
+            return texture;
+        }
+
+		private static void ReleaseTempRenderTexture(ref RenderTexture texture)
+		{
+			if (texture)
+			{
+                try
+                {
+					RenderTexture.ReleaseTemporary(texture);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
+				texture = null;
+            }
+        }
+
+        private static void DisposeTexture(ref Texture2D texture)
+		{
+			if (texture)
+			{
+                try
+                {
+					GameObject.DestroyImmediate(texture);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
+				texture = null;
+            }
+        }
+
+        private static void DisposeNativeArray<T>(in NativeArray<T> array) where T : struct
+		{
+			if (array.IsCreated)
+			{
+                try
+                {
+					array.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
+            }
+        }
     }
 }
