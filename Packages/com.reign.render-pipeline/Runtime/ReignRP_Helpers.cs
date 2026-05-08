@@ -178,14 +178,13 @@ namespace Reign.SRP
             public int cameraTargetDepth;
 
             public RenderTexture depthTexture, depthTextureClone;
-			public RenderTexture colorTexture, normalTexture, compositingFinalTexture;
-			public RenderTexture velocityTexture;
+			public RenderTexture colorTexture, compositingFinalTexture;
+			//public RenderTexture velocityTexture;
 
             public RenderTargetIdentifier depthTextureID, depthTextureCloneID;
-			public RenderTargetIdentifier colorTextureID, normalTextureID, compositingFinalTextureID;
+			public RenderTargetIdentifier colorTextureID, compositingFinalTextureID;
             public RenderTargetIdentifier velocityTextureID;
             public RenderPassDesc forwardRenderPass_Opaque, forwardRenderPass_Transparent;
-            public RenderPassDesc deferredRenderPass_Opaque, deferredRenderPass_Transparent;
 			public int width, height, widthComposited, heightComposited, widthRenderTarget, heightRenderTarget;
             public float texelWidth, texelHeight;
 			public Matrix4x4 cameraViewProj_Last;
@@ -400,16 +399,13 @@ namespace Reign.SRP
                 ReleaseTempRenderTexture(ref depthTexture);
                 ReleaseTempRenderTexture(ref depthTextureClone);
 				ReleaseTempRenderTexture(ref colorTexture);
-				ReleaseTempRenderTexture(ref normalTexture);
-				ReleaseTempRenderTexture(ref velocityTexture);
+				//ReleaseTempRenderTexture(ref velocityTexture);
 				ReleaseTempRenderTexture(ref compositingFinalTexture);
 
                 if (fullDispose)
                 {
                     forwardRenderPass_Opaque.Dispose();
                     forwardRenderPass_Transparent.Dispose();
-                    deferredRenderPass_Opaque.Dispose();
-                    deferredRenderPass_Transparent.Dispose();
                 }
             }
 
