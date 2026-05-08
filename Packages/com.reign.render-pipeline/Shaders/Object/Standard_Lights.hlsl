@@ -18,17 +18,10 @@ struct MaterialParams
 float4 directionalLight_Direction;
 float4 directionalLight_Color;
 
-SAMPLER(sampler_PointLightTexture_Count);
-TEXTURE2D(_PointLightTexture_Count);
-
-SAMPLER(sampler_PointLightTexture_Positions);
-TEXTURE2D(_PointLightTexture_Positions);
-
-SAMPLER(sampler_PointLightTexture_Colors);
-TEXTURE2D(_PointLightTexture_Colors);
-
-float4 pointLightTextureSizes;
-float pointLightCellSize;
+#define MAX_POINT_LIGHT_COUNT 4
+float4 pointLight_Positions[MAX_POINT_LIGHT_COUNT];
+float4 pointLight_Colors[MAX_POINT_LIGHT_COUNT];
+float pointLight_Count;
 
 // === PBR Util ===
 real4 SampleEnvironment(real3 direction, real roughness)
@@ -95,19 +88,15 @@ inline real4 Process_PointLight(MaterialParams materialParams, real3 eyeDir, rea
 #endif
 
 #ifndef REIGN_Process_PointLights_OVERRIDE
-real4 Process_PointLights(MaterialParams materialParams, real3 eyeDir, float3 pixelPos, float2 posUV)
+real4 Process_PointLights(MaterialParams materialParams, real3 eyeDir, float3 pos)
 {
     real4 light = real4(0, 0, 0, 0);
-    int pointLight_Count = (int)(_PointLightTexture_Count.Load(int3(posUV * pointLightTextureSizes.xy, 0)).x * 255.0);
-    int cellPixelWidth = pointLightCellSize;
-    int2 cellRegion = floor(posUV * pointLightTextureSizes.xy) * cellPixelWidth;
     [loop] for (int i = 0; i < pointLight_Count; ++i)
     {
-        int3 uv = int3(fmod(i, cellPixelWidth) + cellRegion.x, (i / cellPixelWidth) + cellRegion.y, 0);
-        float4 lightPos = _PointLightTexture_Positions.Load(uv);
-        real4 lightColor = _PointLightTexture_Colors.Load(uv);
+        float4 lightPos = pointLight_Positions[i];
+        real4 lightColor = pointLight_Colors[i];
 
-        real3 vec = pixelPos - lightPos.xyz;
+        real3 vec = pos - lightPos.xyz;
         real distance = length(vec);
         [branch] if (distance >= lightPos.w) continue;
 
@@ -116,6 +105,7 @@ real4 Process_PointLights(MaterialParams materialParams, real3 eyeDir, float3 pi
     return light;
 }
 #endif
+
 
 // === Ambient ===
 #ifndef REIGN_Process_AmbientLight_OVERRIDE

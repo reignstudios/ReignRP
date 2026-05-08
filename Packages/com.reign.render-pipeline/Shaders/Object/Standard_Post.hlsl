@@ -99,7 +99,7 @@ PS_OUT frag(VS_OUT i)
     
     // get position
     float3 pos = i.pos;
-    float2 posUV = i.positionCS.xy / compositingSize.xy;
+    //float2 posUV = i.positionCS.xy / compositingSize.xy;
 
     // get eye direction
     real3 eyeDir = normalize(pos - _WorldSpaceCameraPos);
@@ -107,7 +107,7 @@ PS_OUT frag(VS_OUT i)
     // compute shade
     o.color = Process_DirectionalLights(materialParams, eyeDir);
     #ifndef REIGN_POINT_LIGHTS_DISABLE
-    o.color += Process_PointLights(materialParams, eyeDir, pos, posUV);
+    o.color += Process_PointLights(materialParams, eyeDir, pos);
     #endif
     o.color += Process_AmbientLight(materialParams);
     //o.color += materialParams.emissive;

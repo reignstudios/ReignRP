@@ -53,10 +53,11 @@ namespace Reign.SRP
 
 		private Vector4 directionalLight_Direction, directionalLight_Color;
 
+		private const int pointLight_MaxConst = 4;
 		private int pointLight_Max;
 		private Vector4[] pointLight_Positions, pointLight_Colors;
-		private Vector4h[] pointLight_PositionsH, pointLight_ColorsH;
-		private VisibleLight[] forwardPlusVisibleLights_Point;
+		private Vector4[] pointLight_Positions_Const, pointLight_Colors_Const;
+		private float[] pointLight_Distances;
 
         private bool motionBlurEnabled;
 
@@ -67,7 +68,6 @@ namespace Reign.SRP
         public static int gameHeight { get; private set; }
 
 		public static int cpuThreadCount { get; private set; }
-		public static bool forwardPlusSupported { get; private set; }
 		public static bool texturesSupported_32Bit { get; private set; }
         public static GraphicsDeviceType graphicsDeviceType { get; private set; }
 		public static int graphicsShaderLevel { get; private set; }
@@ -88,6 +88,7 @@ namespace Reign.SRP
 			GraphicsSettings.useScriptableRenderPipelineBatching = false;
 			GraphicsSettings.lightsUseLinearIntensity = true;
 			XRSettings.eyeTextureResolutionScale = 1;
+			XRSettings.gameViewRenderMode = asset.xrPreviewMode;
 
 			// create command buffer
 			cmd = new CommandBuffer();
@@ -116,21 +117,7 @@ namespace Reign.SRP
 			graphicsDeviceType = SystemInfo.graphicsDeviceType;
             graphicsShaderLevel = SystemInfo.graphicsShaderLevel;
 			isOpenGL = graphicsDeviceType == GraphicsDeviceType.OpenGLCore || graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
-
-			if
-			(
-				SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, GraphicsFormatUsage.Sample) && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, GraphicsFormatUsage.SetPixels32) &&
-				SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.Sample) && SystemInfo.IsFormatSupported(GraphicsFormat.R16G16B16A16_SFloat, GraphicsFormatUsage.SetPixels)
-			)
-			{
-				forwardPlusSupported = true;
-				texturesSupported_32Bit = SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, GraphicsFormatUsage.Sample) && SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, GraphicsFormatUsage.SetPixels);
-			}
-			else
-			{
-				forwardPlusSupported = false;
-				Debug.LogError("Forward+ is not supported.");
-			}
+			texturesSupported_32Bit = SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, GraphicsFormatUsage.Sample) && SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, GraphicsFormatUsage.SetPixels);
 		}
 
 		private void CheckResourceInit()
@@ -148,10 +135,13 @@ namespace Reign.SRP
                 pointLight_Positions = new Vector4[pointLight_Max];
 				pointLight_Colors = new Vector4[pointLight_Max];
 
-				pointLight_PositionsH = new Vector4h[pointLight_Max];
-				pointLight_ColorsH = new Vector4h[pointLight_Max];
+				pointLight_Distances = new float[pointLight_Max];
+			}
 
-				forwardPlusVisibleLights_Point = new VisibleLight[pointLight_Max];
+			if (pointLight_Positions_Const == null)
+			{
+				pointLight_Positions_Const = new Vector4[pointLight_MaxConst];
+				pointLight_Colors_Const = new Vector4[pointLight_MaxConst];
 			}
         }
 		
@@ -282,6 +272,62 @@ namespace Reign.SRP
 			cameras.Sort(cameraDataComparer);
 		}
 
+		private void SortPointLights(Camera camera, int pointLight_Count)
+        {
+            // get light distances from camera
+            var camPos = camera.transform.position;
+            for (int i = 0; i != pointLight_Count; ++i)
+            {
+                Vector3 lightPos = pointLight_Positions[i];
+                var vec = lightPos - camPos;
+                pointLight_Distances[i] = Vector3.Dot(vec, vec);
+            }
+
+			// sort lights by distance to camera
+            for (int i = 0; i != pointLight_Count; ++i)
+            {
+                float dis = pointLight_Distances[i];
+                for (int i2 = i + 1; i2 < pointLight_Count; ++i2)
+                {
+                    if (pointLight_Distances[i2] < dis)
+                    {
+                        pointLight_Distances[i] = pointLight_Distances[i2];
+                        pointLight_Distances[i2] = dis;
+                        dis = pointLight_Distances[i];
+
+                        var current = pointLight_Positions[i];
+                        pointLight_Positions[i] = pointLight_Positions[i2];
+                        pointLight_Positions[i2] = current;
+
+                        current = pointLight_Colors[i];
+                        pointLight_Colors[i] = pointLight_Colors[i2];
+                        pointLight_Colors[i2] = current;
+                    }
+                }
+            }
+
+            // set closest lights to full forward
+            CopyPointLightsToConsts(pointLight_Count);
+        }
+
+		private void CopyPointLightsToConsts(int pointLight_Count)
+		{
+			for (int i = 0; i != pointLight_MaxConst; ++i)
+            {
+                if (i < pointLight_Count)
+                {
+                    pointLight_Positions_Const[i] = pointLight_Positions[i];
+                    pointLight_Colors_Const[i] = pointLight_Colors[i];
+                }
+                else
+                {
+                    pointLight_Positions_Const[i] = Vector4.zero;
+                    pointLight_Colors_Const[i] = Vector4.zero;
+                }
+            }
+		}
+
+
 		private void RenderPass(ref ScriptableRenderContext context, Camera camera)
 		{
 			if (asset.compositionDivision < 1) asset.compositionDivision = 1;
@@ -347,7 +393,6 @@ namespace Reign.SRP
 					case LightType.Point:
 						if (pointLight_Count < pointLight_Max)
 						{
-							forwardPlusVisibleLights_Point[pointLight_Count] = light;
 							pointLight_Positions[pointLight_Count] = light.light.transform.position;
 							pointLight_Positions[pointLight_Count].w = light.range;
 							pointLight_Colors[pointLight_Count] = light.finalColor;
@@ -362,15 +407,13 @@ namespace Reign.SRP
 			cmd.SetGlobalVector("directionalLight_Direction", directionalLight_Direction);
 			cmd.SetGlobalVector("directionalLight_Color", directionalLight_Color);
 			cmd.SetGlobalFloat("directionalLight_Count", directionalLight_Count);
-
-			if (pointLight_Count > 0 && forwardPlusSupported)
+			if (pointLight_Count > 0)
 			{
-				ProcessForwardPlusLights(cameraResource, pointLight_Count, out var textureSizes);
-				cmd.SetGlobalTexture("_PointLightTexture_Count", cameraResource.pointLightTexture_Count);
-				cmd.SetGlobalTexture("_PointLightTexture_Positions", cameraResource.pointLightTexture_Positions);
-				cmd.SetGlobalTexture("_PointLightTexture_Colors", cameraResource.pointLightTexture_Colors);
-				cmd.SetGlobalVector("pointLightTextureSizes", textureSizes);
-				cmd.SetGlobalFloat("pointLightCellSize", asset.forwardPlusCellSize);
+				if (asset.sortPointLights) SortPointLights(camera, pointLight_Count);
+				else CopyPointLightsToConsts(pointLight_Count);
+				cmd.SetGlobalVectorArray("pointLight_Positions", pointLight_Positions_Const);
+				cmd.SetGlobalVectorArray("pointLight_Colors", pointLight_Colors_Const);
+				cmd.SetGlobalFloat("pointLight_Count", Math.Min(pointLight_Count, pointLight_MaxConst));
 				cmd.DisableShaderKeyword("REIGN_POINT_LIGHTS_DISABLE");
 			}
 			else

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
+using UnityEngine.XR;
 
 namespace Reign.SRP
 {
@@ -12,6 +13,8 @@ namespace Reign.SRP
 
 		public int compositionDivision = 1, fullscreenSwapchainResolutionDivision = 1;
 		public int maxLights = -1;
+		[Tooltip("Uses closes lights to camera")]
+		public bool sortPointLights = false;
 
         [Tooltip("Cells for longest dimension")]
 		public int forwardPlusCellCount = 16;
@@ -32,12 +35,14 @@ namespace Reign.SRP
 
 		[Tooltip("Culls & processes Reflection Probes (disable to increase performance)")]
 		public bool enableReflectionProbes = true;
-		
 		[Tooltip("Culls & processes Lightmaps (disable to increase performance)")]
 		public bool enableLightmaps = true;
-		
 		[Tooltip("Processes Motion Vectors (disable to increase performance)")]
 		public bool enableMotionVectors = false;
+
+		[Tooltip("Show VR preview in App Window (Auto disabled on mobile platforms)")]
+		public bool xrPreview = true;
+		public GameViewRenderMode xrPreviewMode = GameViewRenderMode.BothEyes;
 
 		public ReignRenderPipelineResources resources;
 		public override Shader terrainDetailGrassShader => (resources != null && resources.shaders != null) ? resources.shaders.terrainGrassShader : null;
