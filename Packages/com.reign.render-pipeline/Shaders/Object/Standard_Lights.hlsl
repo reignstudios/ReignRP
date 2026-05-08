@@ -106,7 +106,6 @@ real4 Process_PointLights(MaterialParams materialParams, real3 eyeDir, float3 po
 }
 #endif
 
-
 // === Ambient ===
 #ifndef REIGN_Process_AmbientLight_OVERRIDE
 inline real4 Process_AmbientLight(MaterialParams materialParams)

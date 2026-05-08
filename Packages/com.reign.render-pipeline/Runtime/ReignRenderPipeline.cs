@@ -705,18 +705,15 @@ namespace Reign.SRP
 		{
 			// make sure editor camera target textures are enabled
 			#if UNITY_EDITOR
-			if (camera.cameraType != CameraType.SceneView)
-			{
-				cmd.Clear();
-				if (camera.targetTexture) cmd.SetRenderTarget(camera.targetTexture);
-				else cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
-				context.ExecuteCommandBuffer(cmd);
+			cmd.Clear();
+			if (camera.targetTexture) cmd.SetRenderTarget(camera.targetTexture);
+			else cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget);
+			context.ExecuteCommandBuffer(cmd);
 
-				// draw post gizmos
-				if (camera.cameraType == CameraType.SceneView && Handles.ShouldRenderGizmos())
-				{
-					context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
-				}
+			// draw post gizmos
+			if (camera.cameraType == CameraType.SceneView && Handles.ShouldRenderGizmos())
+			{
+				context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
 			}
 			#endif
 
