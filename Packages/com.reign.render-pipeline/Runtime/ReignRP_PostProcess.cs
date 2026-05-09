@@ -7,16 +7,16 @@ using UnityEngine.Rendering;
 namespace Reign.SRP
 {
 	[RequireComponent(typeof(Camera))]
-	public abstract class ReignPostProcess : MonoBehaviour
+	public abstract class ReignRP_PostProcess : MonoBehaviour
 	{
 		public bool previewInSceneView = true;
 
-		public virtual bool IsSupported(ReignPostProcessResources resources)
+		public virtual bool IsSupported(ReignRP_PostProcessResources resources)
         {
 			return true;
         }
 
-		public abstract void OnPostProcess(ReignPostProcessResources resources, CommandBuffer cmd, ref ScriptableRenderContext context, Texture src, RenderTexture dst);
+		public abstract void OnPostProcess(ReignRP_PostProcessResources resources, CommandBuffer cmd, in ScriptableRenderContext context, RenderTexture src, RenderTexture dst);
 
 		private static Mesh mesh;
 		public static Mesh GetBlitMesh()
@@ -61,21 +61,20 @@ namespace Reign.SRP
 		}
 	}
 
-	public class ReignPostProcessResources
+	public class ReignRP_PostProcessResources
 	{
-		public readonly int width, height;
-		public readonly Camera camera;
-		public readonly Texture baseColorTexture, materialTexture, normalTexture, emissionTexture;
-		public readonly Texture screenSpaceRoughnessTex, velocityTexture;
-		public readonly GraphicsFormat lightFormat;
+		public int width { get; private set; }
+		public int height { get; private set; }
+		public Camera camera { get; private set; }
+		public RenderTexture colorTexture { get; private set; }
+		//public Texture velocityTexture { get; private set; }
 
-		public ReignPostProcessResources
+		internal void Update
 		(
 			int width, int height,
 			Camera camera,
-			Texture baseColorTexture, Texture materialTexture, Texture normalTexture, Texture emissionTexture,
-			Texture screenSpaceRoughnessTex, Texture velocityTexture,
-			GraphicsFormat lightFormat
+			RenderTexture colorTexture
+			//Texture velocityTexture
 		)
 		{
 			this.width = width;
@@ -83,15 +82,8 @@ namespace Reign.SRP
 
 			this.camera = camera;
 
-			this.baseColorTexture = baseColorTexture;
-			this.materialTexture = materialTexture;
-			this.normalTexture = normalTexture;
-			this.emissionTexture = emissionTexture;
-
-			this.screenSpaceRoughnessTex = screenSpaceRoughnessTex;
-			this.velocityTexture = velocityTexture;
-
-			this.lightFormat = lightFormat;
+			this.colorTexture = colorTexture;
+			//this.velocityTexture = velocityTexture;
 		}
 	}
 }

@@ -73,6 +73,8 @@ namespace Reign.SRP
 		public static int graphicsShaderLevel { get; private set; }
 		public static bool isOpenGL { get; private set; }
 
+		public static bool refreshPostProcessState = true;
+
 		private List<XRDisplaySubsystem> xrSubsystemList;
 		private XRRenderPassInfo xrRenderPassInfo = new XRRenderPassInfo();
 		public static bool xrActive => singleton != null ? singleton.xrRenderPassInfo.isXRActive : false;
@@ -148,6 +150,10 @@ namespace Reign.SRP
 		
         protected override void Render(ScriptableRenderContext context, List<Camera> cameras)
         {
+			#if UNITY_EDITOR
+			refreshPostProcessState = true;// force refresh in editor each frame
+			#endif
+
 			// ensure asset settings are valid
 			asset.ValidateSettings();
 
@@ -186,7 +192,9 @@ namespace Reign.SRP
 				}
 			}
 
-            // set shader time vars
+            // set shader vars
+			cmd.Clear();
+			cmd.SetGlobalVector("randoValues", new Vector4(UnityEngine.Random.value * 12.9898f, UnityEngine.Random.value * 78.233f, UnityEngine.Random.value * 43758.5453123f, 0));
             SetShaderTimeValues(cmd, Time.time, Time.deltaTime, Time.smoothDeltaTime);
             context.ExecuteCommandBuffer(cmd);
 
@@ -244,6 +252,7 @@ namespace Reign.SRP
 			
             // render scene
             EndContextRendering(context, cameras);
+			refreshPostProcessState = false;// stop refresh
         }
 
 		private void SetShaderTimeValues(CommandBuffer cmd, float time, float deltaTime, float smoothDeltaTime)
@@ -482,8 +491,8 @@ namespace Reign.SRP
 			// compositing
 			if (asset.enableComposition)
 			{
-				#if UNITY_EDITOR
 				Mesh blitMesh;
+				#if UNITY_EDITOR
 				if (isOpenGL)
 				{
 					blitMesh = BlitMesh.mesh;
@@ -493,39 +502,60 @@ namespace Reign.SRP
 					blitMesh = (camera.cameraType == CameraType.SceneView || camera.cameraType == CameraType.Preview) ? BlitMesh.meshFlipped : BlitMesh.mesh;
 				}
 				#else
-				var blitMesh = BlitMesh.mesh;
+				blitMesh = BlitMesh.mesh;
 				#endif
 				
 				// grab initial target
-				var finalTextureID = cameraResource.colorTextureID;
+				var finalTexture = cameraResource.colorTexture;
 
 				// resolve MSAA texture if needed
 				cmd.Clear();
 				if (asset.compositionMSAA != MSAA_Level.Off)
 				{
 					cameraResource.ResolveCompositedMSAATexture(cmd, cameraResource.compositingTextures[0]);
-					finalTextureID = cameraResource.compositingTexturesID[0];
+					finalTexture = cameraResource.compositingTextures[0];
 				}
 				
 				// Post-Processing
-				// TODO
+				if (cameraResource.postProcesses != null && cameraResource.postProcesses.Length != 0)
+				{
+					var postProcessSrc = finalTexture;
+					var postProcessDst = cameraResource.compositingTextures[1];
+					int compositingIndex = 0;
+					foreach (var postProcess in cameraResource.postProcesses)
+					{
+						if (!postProcess.enabled || !postProcess.IsSupported(cameraResource.postProcessResources)) continue;
+
+						#if UNITY_EDITOR
+						if (!postProcess.previewInSceneView && camera.cameraType == CameraType.SceneView) continue;
+						#endif
+
+						postProcess.OnPostProcess(cameraResource.postProcessResources, cmd, context, postProcessSrc, postProcessDst);
+						compositingIndex = 1 - compositingIndex;
+						postProcessSrc = postProcessDst;
+						postProcessDst = cameraResource.compositingTextures[compositingIndex];
+					}
+					finalTexture = postProcessSrc;
+				}
 				
 				// copy final result
 				cmd.SetRenderTarget(cameraResource.cameraTargetTextureID);
-				cmd.SetGlobalTexture("_BlitTex", finalTextureID);
+				cmd.SetGlobalTexture("_BlitTex", finalTexture);
 				cmd.DrawMesh(blitMesh, Matrix4x4.identity, blitMaterial);
 				context.ExecuteCommandBuffer(cmd);
 			}
-			else if (xrRenderPassInfo.isXRActive && asset.xrPreview)
+			
+			// XR
+			if (xrRenderPassInfo.isXRActive && asset.xrPreview)
 			{
 				#if UNITY_EDITOR || UNITY_STANDALONE
-				bool draw = false;
+				bool copyPreview = false;
 				var eye = XRSettings.gameViewRenderMode;
 				var r = camera.pixelRect;
 				if (xrRenderPassInfo.eyePass < 0)
 				{
 					r = camera.pixelRect;
-					draw = eye == GameViewRenderMode.BothEyes;
+					copyPreview = eye == GameViewRenderMode.BothEyes;
 				}
 				else
 				{
@@ -536,11 +566,11 @@ namespace Reign.SRP
 						{
 							r.x = 0;
 							r.width /= 2;
-							draw = true;
+							copyPreview = true;
 						}
 						else if (eye == GameViewRenderMode.LeftEye)
 						{
-							draw = true;
+							copyPreview = true;
 						}
 					}
 					else
@@ -549,18 +579,18 @@ namespace Reign.SRP
 						{
 							r.x = r.width / 2;
 							r.width /= 2;
-							draw = true;
+							copyPreview = true;
 						}
 						else if (eye == GameViewRenderMode.RightEye)
 						{
-							draw = true;
+							copyPreview = true;
 						}
 					}
 
-					if (eye == GameViewRenderMode.OcclusionMesh) draw = true;
+					if (eye == GameViewRenderMode.OcclusionMesh) copyPreview = true;
 				}
 
-				if (draw)
+				if (copyPreview)
 				{
 					cmd.Clear();
 					cmd.SetRenderTarget(BuiltinRenderTextureType.None);

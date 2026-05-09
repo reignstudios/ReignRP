@@ -174,6 +174,9 @@ namespace Reign.SRP
 			public readonly ReignRP pipeline;
 			private readonly ReignRenderPipelineAsset asset;
 
+            public ReignRP_PostProcessResources postProcessResources;
+            public ReignRP_PostProcess[] postProcesses;
+
             public RenderTexture cameraTargetTexture;
             public RenderTargetIdentifier cameraTargetTextureID, cameraTargetDepthTextureID;
             public RenderTextureFormat cameraTargetFormat;
@@ -368,6 +371,11 @@ namespace Reign.SRP
                         renderPass_Transparent.UpdateTarget(new RenderPassDescTarget(depthTextureID, depthTexture.format, depthTexture.depth, true, true), 0);
                         renderPass_Transparent.UpdateTarget(new RenderPassDescTarget(colorTextureID, colorTexture.format, 0, true, true), 1);
                     }
+
+                    // post-process resources
+                    if (postProcessResources == null) postProcessResources = new ReignRP_PostProcessResources();
+                    postProcessResources.Update(widthComposited, heightComposited, camera, colorTexture);
+                    if (refreshPostProcessState) postProcesses = camera.GetComponents<ReignRP_PostProcess>();
 				}
                 else
                 {
