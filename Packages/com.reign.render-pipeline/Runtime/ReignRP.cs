@@ -137,7 +137,6 @@ namespace Reign.SRP
 			{
                 pointLight_Positions = new Vector4[pointLight_Max];
 				pointLight_Colors = new Vector4[pointLight_Max];
-
 				pointLight_Distances = new float[pointLight_Max];
 			}
 
@@ -208,7 +207,6 @@ namespace Reign.SRP
                 if (IsXREnabled(camera))
                 {
                     // validate XR single-pass support
-                    //bool singlepassSupported = false;
 					if (xrSubsystemList == null) xrSubsystemList = new List<XRDisplaySubsystem>();
                     if (xrSubsystemList.Count == 0)
 					{
