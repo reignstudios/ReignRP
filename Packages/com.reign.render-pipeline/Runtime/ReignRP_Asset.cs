@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
@@ -46,6 +47,7 @@ namespace Reign.SRP
 		public override Shader terrainDetailGrassShader => (resources != null && resources.shaders != null) ? resources.shaders.terrainGrassShader : null;
 		public override Shader terrainDetailGrassBillboardShader => (resources != null && resources.shaders != null) ? resources.shaders.terrainGrassBillboardShader : null;
 		public override string renderPipelineShaderTag => "ReignRP";
+		public override Type pipelineType => typeof(ReignRP);
 
 		private void Awake()
 		{
