@@ -267,5 +267,16 @@ namespace Reign.SRP
                 }
             }
         }
+
+		private void CopyTexture(Texture srcTexture, RenderTextureSubElement srcElement, int srcMipLvl, RenderTexture dstTexture, int dstMipLvl, Material copyMaterial, int copyMaterialPass)
+		{
+			var blitMesh = BlitMesh.mesh;
+			cmd.SetGlobalVector("srcRect", new Vector4(0, 0, 1, 1));
+			cmd.SetGlobalVector("dstRect", new Vector4(0, 0, 1, 1));
+			cmd.SetGlobalFloat("srcMipLvl", srcMipLvl);
+			cmd.SetRenderTarget(dstTexture, dstMipLvl);
+			cmd.SetGlobalTexture("_SrcTex", srcTexture, srcElement);
+			cmd.DrawMesh(blitMesh, Matrix4x4.identity, copyMaterial, 0, copyMaterialPass);
+		}
     }
 }

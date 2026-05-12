@@ -1,4 +1,4 @@
-﻿Shader "Reign/Standard"
+﻿Shader "ReignRP/Lit"
 {
     Properties
     {
@@ -30,7 +30,7 @@
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma _ multi_compile_instancing
+            #pragma multi_compile_instancing
             #pragma multi_compile _ REIGN_POINT_LIGHTS_DISABLE
 
             #include "Standard_Pre.hlsl"

@@ -1,4 +1,4 @@
-﻿Shader "Reign/TerrainGrass"
+﻿Shader "ReignRP/TerrainGrass"
 {
     Properties
     {

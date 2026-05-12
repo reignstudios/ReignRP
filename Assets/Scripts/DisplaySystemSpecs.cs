@@ -31,7 +31,7 @@ public class DisplaySystemSpecs : MonoBehaviour
 	private void OnGUI()
 	{
 		#if !UNITY_EDITOR && !UNITY_STANDALONE
-		if (Reign.SRP.ReignRenderPipeline.xrActive) return;
+		if (Reign.SRP.ReignRP.xrActive) return;
 		#endif
 		
 		var rect = new Rect(10, 10, 100, 20);

@@ -610,6 +610,15 @@ namespace Reign.SRP
 
 		private void StartRenderPass(in ScriptableRenderContext context, in RenderPassDesc renderPassDesc, CameraResource cameraResource)
 		{
+			// get binding slice
+			int slice = 0;
+			if (xrRenderPassInfo.isXRActive)
+			{
+				if (xrRenderPassInfo.eyePass < 0) slice = RenderTargetIdentifier.AllDepthSlices;
+				else slice = xrRenderPassInfo.parameter.textureArraySlice;
+			}
+
+			// configure
 			var camera = cameraResource.camera;
             if (asset.useRenderPasses)
             {
@@ -617,8 +626,12 @@ namespace Reign.SRP
 				{
 					cmd.Clear();
 
+					// enable targets
+					if (renderPassDesc.renderTargets.Length >= 2) cmd.SetRenderTarget(renderPassDesc.renderTargets, renderPassDesc.renderTarget_Depth, 0, CubemapFace.Unknown, slice);
+					else cmd.SetRenderTarget(renderPassDesc.renderTarget_First, renderPassDesc.renderTarget_Depth, 0, CubemapFace.Unknown, slice);
+
 					// set viewport
-					if (!xrRenderPassInfo.isXRActive) cmd.SetViewport(cameraResource.viewport);
+					cmd.SetViewport(cameraResource.viewport);
 
 					// clear
 					ClearRenderPass(renderPassDesc);
@@ -633,35 +646,21 @@ namespace Reign.SRP
                 context.BeginSubPass(renderPassDesc.attachmentIndices);
 
 				// prep
-				if (xrRenderPassInfo.isXRActive)
-				{
-					// draw occlusion mesh
-					DrawOcclusionMesh(cameraResource);
-				}
-				else
-				{
-					// set viewport
-					cmd.Clear();
-					cmd.SetViewport(cameraResource.viewport);
-					context.ExecuteCommandBuffer(cmd);
-				}
+				cmd.Clear();
+				cmd.SetViewport(cameraResource.viewport);// set viewport
+				if (xrRenderPassInfo.isXRActive) DrawOcclusionMesh(cameraResource);// draw occlusion mesh
+				context.ExecuteCommandBuffer(cmd);
 			}
 			else
 			{
 				cmd.Clear();
 
 				// enable targets
-				if (renderPassDesc.renderTargets.Length >= 2)
-				{
-					cmd.SetRenderTarget(renderPassDesc.renderTargets, renderPassDesc.renderTarget_Depth);
-				}
-				else
-				{
-					cmd.SetRenderTarget(renderPassDesc.renderTarget_First, renderPassDesc.renderTarget_Depth);
-				}
+				if (renderPassDesc.renderTargets.Length >= 2) cmd.SetRenderTarget(renderPassDesc.renderTargets, renderPassDesc.renderTarget_Depth, 0, CubemapFace.Unknown, slice);
+				else cmd.SetRenderTarget(renderPassDesc.renderTarget_First, renderPassDesc.renderTarget_Depth, 0, CubemapFace.Unknown, slice);
 
 				// set viewport
-                if (!xrRenderPassInfo.isXRActive) cmd.SetViewport(cameraResource.viewport);
+                cmd.SetViewport(cameraResource.viewport);
 
                 // clear
 				ClearRenderPass(renderPassDesc);
@@ -934,87 +933,5 @@ namespace Reign.SRP
 			// base
 			base.Dispose(disposing);
 		}
-
-		/*private void PostProcess(ref ScriptableRenderContext context, Reign_PostProcessResources resources, Reign_PostProcess[] postProcesses, RenderTexture renderTextureSrcStart, RenderTexture renderTextureDstStart, out RenderTexture finalRenderTexture)
-		{
-			// Editor needs to refresh each frame in case changes are made
-			#if UNITY_EDITOR
-			postProcesses = null;
-			var camera = resources.camera;
-			if (camera.cameraType == CameraType.SceneView)
-			{
-				var sceneCameraObject = GameObject.FindGameObjectWithTag("MainCamera");
-				if (sceneCameraObject != null)
-				{
-					var sceneCamera = sceneCameraObject.GetComponent<Camera>();
-					if (sceneCamera != null) postProcesses = sceneCameraObject.GetComponents<Reign_PostProcess>();
-				}
-			}
-			else if (camera.cameraType == CameraType.Game)
-			{
-				postProcesses = camera.GetComponents<Reign_PostProcess>();
-			}
-
-			if (postProcesses == null)
-			{
-				finalRenderTexture = renderTextureSrcStart;
-				return;
-			}
-			#endif
-
-			foreach (var postProcess in postProcesses)
-			{
-				if (!postProcess.enabled || !postProcess.IsSupported(resources)) continue;
-				#if UNITY_EDITOR
-				if (!postProcess.previewInSceneView && resources.camera.cameraType == CameraType.SceneView) continue;
-				#endif
-				postProcess.OnPostProcess(resources, cmd, ref context, renderTextureSrcStart, renderTextureDstStart);
-				var src = renderTextureSrcStart;
-				renderTextureSrcStart = renderTextureDstStart;
-				renderTextureDstStart = src;
-			}
-			finalRenderTexture = renderTextureSrcStart;
-		}
-
-		private void CopyTexture(Texture srcTexture, RenderTextureSubElement srcElement, int srcMipLvl, RenderTexture dstTexture, int dstMipLvl, Material copyMaterial, int copyMaterialPass)
-		{
-			var blitMesh = Reign_PostProcess.GetBlitMesh();
-			cmd.SetGlobalVector("srcRect", new Vector4(0, 0, 1, 1));
-			cmd.SetGlobalVector("dstRect", new Vector4(0, 0, 1, 1));
-			cmd.SetGlobalFloat("srcMipLvl", srcMipLvl);
-			cmd.SetRenderTarget(dstTexture, dstMipLvl);
-			cmd.SetGlobalTexture("_SrcTex", srcTexture, srcElement);
-			cmd.DrawMesh(blitMesh, Matrix4x4.identity, copyMaterial, 0, copyMaterialPass);
-		}
-
-		private void BlurRoughnessTexture(Texture srcTexture, RenderTextureSubElement srcElement, RenderTexture screenSpaceTexture, RenderTexture screenSpaceTextureTEMP, Material roughnessBlurMaterial)
-		{
-			// blur mip levels
-			var blitMesh = Reign_PostProcess.GetBlitMesh();
-			cmd.SetGlobalFloat("srcMipLvl", 0);
-			cmd.SetRenderTarget(screenSpaceTexture, 0);
-			cmd.SetGlobalTexture("_SrcTex", srcTexture, srcElement);
-			cmd.DrawMesh(blitMesh, Matrix4x4.identity, roughnessBlurMaterial, 0, 0);
-			int mipWidth = screenSpaceTexture.width / 2;// start at half size
-			int mipHeight = screenSpaceTexture.height / 2;
-			for (int i = 1; i < screenSpaceTexture.mipmapCount; ++i)
-			{
-				// size-down
-				cmd.SetGlobalFloat("srcMipLvl", i - 1);
-				cmd.SetRenderTarget(screenSpaceTextureTEMP, i);
-				cmd.SetGlobalTexture("_SrcTex", screenSpaceTexture);
-				cmd.DrawMesh(blitMesh, Matrix4x4.identity, roughnessBlurMaterial, 0, 0);
-
-				// blur X
-				cmd.SetGlobalFloat("srcMipLvl", i);
-				cmd.SetRenderTarget(screenSpaceTexture, i);
-				cmd.SetGlobalTexture("_SrcTex", screenSpaceTextureTEMP);
-				cmd.SetGlobalVector("_SrcTex_ST", new Vector4(1f / mipWidth, 1f / mipHeight, mipWidth, mipHeight));
-				cmd.DrawMesh(blitMesh, Matrix4x4.identity, roughnessBlurMaterial, 0, 1);
-
-				mipWidth /= 2;
-				mipHeight /= 2;
-			}
-		}*/
     }
 }

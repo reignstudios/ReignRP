@@ -25,7 +25,7 @@ namespace Reign.SRP
 		public bool compositionDepthClone = false;
 		public MSAA_Level compositionMSAA = MSAA_Level.Off;
 		public CommonTextureFormat compositionColorFormat = CommonTextureFormat.UINT_A2_RGB10;
-		public DepthBit compositionDepthBit = DepthBit.Bit16;
+		public DepthBit compositionDepthBit = DepthBit.Bit24;
 
 		public ShadowType shadowType = ShadowType.Hard;
 		public ShadowRez shadowResolution = ShadowRez.Rez_1024;

@@ -266,7 +266,7 @@ namespace Reign.SRP
                         cameraTargetDepth = xrRenderPassInfo.pass.renderTargetDesc.depthBufferBits;
                         widthTarget = xrRenderPassInfo.pass.renderTargetDesc.width;
                         heightTarget = xrRenderPassInfo.pass.renderTargetDesc.height;
-                        viewport = new Rect(0, 0, 1, 1);// force full texture
+                        viewport = xrRenderPassInfo.parameter.viewport;
                     }
                     else
                     {
@@ -286,6 +286,16 @@ namespace Reign.SRP
                     cameraTargetDepth = cameraTargetTexture.depth;
                     widthTarget = cameraTargetTexture.width;
                     heightTarget = cameraTargetTexture.height;
+                    if (xrRenderPassInfo.isXRActive)
+                    {
+                        viewport = xrRenderPassInfo.parameter.viewport;
+                    }
+                }
+
+                if (xrRenderPassInfo.isXRActive)
+                {
+                    camera.worldToCameraMatrix = xrRenderPassInfo.parameter.view;
+				    camera.projectionMatrix = xrRenderPassInfo.parameter.projection;
                 }
 
                 // compositing

@@ -1,4 +1,4 @@
-Shader "Reign/Sky"
+Shader "ReignRP/Sky"
 {
     Properties
     {
