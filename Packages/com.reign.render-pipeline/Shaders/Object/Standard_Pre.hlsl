@@ -40,6 +40,7 @@ struct PS_OUT
 #endif
 
 #ifndef REIGN_INPUTS_OVERRIDE
+half4 _BaseColor;
 SAMPLER(sampler_BaseMap);
 TEXTURE2D(_BaseMap);
 float4 _BaseMap_ST;

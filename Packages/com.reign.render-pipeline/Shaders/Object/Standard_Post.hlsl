@@ -69,7 +69,7 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
     MaterialParams materialParams;
 
     // color
-    materialParams.color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv);
+    materialParams.color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv) * _BaseColor;
 
     // emissive color
     //materialParams.emissive = 0;// TODO
