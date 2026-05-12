@@ -106,10 +106,14 @@ PS_OUT frag(VS_OUT i)
 
     // compute shade
     o.color = Process_DirectionalLights(materialParams, eyeDir);
+    
     #ifndef REIGN_POINT_LIGHTS_DISABLE
     o.color += Process_PointLights(materialParams, eyeDir, pos);
     #endif
+    
+    #ifndef REIGN_AMBIENT_MODE_DISABLE
     o.color += Process_AmbientLight(materialParams);
+    #endif
     //o.color += materialParams.emissive;
 
     // custom outs

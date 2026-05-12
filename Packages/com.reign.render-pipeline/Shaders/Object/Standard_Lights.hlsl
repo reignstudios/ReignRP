@@ -110,8 +110,27 @@ real4 Process_PointLights(MaterialParams materialParams, real3 eyeDir, float3 po
 #ifndef REIGN_Process_AmbientLight_OVERRIDE
 inline real4 Process_AmbientLight(MaterialParams materialParams)
 {
-    real4 pbr = SampleEnvironment(materialParams.normal, .9);
+    #if defined(REIGN_AMBIENT_MODE_SKYBOX)
+    real4 pbr = SampleEnvironment(materialParams.normal, .9) * unity_AmbientSky.x;
     return materialParams.color * pbr;
+    #elif defined(REIGN_AMBIENT_MODE_GRADIENT)
+    return materialParams.color * lerp(lerp(unity_AmbientEquator, unity_AmbientGround, saturate(-materialParams.normal.y)), unity_AmbientSky, saturate(materialParams.normal.y));
+    #elif defined(REIGN_AMBIENT_MODE_COLOR)
+    return materialParams.color * unity_AmbientSky;
+    #else
+    return 0;
+    #endif
+    
+    // TODO: light-probe
+    /*real4 SHCoefficients[7];
+    SHCoefficients[0] = unity_SHAr;
+    SHCoefficients[1] = unity_SHAg;
+    SHCoefficients[2] = unity_SHAb;
+    SHCoefficients[3] = unity_SHBr;
+    SHCoefficients[4] = unity_SHBg;
+    SHCoefficients[5] = unity_SHBb;
+    SHCoefficients[6] = unity_SHC;
+    return real4(SampleSH9(SHCoefficients, materialParams.normal), 0.0);*/
 }
 #endif
 

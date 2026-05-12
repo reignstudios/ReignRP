@@ -32,6 +32,7 @@
             #pragma fragment frag
             #pragma multi_compile_instancing
             #pragma multi_compile _ REIGN_POINT_LIGHTS_DISABLE
+            #pragma multi_compile _ REIGN_AMBIENT_MODE_DISABLE REIGN_AMBIENT_MODE_SKYBOX REIGN_AMBIENT_MODE_GRADIENT REIGN_AMBIENT_MODE_COLOR
 
             #include "Standard_Pre.hlsl"
             #include "Standard_Post.hlsl"

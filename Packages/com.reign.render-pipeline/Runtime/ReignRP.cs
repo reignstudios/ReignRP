@@ -425,6 +425,8 @@ namespace Reign.SRP
 			{
 				cmd.EnableShaderKeyword("REIGN_POINT_LIGHTS_DISABLE");
 			}
+
+			SetAmbient();
 			context.ExecuteCommandBuffer(cmd);
 
 			// set special data
@@ -790,6 +792,57 @@ namespace Reign.SRP
 				cmd.DrawMesh(asset.resources.meshes.skyboxMesh, Matrix4x4.TRS(cam.position, Quaternion.identity, Vector3.one * camera.farClipPlane * .95f), RenderSettings.skybox, 0, 0);
 				context.ExecuteCommandBuffer(cmd);
 				//context.DrawSkybox(camera);// this has issues on GLES3 platforms. Use method above
+			}
+		}
+
+		private void SetAmbient()
+		{
+			cmd.DisableShaderKeyword("REIGN_AMBIENT_MODE_DISABLE");
+			cmd.DisableShaderKeyword("REIGN_AMBIENT_MODE_SKYBOX");
+			cmd.DisableShaderKeyword("REIGN_AMBIENT_MODE_GRADIENT");
+			cmd.DisableShaderKeyword("REIGN_AMBIENT_MODE_COLOR");
+			if (asset.ambientMode == GlobalAmbientMode.Unity_SceneSettings)
+			{
+				var ambientMode = RenderSettings.ambientMode;// custom = disabled
+				if (ambientMode == AmbientMode.Skybox)
+				{
+					cmd.EnableShaderKeyword("REIGN_AMBIENT_MODE_SKYBOX");
+					float a = RenderSettings.ambientIntensity;
+					cmd.SetGlobalVector("unity_AmbientSky", new Vector4(a, a, a, 0));
+				}
+				else if (ambientMode == AmbientMode.Trilight)
+				{
+					cmd.EnableShaderKeyword("REIGN_AMBIENT_MODE_GRADIENT");
+					cmd.SetGlobalVector("unity_AmbientSky", RenderSettings.ambientSkyColor);
+					cmd.SetGlobalVector("unity_AmbientEquator", RenderSettings.ambientEquatorColor);
+					cmd.SetGlobalVector("unity_AmbientGround", RenderSettings.ambientGroundColor);
+				}
+				else if (ambientMode == AmbientMode.Flat)
+				{
+					cmd.EnableShaderKeyword("REIGN_AMBIENT_MODE_COLOR");
+					cmd.SetGlobalVector("unity_AmbientSky", RenderSettings.ambientSkyColor);
+				}
+			}
+			else
+			{
+				if (asset.ambientMode == GlobalAmbientMode.ReignEnv_Sky)
+				{
+					cmd.EnableShaderKeyword("REIGN_AMBIENT_MODE_SKYBOX");
+					float a = ReignRP_Environment.global_ambientIntensity;
+					cmd.SetGlobalVector("unity_AmbientSky", new Vector4(a, a, a, 0));
+				}
+				else if (asset.ambientMode == GlobalAmbientMode.ReignEnv_Gradient)
+				{
+					cmd.EnableShaderKeyword("REIGN_AMBIENT_MODE_GRADIENT");
+					cmd.SetGlobalVector("unity_AmbientSky", ReignRP_Environment.global_ambientGradient_SkyColor);
+					cmd.SetGlobalVector("unity_AmbientEquator", ReignRP_Environment.global_ambientGradient_EquatorColor);
+					cmd.SetGlobalVector("unity_AmbientGround", ReignRP_Environment.global_ambientGradient_GroundColor);
+				}
+				else if (asset.ambientMode == GlobalAmbientMode.ReignEnv_Color)
+				{
+					cmd.EnableShaderKeyword("REIGN_AMBIENT_MODE_COLOR");
+					cmd.SetGlobalVector("unity_AmbientSky", ReignRP_Environment.global_ambientColor);
+				}
 			}
 		}
 

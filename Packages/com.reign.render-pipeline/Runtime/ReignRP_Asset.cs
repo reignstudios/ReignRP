@@ -32,6 +32,8 @@ namespace Reign.SRP
 		public ShadowCascades shadowCascades = ShadowCascades.x1;
 		public Vector4 shadowCascadePlanes = new Vector4(5, 10, 20, 40);
 
+		public GlobalAmbientMode ambientMode = GlobalAmbientMode.Unity_SceneSettings;
+
 		[Tooltip("Culls & processes Reflection Probes (disable to increase performance)")]
 		public bool enableReflectionProbes = true;
 		[Tooltip("Culls & processes Lightmaps (disable to increase performance)")]
@@ -206,5 +208,14 @@ namespace Reign.SRP
 		Any,
 		Opaque,
 		Transparent
+	}
+
+	public enum GlobalAmbientMode
+	{
+		Disable,
+		Unity_SceneSettings,
+		ReignEnv_Sky,
+		ReignEnv_Gradient,
+		ReignEnv_Color
 	}
 }
