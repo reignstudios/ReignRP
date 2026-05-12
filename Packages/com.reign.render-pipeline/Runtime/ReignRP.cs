@@ -801,7 +801,11 @@ namespace Reign.SRP
 			cmd.DisableShaderKeyword("REIGN_AMBIENT_MODE_SKYBOX");
 			cmd.DisableShaderKeyword("REIGN_AMBIENT_MODE_GRADIENT");
 			cmd.DisableShaderKeyword("REIGN_AMBIENT_MODE_COLOR");
-			if (asset.ambientMode == GlobalAmbientMode.Unity_SceneSettings)
+			if (asset.ambientMode == GlobalAmbientMode.Disable)
+			{
+				cmd.EnableShaderKeyword("REIGN_AMBIENT_MODE_DISABLE");
+			}
+			else if (asset.ambientMode == GlobalAmbientMode.Unity_SceneSettings)
 			{
 				var ambientMode = RenderSettings.ambientMode;// custom = disabled
 				if (ambientMode == AmbientMode.Skybox)
