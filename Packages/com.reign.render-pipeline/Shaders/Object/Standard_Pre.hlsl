@@ -12,7 +12,9 @@ struct VS_IN
     float3 positionOS : POSITION;
     float2 uv : TEXCOORD0;
     float3 normal : NORMAL0;
+    #if defined(ENABLE_NORMAL)
     float3 tangent : TANGENT0;
+    #endif
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -23,7 +25,11 @@ struct VS_OUT
 {
     float2 uv : TEXCOORD0;
     float3 pos : TEXCOORD1;
+    #if defined(ENABLE_NORMAL)
     float3x3 surfaceMatrix : TEXCOORD2;
+    #else
+    float3 normal : TEXCOORD2;
+    #endif
 
     float4 positionCS : SV_POSITION;
 

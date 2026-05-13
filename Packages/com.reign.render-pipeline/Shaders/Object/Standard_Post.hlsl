@@ -23,6 +23,7 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
 
     // surface
     #ifndef REIGN_GetVertexOutput_OVERRIDE_surfaceMatrix
+    #if defined(ENABLE_NORMAL)
     o.surfaceMatrix = float3x3
     (
         normalize(i.tangent),
@@ -30,6 +31,9 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
         normalize(i.normal)
     );
     o.surfaceMatrix = mul(o.surfaceMatrix, unity_WorldToObject);
+    #else
+    o.normal = mul(i.normal, unity_WorldToObject);
+    #endif
     #else
     o.surfaceMatrix = GetVertexOutput_OVERRIDE_surfaceMatrix(i, o);
     #endif
@@ -69,16 +73,28 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
     MaterialParams materialParams;
 
     // color
+    #if defined(_COLOR_BOTH)
     materialParams.color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv) * _BaseColor;
+    #elif defined(_COLOR_COLOR)
+    materialParams.color = _BaseColor;
+    #elif defined(_COLOR_ALBEDO)
+    materialParams.color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv);
+    #else
+    materialParams.color = 1.0;
+    #endif
 
     // emissive color
     //materialParams.emissive = 0;// TODO
 
     // get normal
     #ifndef REIGN_GetMaterialProperties_OVERRIDE_normal
+    #if defined(ENABLE_NORMAL)
     materialParams.normal = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, i.uv);
     materialParams.normal.xy -= .5;
     materialParams.normal = normalize(mul(materialParams.normal, i.surfaceMatrix));
+    #else
+    materialParams.normal = normalize(i.normal);
+    #endif
     #else
     materialParams.normal = GetMaterialProperties_Override_Normal(i);
     #endif

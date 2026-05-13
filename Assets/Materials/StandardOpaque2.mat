@@ -11,8 +11,10 @@ Material:
   m_Shader: {fileID: 4800000, guid: 62f8dac3f94203142971351703d2250f, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
-  m_InvalidKeywords: []
+  m_ValidKeywords:
+  - _COLOR_COLOR
+  m_InvalidKeywords:
+  - _COLORMODE_ENABLE_ALBEDO
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -66,14 +68,22 @@ Material:
     m_Ints: []
     m_Floats:
     - _BumpScale: 1
+    - _COLOR: 0
+    - _ColorMode: 2
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
+    - _ENABLE_ALBEDO: 0
+    - _ENABLE_COLOR: 0
+    - _ENABLE_EMISSION: 0
+    - _ENABLE_NORMAL: 0
+    - _ENABLE_OCCLUSION: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
+    - _MyFeature: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
     - _SmoothnessTextureChannel: 0
