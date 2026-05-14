@@ -7,21 +7,36 @@ namespace Reign.SRP
     [ExecuteInEditMode]
     public class ReignRP_Environment : MonoBehaviour
     {
+        public bool initDefaults = true;
+
         internal static float global_ambientIntensity;
         [Range(0f, 8f)] public float ambientSkyIntensity = 1.0f;
         
         internal static Color global_ambientGradient_SkyColor;
         internal static Color global_ambientGradient_EquatorColor;
         internal static Color global_ambientGradient_GroundColor;
-        [Space(10)] [ColorUsage(true, true)] public Color ambientGradient_SkyColor = RenderSettings.ambientSkyColor;
-        [ColorUsage(true, true)]public Color ambientGradient_EquatorColor = RenderSettings.ambientEquatorColor;
-        [ColorUsage(true, true)]public Color ambientGradient_GroundColor = RenderSettings.ambientGroundColor;
+        [Space(10)] [ColorUsage(true, true)] public Color ambientGradient_SkyColor;
+        [ColorUsage(true, true)]public Color ambientGradient_EquatorColor;
+        [ColorUsage(true, true)]public Color ambientGradient_GroundColor;
         
         internal static Color global_ambientColor;
-        [Space(10)] [ColorUsage(true, true)] public Color ambientColor = RenderSettings.ambientSkyColor;
+        [Space(10)] [ColorUsage(true, true)] public Color ambientColor;
 
-        private void Update()
+		private void Start()
+		{
+			if (!initDefaults) return;
+            initDefaults = false;
+
+            ambientGradient_SkyColor = RenderSettings.ambientSkyColor;
+            ambientGradient_EquatorColor = RenderSettings.ambientEquatorColor;
+            ambientGradient_GroundColor = RenderSettings.ambientGroundColor;
+
+            Color ambientColor = RenderSettings.ambientSkyColor;
+		}
+
+		private void Update()
         {
+            if (initDefaults) Start();
             if (gameObject.scene != SceneManager.GetActiveScene()) return;
             
             // ambient

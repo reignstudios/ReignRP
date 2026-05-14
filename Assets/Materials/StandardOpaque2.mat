@@ -12,8 +12,15 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _COLOR_COLOR
+  - ENABLE_EMISSION
+  - ENABLE_METALLIC_FRESNEL
+  - ENABLE_NORMAL
+  - ENABLE_OCCLUSION
+  - _COLOR_BOTH
+  - _METALLIC_SLIDERS
   m_InvalidKeywords:
+  - ENABLE_METALLIC_HQ
+  - ENABLE_NORMAL_NORMALIZE
   - _COLORMODE_ENABLE_ALBEDO
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -26,11 +33,11 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: ce101a1f89d4a8940b2f003e923b1def, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: bf65d6c6b5ebef841a90e63f2b732de1, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -46,7 +53,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 7f1b032e0836f0d4d96374c65134561d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -58,7 +65,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: ac80ca65fccb33949bca1b1c271f1681, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ParallaxMap:
@@ -68,20 +75,26 @@ Material:
     m_Ints: []
     m_Floats:
     - _BumpScale: 1
-    - _COLOR: 0
+    - _COLOR: 2
     - _ColorMode: 2
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _ENABLE_ALBEDO: 0
     - _ENABLE_COLOR: 0
-    - _ENABLE_EMISSION: 0
-    - _ENABLE_NORMAL: 0
-    - _ENABLE_OCCLUSION: 0
+    - _ENABLE_EMISSION: 1
+    - _ENABLE_METALLIC: 0
+    - _ENABLE_METALLIC_FRESNEL: 1
+    - _ENABLE_METALLIC_HQ: 1
+    - _ENABLE_NORMAL: 1
+    - _ENABLE_NORMAL_NORMALIZE: 1
+    - _ENABLE_OCCLUSION: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _Metallic: 0
+    - _METALLIC: 1
+    - _Metallic: 0.5
+    - _MetallicGloss: 0.5
     - _Mode: 0
     - _MyFeature: 0
     - _OcclusionStrength: 1
@@ -94,6 +107,7 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 0, b: 0, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissionColor: {r: 0.9339623, g: 0, b: 0, a: 1}
+    - _UVScaleOffset: {r: 1, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

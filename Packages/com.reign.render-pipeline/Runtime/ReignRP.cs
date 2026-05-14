@@ -90,7 +90,13 @@ namespace Reign.SRP
 			// set graphic defaults
 			GraphicsSettings.useScriptableRenderPipelineBatching = false;
 			GraphicsSettings.lightsUseLinearIntensity = true;
+
+			QualitySettings.antiAliasing = 1;
+			Screen.SetMSAASamples(1);
+			XRSystem.SetDisplayMSAASamples(MSAASamples.None);
+
 			XRSettings.eyeTextureResolutionScale = 1;
+            XRSystem.SetRenderScale(1);
 			XRSettings.gameViewRenderMode = asset.xrPreviewMode;
 
 			// create command buffer

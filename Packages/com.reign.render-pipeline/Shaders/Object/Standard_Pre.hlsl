@@ -12,6 +12,7 @@ struct VS_IN
     float3 positionOS : POSITION;
     float2 uv : TEXCOORD0;
     float3 normal : NORMAL0;
+    
     #if defined(ENABLE_NORMAL)
     float3 tangent : TANGENT0;
     #endif
@@ -25,6 +26,7 @@ struct VS_OUT
 {
     float2 uv : TEXCOORD0;
     float3 pos : TEXCOORD1;
+    
     #if defined(ENABLE_NORMAL)
     float3x3 surfaceMatrix : TEXCOORD2;
     #else
@@ -46,14 +48,36 @@ struct PS_OUT
 #endif
 
 #ifndef REIGN_INPUTS_OVERRIDE
+float4 _UVScaleOffset;
+
+#if defined(_COLOR_COLOR) || defined(_COLOR_BOTH)
 half4 _BaseColor;
+#endif
+    
+#if defined(_COLOR_ALBEDO) || defined(_COLOR_BOTH)
 SAMPLER(sampler_BaseMap);
 TEXTURE2D(_BaseMap);
-float4 _BaseMap_ST;
+#endif
 
+#ifndef _METALLIC_OFF
+half _Metallic, _MetallicGloss;
+#endif
+
+#ifdef _METALLIC_MAP
+SAMPLER(sampler_MetallicGlossMap);
+TEXTURE2D(_MetallicGlossMap);
+#endif
+
+#if defined(ENABLE_NORMAL)
 SAMPLER(sampler_BumpMap);
 TEXTURE2D(_BumpMap);
-float4 _BumpMap_ST;
+#endif
+
+#if defined(ENABLE_EMISSION)
+half4 _EmissionColor;
+SAMPLER(sampler_EmissionMap);
+TEXTURE2D(_EmissionMap);
+#endif
 #endif
 
 // =====================================

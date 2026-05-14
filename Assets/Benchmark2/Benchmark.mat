@@ -24,7 +24,9 @@ Material:
   m_Shader: {fileID: 4800000, guid: 62f8dac3f94203142971351703d2250f, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _COLOR_ALBEDO
+  - _METALLIC_SLIDERS
   m_InvalidKeywords:
   - _METALLICSPECGLOSSMAP
   - _NORMALMAP
@@ -104,6 +106,7 @@ Material:
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BumpScale: 1
+    - _COLOR: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
     - _Cull: 2
@@ -112,11 +115,18 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _DstBlendAlpha: 0
+    - _ENABLE_EMISSION: 0
+    - _ENABLE_METALLIC: 0
+    - _ENABLE_METALLIC_FRESNEL: 0
+    - _ENABLE_NORMAL: 0
+    - _ENABLE_OCCLUSION: 0
     - _EnvironmentReflections: 1
     - _GlossMapScale: 0.25
     - _Glossiness: 0.5
     - _GlossyReflections: 1
+    - _METALLIC: 1
     - _Metallic: 1
+    - _MetallicGloss: 0
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
@@ -137,5 +147,6 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _UVScaleOffset: {r: 1, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

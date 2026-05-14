@@ -19,7 +19,7 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
     o.pos = TransformObjectToWorld(o.pos);
 
     // uv
-    o.uv = TRANSFORM_TEX(i.uv, _BaseMap);
+    o.uv = (i.uv * _UVScaleOffset.xy) + _UVScaleOffset.zw;
 
     // surface
     #ifndef REIGN_GetVertexOutput_OVERRIDE_surfaceMatrix
@@ -73,30 +73,47 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
     MaterialParams materialParams;
 
     // color
-    #if defined(_COLOR_BOTH)
-    materialParams.color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv) * _BaseColor;
-    #elif defined(_COLOR_COLOR)
-    materialParams.color = _BaseColor;
-    #elif defined(_COLOR_ALBEDO)
-    materialParams.color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv);
-    #else
-    materialParams.color = 1.0;
+    #ifndef REIGN_GetMaterialProperties_OVERRIDE_color
+        #if defined(_COLOR_BOTH)
+        materialParams.color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv) * _BaseColor;
+        #elif defined(_COLOR_COLOR)
+        materialParams.color = _BaseColor;
+        #elif defined(_COLOR_ALBEDO)
+        materialParams.color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv);
+        #else
+        materialParams.color = 1.0;
+        #endif
+    #endif
+    
+    // metallic
+    #ifndef REIGN_GetMaterialProperties_OVERRIDE_metallic
+        #if defined(_METALLIC_SLIDERS)
+        materialParams.metallic = real4(_Metallic, _MetallicGloss, 1.0 - _Metallic, 1.0 - _MetallicGloss);
+        #elif defined(_METALLIC_MAP)
+        real4 m = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MetallicGlossMap, i.uv);
+        materialParams.metallic.xy = real2(m.x * _Metallic, m.y * _MetallicGloss);
+        materialParams.metallic.zw = real2(1.0 - materialParams.metallic.x, 1.0 - materialParams.metallic.y);
+        #endif
     #endif
 
-    // emissive color
-    //materialParams.emissive = 0;// TODO
-
-    // get normal
+    // normal
     #ifndef REIGN_GetMaterialProperties_OVERRIDE_normal
-    #if defined(ENABLE_NORMAL)
-    materialParams.normal = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, i.uv);
-    materialParams.normal.xy -= .5;
-    materialParams.normal = normalize(mul(materialParams.normal, i.surfaceMatrix));
-    #else
-    materialParams.normal = normalize(i.normal);
+        #if defined(ENABLE_NORMAL)
+        materialParams.normal = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, i.uv);
+        materialParams.normal.xy -= .5;
+        materialParams.normal = normalize(mul(materialParams.normal, i.surfaceMatrix));
+        #else
+        materialParams.normal = normalize(i.normal);
+        #endif
+        #else
+        materialParams.normal = GetMaterialProperties_Override_Normal(i);
     #endif
-    #else
-    materialParams.normal = GetMaterialProperties_Override_Normal(i);
+    
+    // emissive
+    #ifndef REIGN_GetMaterialProperties_OVERRIDE_emissive
+        #if defined(ENABLE_EMISSION)
+        materialParams.emissive = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, i.uv) * _EmissionColor;
+        #endif
     #endif
 
     return materialParams;
@@ -119,18 +136,26 @@ PS_OUT frag(VS_OUT i)
 
     // get eye direction
     real3 eyeDir = normalize(pos - _WorldSpaceCameraPos);
+    real3 eyeRef = reflect(eyeDir, materialParams.normal);
 
     // compute shade
-    o.color = Process_DirectionalLights(materialParams, eyeDir);
+    o.color = Process_DirectionalLights(materialParams, eyeDir, eyeRef);
+    
+    #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
+    o.color += SampleEnvironmentMaterial(materialParams, eyeDir, eyeRef) * materialParams.metallic.y;
+    #endif
     
     #ifndef REIGN_POINT_LIGHTS_DISABLE
-    o.color += Process_PointLights(materialParams, eyeDir, pos);
+    o.color += Process_PointLights(materialParams, eyeDir, eyeRef, pos);
     #endif
     
     #ifndef REIGN_AMBIENT_MODE_DISABLE
     o.color += Process_AmbientLight(materialParams);
     #endif
-    //o.color += materialParams.emissive;
+    
+    #ifdef ENABLE_EMISSION
+    o.color += materialParams.emissive;
+    #endif
 
     // custom outs
     #ifdef REIGN_frag_CUSTOM_OUTS
