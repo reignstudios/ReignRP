@@ -109,6 +109,13 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
         materialParams.normal = GetMaterialProperties_Override_Normal(i);
     #endif
     
+    // ao
+    #ifndef REIGN_GetMaterialProperties_OVERRIDE_ao
+        #if defined(ENABLE_OCCLUSION)
+        materialParams.ao = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, i.uv);
+        #endif
+    #endif
+    
     // emissive
     #ifndef REIGN_GetMaterialProperties_OVERRIDE_emissive
         #if defined(ENABLE_EMISSION)
@@ -142,7 +149,11 @@ PS_OUT frag(VS_OUT i)
     o.color = Process_DirectionalLights(materialParams, eyeDir, eyeRef);
     
     #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
+    #ifdef ENABLE_OCCLUSION
+    o.color += SampleEnvironmentMaterial(materialParams, eyeDir, eyeRef) * materialParams.metallic.y * materialParams.ao;
+    #else
     o.color += SampleEnvironmentMaterial(materialParams, eyeDir, eyeRef) * materialParams.metallic.y;
+    #endif
     #endif
     
     #ifndef REIGN_POINT_LIGHTS_DISABLE
@@ -150,7 +161,11 @@ PS_OUT frag(VS_OUT i)
     #endif
     
     #ifndef REIGN_AMBIENT_MODE_DISABLE
+    #ifdef ENABLE_OCCLUSION
+    o.color += Process_AmbientLight(materialParams) * materialParams.ao;
+    #else
     o.color += Process_AmbientLight(materialParams);
+    #endif
     #endif
     
     #ifdef ENABLE_EMISSION

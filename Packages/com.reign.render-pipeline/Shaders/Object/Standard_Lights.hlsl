@@ -14,6 +14,10 @@ struct MaterialParams
     
 	real3 normal;
     
+    #ifdef ENABLE_OCCLUSION
+    real4 ao;
+    #endif
+    
     #ifdef ENABLE_EMISSION
 	real4 emissive;
     #endif
@@ -53,8 +57,11 @@ real4 SampleEnvironmentMaterial(MaterialParams materialParams, real3 eyeDir, rea
 #ifndef REIGN_ProcessDiffuse_DirectionalLight_OVERRIDE
 inline real4 ProcessDiffuse_DirectionalLight(MaterialParams materialParams, real3 direction, real4 lightColor)
 {
-	real d = dot(-direction, materialParams.normal);
-	return materialParams.color * lightColor * max(0.0, d);
+	real d = saturate(dot(-direction, materialParams.normal));
+    #ifdef ENABLE_OCCLUSION
+    d *= materialParams.ao;
+    #endif
+	return materialParams.color * lightColor * d;
 }
 #endif
 
@@ -62,7 +69,7 @@ inline real4 ProcessDiffuse_DirectionalLight(MaterialParams materialParams, real
 #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
 inline real4 ProcessMetallic_DirectionalLight(MaterialParams materialParams, real3 eyeDir, real3 eyeRef, real3 direction, real4 lightColor)
 {
-	real d = max(0.0, dot(-direction, eyeRef));
+	real d = saturate(dot(-direction, eyeRef));
 	d = pow(d, (200.0 * materialParams.metallic.y) + 1.0) * materialParams.metallic.y;
     d *= lightColor;
     return lerp(d, materialParams.color * d, materialParams.metallic.x);
@@ -87,8 +94,11 @@ real4 Process_DirectionalLights(MaterialParams materialParams, real3 eyeDir, rea
 #ifndef REIGN_ProcessDiffuse_PointLight_OVERRIDE
 inline real4 ProcessDiffuse_PointLight(MaterialParams materialParams, real3 direction, real4 lightColor)
 {
-    real d = dot(-direction, materialParams.normal);
-    return materialParams.color * lightColor * max(0.0, d);
+    real d = saturate(dot(-direction, materialParams.normal));
+    #ifdef ENABLE_OCCLUSION
+    d *= materialParams.ao;
+    #endif
+    return materialParams.color * lightColor * d;
 }
 #endif
 
@@ -96,7 +106,7 @@ inline real4 ProcessDiffuse_PointLight(MaterialParams materialParams, real3 dire
 #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
 inline real4 ProcessMetallic_PointLight(MaterialParams materialParams, real3 eyeDir, real3 eyeRef, real3 direction, real4 lightColor)
 {
-    real d = max(0.0, dot(-direction, eyeRef));
+    real d = saturate(dot(-direction, eyeRef));
     d = pow(d, (200.0 * materialParams.metallic.y) + 1.0) * materialParams.metallic.y;
     d *= lightColor;
     return lerp(d, materialParams.color * d, materialParams.metallic.x);

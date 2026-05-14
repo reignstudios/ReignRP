@@ -73,6 +73,11 @@ SAMPLER(sampler_BumpMap);
 TEXTURE2D(_BumpMap);
 #endif
 
+#if defined(ENABLE_OCCLUSION)
+SAMPLER(sampler_OcclusionMap);
+TEXTURE2D(_OcclusionMap);
+#endif
+
 #if defined(ENABLE_EMISSION)
 half4 _EmissionColor;
 SAMPLER(sampler_EmissionMap);
