@@ -8,8 +8,8 @@
         [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
 
-        [KeywordEnum(Off, Sliders, Map)] _METALLIC ("Metallic Mode", Float) = 0
-        [Toggle(ENABLE_METALLIC_FRESNEL)] _ENABLE_METALLIC_FRESNEL ("Enable HQ Fresnel", Float) = 0
+        [KeywordEnum(Off, Sliders, Map)] _METALLIC ("Metallic Mode", Float) = 1
+        [Toggle(ENABLE_METALLIC_FRESNEL)] _ENABLE_METALLIC_FRESNEL ("Enable Fresnel", Float) = 0
         _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
         _MetallicGloss("Metallic Gloss", Range(0.0, 1.0)) = 0.0
         _MetallicGlossMap("Metallic", 2D) = "white" {}

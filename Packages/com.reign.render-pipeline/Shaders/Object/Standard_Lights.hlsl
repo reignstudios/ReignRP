@@ -37,8 +37,27 @@ float pointLight_Count;
 // === PBR Util ===
 real4 SampleEnvironment(real3 direction, real roughness)
 {
+    #if defined(REIGN_AMBIENT_MODE_SKYBOX)
     real4 encoded = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, direction, PerceptualRoughnessToMipmapLevel(roughness));
-    return real4(DecodeHDREnvironment(encoded, unity_SpecCube0_HDR), 1);
+    return real4(DecodeHDREnvironment(encoded, unity_SpecCube0_HDR), 1) * unity_AmbientSky.x;
+    #elif defined(REIGN_AMBIENT_MODE_GRADIENT)
+    return lerp(lerp(unity_AmbientEquator, unity_AmbientGround, saturate(-direction.y)), unity_AmbientSky, saturate(direction.y));
+    #elif defined(REIGN_AMBIENT_MODE_COLOR)
+    return unity_AmbientSky;
+    #else
+    return 0;
+    #endif
+    
+    // TODO: light-probe
+    /*real4 SHCoefficients[7];
+    SHCoefficients[0] = unity_SHAr;
+    SHCoefficients[1] = unity_SHAg;
+    SHCoefficients[2] = unity_SHAb;
+    SHCoefficients[3] = unity_SHBr;
+    SHCoefficients[4] = unity_SHBg;
+    SHCoefficients[5] = unity_SHBb;
+    SHCoefficients[6] = unity_SHC;
+    return real4(SampleSH9(SHCoefficients, materialParams.normal), 0.0);*/
 }
 
 #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
@@ -46,9 +65,11 @@ real4 SampleEnvironmentMaterial(MaterialParams materialParams, real3 eyeDir, rea
 {
     real4 m = SampleEnvironment(eyeRef, materialParams.metallic.w);
     #ifdef ENABLE_METALLIC_FRESNEL
-    return lerp(m, m * materialParams.color, saturate(materialParams.metallic.x * pow(1.0 - saturate(dot(eyeDir, eyeRef)), .5)));
+    half f = pow(saturate(dot(eyeDir, eyeRef)), 2.0);
+    return lerp(m, lerp(saturate(f + .5) * m * materialParams.color, m * pow(materialParams.color, 4.0), materialParams.metallic.x), 1.0 - f);
     #else
-    return lerp(m, m * materialParams.color, materialParams.metallic.x);
+    half4 f = m * materialParams.color;
+    return lerp(m, f, materialParams.metallic.x);
     #endif
 }
 #endif
@@ -146,34 +167,6 @@ real4 Process_PointLights(MaterialParams materialParams, real3 eyeDir, real3 eye
         light += Process_PointLight(materialParams, eyeDir, eyeRef, normalize(vec), distance, lightColor, lightPos.w);
     }
     return light;
-}
-#endif
-
-// === Ambient ===
-#ifndef REIGN_Process_AmbientLight_OVERRIDE
-inline real4 Process_AmbientLight(MaterialParams materialParams)
-{
-    #if defined(REIGN_AMBIENT_MODE_SKYBOX)
-    real4 pbr = SampleEnvironment(materialParams.normal, .9) * unity_AmbientSky.x;
-    return materialParams.color * pbr;
-    #elif defined(REIGN_AMBIENT_MODE_GRADIENT)
-    return materialParams.color * lerp(lerp(unity_AmbientEquator, unity_AmbientGround, saturate(-materialParams.normal.y)), unity_AmbientSky, saturate(materialParams.normal.y));
-    #elif defined(REIGN_AMBIENT_MODE_COLOR)
-    return materialParams.color * unity_AmbientSky;
-    #else
-    return 0;
-    #endif
-    
-    // TODO: light-probe
-    /*real4 SHCoefficients[7];
-    SHCoefficients[0] = unity_SHAr;
-    SHCoefficients[1] = unity_SHAg;
-    SHCoefficients[2] = unity_SHAb;
-    SHCoefficients[3] = unity_SHBr;
-    SHCoefficients[4] = unity_SHBg;
-    SHCoefficients[5] = unity_SHBb;
-    SHCoefficients[6] = unity_SHC;
-    return real4(SampleSH9(SHCoefficients, materialParams.normal), 0.0);*/
 }
 #endif
 

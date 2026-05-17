@@ -42,7 +42,8 @@ Shader "ReignRP/Sky"
                 float4 positionCS : SV_POSITION;
             };
 
-            samplerCUBE _MainTex;
+            SAMPLER(sampler_MainTex);
+            TEXTURECUBE(_MainTex);
 
             #if defined(ENABLE_MOTIONVECTORS)
             float4x4 UNITY_MATRIX_VP_LAST;
@@ -83,7 +84,7 @@ Shader "ReignRP/Sky"
             PSOUT frag(v2f i)
             {
                 PSOUT o;
-                o.color = texCUBE(_MainTex, i.uv);
+                o.color = SAMPLE_TEXTURECUBE(_MainTex, sampler_MainTex, i.uv);
                 /*#ifdef REIGN_COLORSPACE_GAMMA
                 color = pow(color, 1.0 / 2.2);
                 #endif*/

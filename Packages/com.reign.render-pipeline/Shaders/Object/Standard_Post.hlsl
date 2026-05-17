@@ -146,26 +146,18 @@ PS_OUT frag(VS_OUT i)
     real3 eyeRef = reflect(eyeDir, materialParams.normal);
 
     // compute shade
-    o.color = Process_DirectionalLights(materialParams, eyeDir, eyeRef);
+    o.color = 0;//Process_DirectionalLights(materialParams, eyeDir, eyeRef);
     
     #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
     #ifdef ENABLE_OCCLUSION
-    o.color += SampleEnvironmentMaterial(materialParams, eyeDir, eyeRef) * materialParams.metallic.y * materialParams.ao;
+    o.color += SampleEnvironmentMaterial(materialParams, eyeDir, eyeRef) * materialParams.ao;
     #else
-    o.color += SampleEnvironmentMaterial(materialParams, eyeDir, eyeRef) * materialParams.metallic.y;
+    o.color += SampleEnvironmentMaterial(materialParams, eyeDir, eyeRef);
     #endif
     #endif
     
     #ifndef REIGN_POINT_LIGHTS_DISABLE
     o.color += Process_PointLights(materialParams, eyeDir, eyeRef, pos);
-    #endif
-    
-    #ifndef REIGN_AMBIENT_MODE_DISABLE
-    #ifdef ENABLE_OCCLUSION
-    o.color += Process_AmbientLight(materialParams) * materialParams.ao;
-    #else
-    o.color += Process_AmbientLight(materialParams);
-    #endif
     #endif
     
     #ifdef ENABLE_EMISSION
