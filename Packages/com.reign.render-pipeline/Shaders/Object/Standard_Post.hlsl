@@ -146,7 +146,7 @@ PS_OUT frag(VS_OUT i)
     real3 eyeRef = reflect(eyeDir, materialParams.normal);
 
     // compute shade
-    o.color = 0;//Process_DirectionalLights(materialParams, eyeDir, eyeRef);
+    o.color = Process_DirectionalLights(materialParams, eyeDir, eyeRef);
     
     #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
     #ifdef ENABLE_OCCLUSION

@@ -9,7 +9,7 @@
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
 
         [KeywordEnum(Off, Sliders, Map)] _METALLIC ("Metallic Mode", Float) = 1
-        [Toggle(ENABLE_METALLIC_FRESNEL)] _ENABLE_METALLIC_FRESNEL ("Enable Fresnel", Float) = 0
+        [Toggle(ENABLE_METALLIC_PBR)] _ENABLE_METALLIC_PBR ("Enable PBR", Float) = 0
         _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
         _MetallicGloss("Metallic Gloss", Range(0.0, 1.0)) = 0.0
         _MetallicGlossMap("Metallic", 2D) = "white" {}
@@ -43,7 +43,7 @@
 
             #pragma shader_feature _COLOR_COLOR _COLOR_ALBEDO _COLOR_BOTH
             #pragma shader_feature _ _METALLIC_OFF _METALLIC_SLIDERS _METALLIC_MAP
-            #pragma shader_feature _ ENABLE_METALLIC_FRESNEL
+            #pragma shader_feature _ ENABLE_METALLIC_PBR
             #pragma shader_feature _ ENABLE_NORMAL
             #pragma shader_feature _ ENABLE_OCCLUSION
             #pragma shader_feature _ ENABLE_EMISSION

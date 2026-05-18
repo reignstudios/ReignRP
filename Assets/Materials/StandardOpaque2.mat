@@ -13,12 +13,13 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - ENABLE_EMISSION
-  - ENABLE_METALLIC_FRESNEL
+  - ENABLE_METALLIC_PBR
   - ENABLE_NORMAL
   - ENABLE_OCCLUSION
   - _COLOR_ALBEDO
   - _METALLIC_SLIDERS
   m_InvalidKeywords:
+  - ENABLE_METALLIC_FRESNEL
   - ENABLE_METALLIC_HQ
   - ENABLE_NORMAL_NORMALIZE
   - _COLORMODE_ENABLE_ALBEDO
@@ -86,6 +87,7 @@ Material:
     - _ENABLE_METALLIC: 0
     - _ENABLE_METALLIC_FRESNEL: 1
     - _ENABLE_METALLIC_HQ: 1
+    - _ENABLE_METALLIC_PBR: 1
     - _ENABLE_NORMAL: 1
     - _ENABLE_NORMAL_NORMALIZE: 1
     - _ENABLE_OCCLUSION: 1
@@ -94,7 +96,7 @@ Material:
     - _GlossyReflections: 1
     - _METALLIC: 1
     - _Metallic: 0
-    - _MetallicGloss: 0
+    - _MetallicGloss: 0.5
     - _Mode: 0
     - _MyFeature: 0
     - _OcclusionStrength: 1

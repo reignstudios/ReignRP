@@ -39,7 +39,8 @@ real4 SampleEnvironment(real3 direction, real roughness)
 {
     #if defined(REIGN_AMBIENT_MODE_SKYBOX)
     real4 encoded = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, direction, PerceptualRoughnessToMipmapLevel(roughness));
-    return real4(DecodeHDREnvironment(encoded, unity_SpecCube0_HDR), 1) * unity_AmbientSky.x;
+    encoded = real4(DecodeHDREnvironment(encoded, unity_SpecCube0_HDR), 1) * unity_AmbientSky.x;
+    return encoded;//pow(encoded * 2.0, 1.0);
     #elif defined(REIGN_AMBIENT_MODE_GRADIENT)
     return lerp(lerp(unity_AmbientEquator, unity_AmbientGround, saturate(-direction.y)), unity_AmbientSky, saturate(direction.y));
     #elif defined(REIGN_AMBIENT_MODE_COLOR)
@@ -63,13 +64,14 @@ real4 SampleEnvironment(real3 direction, real roughness)
 #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
 real4 SampleEnvironmentMaterial(MaterialParams materialParams, real3 eyeDir, real3 eyeRef)
 {
-    real4 m = SampleEnvironment(eyeRef, materialParams.metallic.w);
-    #ifdef ENABLE_METALLIC_FRESNEL
-    half f = pow(saturate(dot(eyeDir, eyeRef)), 2.0);
-    return lerp(m, lerp(saturate(f + .5) * m * materialParams.color, m * pow(materialParams.color, 4.0), materialParams.metallic.x), 1.0 - f);
+    real4 e = SampleEnvironment(eyeRef, materialParams.metallic.w);
+    #ifdef ENABLE_METALLIC_PBR
+    real f = saturate(dot(-eyeDir, materialParams.normal));// slope
+    real4 metallic = lerp(e * materialParams.color * (1.0 - saturate(f - .25)), e * materialParams.color, materialParams.metallic.x);// metallic lerp
+    return lerp(e, metallic, pow(saturate(f * 2.0), .5));// fresnel lerp
     #else
-    half4 f = m * materialParams.color;
-    return lerp(m, f, materialParams.metallic.x);
+    real4 f = e * materialParams.color;
+    return lerp(e, f, materialParams.metallic.x);
     #endif
 }
 #endif

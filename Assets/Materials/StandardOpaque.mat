@@ -12,10 +12,11 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - ENABLE_METALLIC_FRESNEL
+  - ENABLE_METALLIC_PBR
   - _COLOR_COLOR
   - _METALLIC_SLIDERS
   m_InvalidKeywords:
+  - ENABLE_METALLIC_FRESNEL
   - ENABLE_METALLIC_HQ
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -81,6 +82,7 @@ Material:
     - _ENABLE_METALLIC: 0
     - _ENABLE_METALLIC_FRESNEL: 1
     - _ENABLE_METALLIC_HQ: 1
+    - _ENABLE_METALLIC_PBR: 1
     - _ENABLE_NORMAL: 0
     - _ENABLE_NORMAL_NORMALIZE: 0
     - _ENABLE_OCCLUSION: 0
@@ -100,7 +102,7 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.90588236, g: 0.019607844, b: 0.83137256, a: 1}
+    - _BaseColor: {r: 1, g: 0, b: 0, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0.7735849, g: 0, b: 0, a: 1}
     - _UVScaleOffset: {r: 1, g: 1, b: 0, a: 0}
