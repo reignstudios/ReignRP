@@ -69,7 +69,7 @@ TEXTURE2D(_BaseMap);
 #endif
 
 #ifndef _METALLIC_OFF
-half _Metallic, _MetallicGloss;
+half _Metallic, _MetallicGloss, _MetallicReflection;
 #endif
 
 #ifdef _METALLIC_MAP

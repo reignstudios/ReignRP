@@ -92,11 +92,10 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
     // metallic
     #ifndef REIGN_GetMaterialProperties_OVERRIDE_metallic
         #if defined(_METALLIC_SLIDERS)
-        materialParams.metallic = real4(_Metallic, _MetallicGloss, 1.0 - _Metallic, 1.0 - _MetallicGloss);
+        materialParams.metallic = real4(_Metallic, _MetallicGloss, _MetallicReflection, 0.0);
         #elif defined(_METALLIC_MAP)
         real4 m = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MetallicGlossMap, i.uv);
-        materialParams.metallic.xy = real2(m.x * _Metallic, m.y * _MetallicGloss);
-        materialParams.metallic.zw = real2(1.0 - materialParams.metallic.x, 1.0 - materialParams.metallic.y);
+        materialParams.metallic = real4(m.x * _Metallic, m.y * _MetallicGloss, m.z * _MetallicReflection, 0.0);
         #endif
     #endif
 
@@ -157,31 +156,53 @@ PS_OUT frag(VS_OUT i)
     real3 eyeRef = reflect(eyeDir, materialParams.normal);
 
     // compute shade
+    real4 light;
     #ifndef REIGN_DIRECTIONAL_LIGHTS_DISABLE
-    o.color = Process_DirectionalLights(materialParams, eyeDir, eyeRef);
+    light = Process_DirectionalLights(materialParams, eyeDir, eyeRef);
     #else
-    o.color = 0.0;
+    light = 0.0;
+    #endif
+    
+    /*#if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
+    o.color += SampleEnvironmentMaterial(materialParams, eyeDir, eyeRef);
+    #endif*/
+    
+    #ifndef REIGN_POINT_LIGHTS_DISABLE
+    light += Process_PointLights(materialParams, eyeDir, eyeRef, pos);
     #endif
     
     #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
-    o.color += SampleEnvironmentMaterial(materialParams, eyeDir, eyeRef);
+        real4 e = SampleEnvironment(eyeRef, 1.0 - materialParams.metallic.y) * materialParams.metallic.z;
+        #if defined(LIGHTMAP_ON)
+        light += e + materialParams.lightmap;
+        #else
+        light += e + SampleEnvironment(eyeRef, .9);
+        #endif
+    
+        #ifdef ENABLE_METALLIC_PBR
+            real f = saturate(dot(-eyeDir, materialParams.normal));// slope
+            real4 metallic = lerp(light * materialParams.color * (1.0 - saturate(f - .25)), light * materialParams.color, materialParams.metallic.x);// metallic lerp
+            light = lerp(light, metallic, pow(saturate(f * 2.0), .5));// fresnel lerp
+            light = lerp(metallic, light, materialParams.metallic.z);
+        #else
+            light = lerp((light * materialParams.color + e) * .5, light * materialParams.color, materialParams.metallic.x);
+        #endif
+    
+        #if defined(LIGHTMAP_ON)
+        //light = dot(materialParams.lightmap, real4(.3333, .3333, .3333, 0.0));// * 4.0;
+        //light *= materialParams.lightmap * 4.0;
+        #endif
     #endif
     
-    #ifndef REIGN_POINT_LIGHTS_DISABLE
-    o.color += Process_PointLights(materialParams, eyeDir, eyeRef, pos);
+    #ifdef ENABLE_OCCLUSION
+    light *= materialParams.ao;
     #endif
     
     #ifdef ENABLE_EMISSION
-    o.color += materialParams.emissive;
+    light += materialParams.emissive;
     #endif
     
-    /*#ifdef LIGHTMAP_ON
-    real4 l = SampleLightmap(i.lightmapUV);
-    #ifdef ENABLE_OCCLUSION
-    l *= materialParams.ao;
-    #endif
-    o.color.rgb += l.rgb * materialParams.color.rgb;
-    #endif*/
+    o.color = light;
 
     // custom outs
     #ifdef REIGN_frag_CUSTOM_OUTS

@@ -9,7 +9,7 @@ struct MaterialParams
 	real4 color;
     
     #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
-    real4 metallic;// X = Metalic, Y = Gloss, Z = MetalicInv, W = GlossInv
+    real4 metallic;// X = Metalic, Y = Gloss, Z = MetalicReflection
     #endif
     
 	real3 normal;
@@ -44,8 +44,7 @@ real4 SampleEnvironment(real3 direction, real roughness)
 {
     #if defined(REIGN_AMBIENT_MODE_SKYBOX)
     real4 encoded = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, direction, PerceptualRoughnessToMipmapLevel(roughness));
-    encoded = real4(DecodeHDREnvironment(encoded, unity_SpecCube0_HDR), 1) * unity_AmbientSky.x;
-    return encoded;//pow(encoded * 2.0, 1.0);
+    return real4(DecodeHDREnvironment(encoded, unity_SpecCube0_HDR), 1) * unity_AmbientSky.x;
     #elif defined(REIGN_AMBIENT_MODE_GRADIENT)
     return lerp(lerp(unity_AmbientEquator, unity_AmbientGround, saturate(-direction.y)), unity_AmbientSky, saturate(direction.y));
     #elif defined(REIGN_AMBIENT_MODE_COLOR)
@@ -66,36 +65,11 @@ real4 SampleEnvironment(real3 direction, real roughness)
     return real4(SampleSH9(SHCoefficients, materialParams.normal), 0.0);*/
 }
 
-#if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
-real4 SampleEnvironmentMaterial(MaterialParams materialParams, real3 eyeDir, real3 eyeRef)
-{
-    real4 e = SampleEnvironment(eyeRef, materialParams.metallic.w);
-
-    #ifdef ENABLE_METALLIC_PBR
-    real f = saturate(dot(-eyeDir, materialParams.normal));// slope
-    real4 metallic = lerp(e * materialParams.color * (1.0 - saturate(f - .25)), e * materialParams.color, materialParams.metallic.x);// metallic lerp
-    e = lerp(e, metallic, pow(saturate(f * 2.0), .5));// fresnel lerp
-    #else
-    real4 f = e * materialParams.color;
-    e = lerp(e, f, materialParams.metallic.x);
-    #endif
-
-    #ifdef ENABLE_OCCLUSION
-    return e * materialParams.ao;
-    #else
-    return e;
-    #endif
-}
-#endif
-
 // === Directional ===
 #ifndef REIGN_ProcessDiffuse_DirectionalLight_OVERRIDE
 inline real4 ProcessDiffuse_DirectionalLight(MaterialParams materialParams, real3 direction, real4 lightColor)
 {
 	real d = saturate(dot(-direction, materialParams.normal));
-    #ifdef ENABLE_OCCLUSION
-    d *= materialParams.ao;
-    #endif
 	return materialParams.color * lightColor * d;
 }
 #endif
@@ -107,7 +81,7 @@ inline real4 ProcessMetallic_DirectionalLight(MaterialParams materialParams, rea
 	real d = saturate(dot(-direction, eyeRef));
 	d = pow(d, (200.0 * materialParams.metallic.y) + 1.0) * materialParams.metallic.y;
     d *= lightColor;
-    return lerp(d, materialParams.color * d, materialParams.metallic.x);
+    return lerp(d, materialParams.color * d, materialParams.metallic.x) * materialParams.metallic.z;
 }
 #endif
 #endif
@@ -116,21 +90,19 @@ inline real4 ProcessMetallic_DirectionalLight(MaterialParams materialParams, rea
 real4 Process_DirectionalLights(MaterialParams materialParams, real3 eyeDir, real3 eyeRef)
 {
     #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
-    real4 d;
-    #ifdef LIGHTMAP_ON
-    [branch] if (directionalLight_Direction.w >= .5) d = materialParams.lightmap * materialParams.color;
-    else // use next line
-    #endif
-    d = ProcessDiffuse_DirectionalLight(materialParams, directionalLight_Direction.xyz, directionalLight_Color);
-    
-    real4 s = ProcessMetallic_DirectionalLight(materialParams, eyeDir, eyeRef, directionalLight_Direction.xyz, directionalLight_Color);
-    return d + s;
+        #ifdef LIGHTMAP_ON
+            real4 d = 0.0;
+            [branch] if (directionalLight_Direction.w <= .5) d = ProcessDiffuse_DirectionalLight(materialParams, directionalLight_Direction.xyz, directionalLight_Color);
+        #else
+            real4 d = 0;//ProcessDiffuse_DirectionalLight(materialParams, directionalLight_Direction.xyz, directionalLight_Color);
+        #endif
+        real4 s = ProcessMetallic_DirectionalLight(materialParams, eyeDir, eyeRef, directionalLight_Direction.xyz, directionalLight_Color);
+        return d + s;
     #else
-    #ifdef LIGHTMAP_ON
-    [branch] if (directionalLight_Direction.w <= .5) return materialParams.lightmap * materialParams.color;
-    else // use next line
-    #endif
-    return ProcessDiffuse_DirectionalLight(materialParams, directionalLight_Direction.xyz, directionalLight_Color);
+        #ifdef LIGHTMAP_ON
+        [branch] if (directionalLight_Direction.w >= .5) return 0.0;
+        #endif
+        return ProcessDiffuse_DirectionalLight(materialParams, directionalLight_Direction.xyz, directionalLight_Color);
     #endif
 }
 #endif
@@ -140,9 +112,6 @@ real4 Process_DirectionalLights(MaterialParams materialParams, real3 eyeDir, rea
 inline real4 ProcessDiffuse_PointLight(MaterialParams materialParams, real3 direction, real4 lightColor)
 {
     real d = saturate(dot(-direction, materialParams.normal));
-    #ifdef ENABLE_OCCLUSION
-    d *= materialParams.ao;
-    #endif
     return materialParams.color * lightColor * d;
 }
 #endif
@@ -154,7 +123,7 @@ inline real4 ProcessMetallic_PointLight(MaterialParams materialParams, real3 eye
     real d = saturate(dot(-direction, eyeRef));
     d = pow(d, (200.0 * materialParams.metallic.y) + 1.0) * materialParams.metallic.y;
     d *= lightColor;
-    return lerp(d, materialParams.color * d, materialParams.metallic.x);
+    return lerp(d, materialParams.color * d, materialParams.metallic.x) * materialParams.metallic.z;
 }
 #endif
 #endif
@@ -163,26 +132,23 @@ inline real4 ProcessMetallic_PointLight(MaterialParams materialParams, real3 eye
 inline real4 Process_PointLight(MaterialParams materialParams, real3 eyeDir, real3 eyeRef, real3 direction, real distance, real4 lightColor, real4 flags, real lightRadius)
 {
     #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
-    real4 d;
-    #ifdef LIGHTMAP_ON
-    [branch] if (flags.w >= .5) d = materialParams.lightmap * materialParams.color;
-    else // use next line
-    #endif
-    d = ProcessDiffuse_PointLight(materialParams, direction, lightColor);
+        #ifdef LIGHTMAP_ON
+            real4 d = 0.0;
+            [branch] if (flags.w <= .5) d = ProcessDiffuse_PointLight(materialParams, direction, lightColor);
+        #else
+            real4 d = ProcessDiffuse_PointLight(materialParams, direction, lightColor);
+        #endif
     
-    real4 s = ProcessMetallic_PointLight(materialParams, eyeDir, eyeRef, direction, lightColor);
-    distance = 1.0 - saturate(distance / lightRadius);
-    return (d * pow(distance, 2.0)) + (s * distance);
+        real4 s = ProcessMetallic_PointLight(materialParams, eyeDir, eyeRef, direction, lightColor);
+        distance = 1.0 - saturate(distance / lightRadius);
+        return (d * pow(distance, 2.0)) + (s * distance);
     #else
-    real4 d;
-    #ifdef LIGHTMAP_ON
-    [branch] if (flags.w >= .5) d = materialParams.lightmap * materialParams.color;
-    else // use next line
-    #endif
-    d = ProcessDiffuse_PointLight(materialParams, direction, lightColor);
-    
-    distance = 1.0 - saturate(distance / lightRadius);
-    return d * pow(distance, 2.0);
+        #ifdef LIGHTMAP_ON
+        [branch] if (flags.w >= .5) return 0.0;
+        #endif
+        real4 d = ProcessDiffuse_PointLight(materialParams, direction, lightColor);
+        distance = 1.0 - saturate(distance / lightRadius);
+        return d * pow(distance, 2.0);
     #endif
 }
 #endif

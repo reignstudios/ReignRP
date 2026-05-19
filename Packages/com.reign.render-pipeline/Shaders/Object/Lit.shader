@@ -12,6 +12,7 @@
         [Toggle(ENABLE_METALLIC_PBR)] _ENABLE_METALLIC_PBR ("Enable PBR", Float) = 0
         _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
         _MetallicGloss("Metallic Gloss", Range(0.0, 1.0)) = 0.0
+        _MetallicReflection("Metallic Reflection", Range(0.0, 1.0)) = 0.0
         _MetallicGlossMap("Metallic", 2D) = "white" {}
 
         [Toggle(ENABLE_NORMAL)] _ENABLE_NORMAL ("Enable Normal", Float) = 0

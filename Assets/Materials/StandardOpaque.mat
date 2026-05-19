@@ -24,7 +24,7 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties: _ENABLE_METALLIC_FRESNEL
+  m_LockedProperties: _ENABLE_METALLIC_FRESNEL _MetallicGloss
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -90,8 +90,9 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _METALLIC: 1
-    - _Metallic: 0
+    - _Metallic: 1
     - _MetallicGloss: 1
+    - _MetallicReflection: 1
     - _Mode: 0
     - _MyFeature: 0
     - _OcclusionStrength: 1
@@ -102,7 +103,7 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor: {r: 1, g: 0, b: 0, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0.7735849, g: 0, b: 0, a: 1}
     - _UVScaleOffset: {r: 1, g: 1, b: 0, a: 0}
