@@ -55,8 +55,8 @@ namespace Reign.SRP
 
 		private const int pointLight_MaxConst = 4;
 		private int pointLight_Max;
-		private Vector4[] pointLight_Positions, pointLight_Colors;
-		private Vector4[] pointLight_Positions_Const, pointLight_Colors_Const;
+		private Vector4[] pointLight_Positions, pointLight_Colors, pointLight_Flags;
+		private Vector4[] pointLight_Positions_Const, pointLight_Colors_Const, pointLight_Flags_Const;
 		private float[] pointLight_Distances;
 
         private bool motionBlurEnabled;
@@ -143,6 +143,7 @@ namespace Reign.SRP
 			{
                 pointLight_Positions = new Vector4[pointLight_Max];
 				pointLight_Colors = new Vector4[pointLight_Max];
+				pointLight_Flags = new Vector4[pointLight_Max];
 				pointLight_Distances = new float[pointLight_Max];
 			}
 
@@ -150,6 +151,7 @@ namespace Reign.SRP
 			{
 				pointLight_Positions_Const = new Vector4[pointLight_MaxConst];
 				pointLight_Colors_Const = new Vector4[pointLight_MaxConst];
+				pointLight_Flags_Const = new Vector4[pointLight_MaxConst];
 			}
         }
 		
@@ -316,6 +318,10 @@ namespace Reign.SRP
                         current = pointLight_Colors[i];
                         pointLight_Colors[i] = pointLight_Colors[i2];
                         pointLight_Colors[i2] = current;
+
+						current = pointLight_Flags[i];
+                        pointLight_Flags[i] = pointLight_Flags[i2];
+                        pointLight_Flags[i2] = current;
                     }
                 }
             }
@@ -332,11 +338,13 @@ namespace Reign.SRP
                 {
                     pointLight_Positions_Const[i] = pointLight_Positions[i];
                     pointLight_Colors_Const[i] = pointLight_Colors[i];
+					pointLight_Flags_Const[i] = pointLight_Flags[i];
                 }
                 else
                 {
                     pointLight_Positions_Const[i] = Vector4.zero;
                     pointLight_Colors_Const[i] = Vector4.zero;
+					pointLight_Flags_Const[i] = Vector4.zero;
                 }
             }
 		}
@@ -389,12 +397,17 @@ namespace Reign.SRP
 			int pointLight_Count = 0;
 			foreach (var light in lights)
 			{
+				var bakeType = light.light.bakingOutput.lightmapBakeType;
+				if (bakeType == LightmapBakeType.Baked) continue;// skip non-realtime
+
+				float bakeFlag = bakeType == LightmapBakeType.Mixed ? 1 : 0;
 				switch (light.lightType)
 				{
 					case LightType.Directional:
 						if (directionalLight_Count < 1)
 						{
 							directionalLight_Direction = light.light.transform.forward;
+							directionalLight_Direction.w = bakeFlag;// lightmap diffuse mode
 							directionalLight_Color = light.finalColor;
 							directionalLight_Color.w = light.light.intensity;
 							directionalLight_Count++;
@@ -408,6 +421,7 @@ namespace Reign.SRP
 							pointLight_Positions[pointLight_Count].w = light.range;
 							pointLight_Colors[pointLight_Count] = light.finalColor;
 							pointLight_Colors[pointLight_Count].w = light.light.intensity;
+							pointLight_Flags[pointLight_Count].w = bakeFlag;// lightmap diffuse mode
 							pointLight_Count++;
 						}
 						break;
@@ -415,15 +429,25 @@ namespace Reign.SRP
 			}
 			
 			cmd.Clear();
-			cmd.SetGlobalVector("directionalLight_Direction", directionalLight_Direction);
-			cmd.SetGlobalVector("directionalLight_Color", directionalLight_Color);
-			cmd.SetGlobalFloat("directionalLight_Count", directionalLight_Count);
+
+			if (directionalLight_Count > 0)
+			{
+				cmd.SetGlobalVector("directionalLight_Direction", directionalLight_Direction);
+				cmd.SetGlobalVector("directionalLight_Color", directionalLight_Color);
+				cmd.DisableShaderKeyword("REIGN_DIRECTIONAL_LIGHTS_DISABLE");
+			}
+			else
+			{
+				cmd.EnableShaderKeyword("REIGN_DIRECTIONAL_LIGHTS_DISABLE");
+			}
+
 			if (pointLight_Count > 0)
 			{
 				if (asset.sortPointLights) SortPointLights(camera, pointLight_Count);
 				else CopyPointLightsToConsts(pointLight_Count);
 				cmd.SetGlobalVectorArray("pointLight_Positions", pointLight_Positions_Const);
 				cmd.SetGlobalVectorArray("pointLight_Colors", pointLight_Colors_Const);
+				cmd.SetGlobalVectorArray("pointLight_Flags", pointLight_Flags_Const);
 				cmd.SetGlobalFloat("pointLight_Count", Math.Min(pointLight_Count, pointLight_MaxConst));
 				cmd.DisableShaderKeyword("REIGN_POINT_LIGHTS_DISABLE");
 			}

@@ -126,6 +126,13 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
         materialParams.emissive = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, i.uv) * _EmissionColor;
         #endif
     #endif
+    
+    // lightmap
+    #ifndef REIGN_GetMaterialProperties_OVERRIDE_lightmap
+        #if defined(LIGHTMAP_ON)
+        materialParams.lightmap = SampleLightmap(i.lightmapUV);
+        #endif
+    #endif
 
     return materialParams;
 }
@@ -150,7 +157,11 @@ PS_OUT frag(VS_OUT i)
     real3 eyeRef = reflect(eyeDir, materialParams.normal);
 
     // compute shade
+    #ifndef REIGN_DIRECTIONAL_LIGHTS_DISABLE
     o.color = Process_DirectionalLights(materialParams, eyeDir, eyeRef);
+    #else
+    o.color = 0.0;
+    #endif
     
     #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
     o.color += SampleEnvironmentMaterial(materialParams, eyeDir, eyeRef);
@@ -164,10 +175,13 @@ PS_OUT frag(VS_OUT i)
     o.color += materialParams.emissive;
     #endif
     
-    #ifdef LIGHTMAP_ON
+    /*#ifdef LIGHTMAP_ON
     real4 l = SampleLightmap(i.lightmapUV);
-    o.color.rgb += l.rgb * materialParams.color.rgb;
+    #ifdef ENABLE_OCCLUSION
+    l *= materialParams.ao;
     #endif
+    o.color.rgb += l.rgb * materialParams.color.rgb;
+    #endif*/
 
     // custom outs
     #ifdef REIGN_frag_CUSTOM_OUTS
