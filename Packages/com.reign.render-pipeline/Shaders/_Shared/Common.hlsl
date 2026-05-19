@@ -143,9 +143,9 @@ float4 targetSize;
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);*/
 
-inline float3 SampleLightmap(float2 uv)
+inline real4 SampleLightmap(float2 uv)
 {
-	return SampleSingleLightmap
+	real3 result = SampleSingleLightmap
 	(
 		TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap), uv,
 		float4(1.0, 1.0, 0.0, 0.0),
@@ -156,6 +156,7 @@ inline float3 SampleLightmap(float2 uv)
 		#endif
 		float4(LIGHTMAP_HDR_MULTIPLIER, LIGHTMAP_HDR_EXPONENT, 0.0, 0.0)
 	);
+	return real4(result, 1.0);
 }
 
 inline float2 TransformLightmapUV(float2 lightmapUV)

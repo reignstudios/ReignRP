@@ -11,9 +11,14 @@ struct VS_IN
 {
     float3 positionOS : POSITION;
     float2 uv : TEXCOORD0;
+    
+    #ifdef LIGHTMAP_ON
+    float2 lightmapUV : TEXCOORD1;
+    #endif
+    
     float3 normal : NORMAL0;
     
-    #if defined(ENABLE_NORMAL)
+    #ifdef ENABLE_NORMAL
     float3 tangent : TANGENT0;
     #endif
 
@@ -31,6 +36,10 @@ struct VS_OUT
     float3x3 surfaceMatrix : TEXCOORD2;
     #else
     float3 normal : TEXCOORD2;
+    #endif
+    
+    #ifdef LIGHTMAP_ON
+    float2 lightmapUV : TEXCOORD8;
     #endif
 
     float4 positionCS : SV_POSITION;

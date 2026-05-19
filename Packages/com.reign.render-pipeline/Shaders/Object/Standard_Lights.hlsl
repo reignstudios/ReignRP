@@ -14,11 +14,11 @@ struct MaterialParams
     
 	real3 normal;
     
-    #ifdef ENABLE_OCCLUSION
+    #if defined(ENABLE_OCCLUSION)
     real4 ao;
     #endif
     
-    #ifdef ENABLE_EMISSION
+    #if defined(ENABLE_EMISSION)
 	real4 emissive;
     #endif
 };
@@ -68,10 +68,16 @@ real4 SampleEnvironmentMaterial(MaterialParams materialParams, real3 eyeDir, rea
     #ifdef ENABLE_METALLIC_PBR
     real f = saturate(dot(-eyeDir, materialParams.normal));// slope
     real4 metallic = lerp(e * materialParams.color * (1.0 - saturate(f - .25)), e * materialParams.color, materialParams.metallic.x);// metallic lerp
-    return lerp(e, metallic, pow(saturate(f * 2.0), .5));// fresnel lerp
+    e = lerp(e, metallic, pow(saturate(f * 2.0), .5));// fresnel lerp
     #else
     real4 f = e * materialParams.color;
-    return lerp(e, f, materialParams.metallic.x);
+    e = lerp(e, f, materialParams.metallic.x);
+    #endif
+
+    #ifdef ENABLE_OCCLUSION
+    return e * materialParams.ao;
+    #else
+    return e;
     #endif
 }
 #endif

@@ -20,6 +20,10 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
 
     // uv
     o.uv = (i.uv * _UVScaleOffset.xy) + _UVScaleOffset.zw;
+    
+    #ifdef LIGHTMAP_ON
+    o.lightmapUV = TransformLightmapUV(i.lightmapUV);
+    #endif
 
     // surface
     #ifndef REIGN_GetVertexOutput_OVERRIDE_surfaceMatrix
@@ -149,11 +153,7 @@ PS_OUT frag(VS_OUT i)
     o.color = Process_DirectionalLights(materialParams, eyeDir, eyeRef);
     
     #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
-    #ifdef ENABLE_OCCLUSION
-    o.color += SampleEnvironmentMaterial(materialParams, eyeDir, eyeRef) * materialParams.ao;
-    #else
     o.color += SampleEnvironmentMaterial(materialParams, eyeDir, eyeRef);
-    #endif
     #endif
     
     #ifndef REIGN_POINT_LIGHTS_DISABLE
@@ -163,12 +163,17 @@ PS_OUT frag(VS_OUT i)
     #ifdef ENABLE_EMISSION
     o.color += materialParams.emissive;
     #endif
+    
+    #ifdef LIGHTMAP_ON
+    real4 l = SampleLightmap(i.lightmapUV);
+    o.color.rgb += l.rgb * materialParams.color.rgb;
+    #endif
 
     // custom outs
     #ifdef REIGN_frag_CUSTOM_OUTS
     frag_CustomColors(i, o);
     #endif
-    //o.color = real4(materialParams.normal, 1);
+    
     return o;
 }
 #endif
