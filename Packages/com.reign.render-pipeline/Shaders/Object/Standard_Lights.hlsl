@@ -8,8 +8,8 @@ struct MaterialParams
 {
 	real4 color;
     
-    #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
-    real4 metallic;// X = Metalic, Y = Gloss, Z = MetalicReflection
+    #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
+    real4 specular;// X = Intensity, Y = Roughness, Z = Metallic, W = Fresnel
     #endif
     
 	real3 normal;
@@ -74,14 +74,14 @@ inline real4 ProcessDiffuse_DirectionalLight(MaterialParams materialParams, real
 }
 #endif
 
-#ifndef REIGN_ProcessMetallic_DirectionalLight_OVERRIDE
-#if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
-inline real4 ProcessMetallic_DirectionalLight(MaterialParams materialParams, real3 eyeDir, real3 eyeRef, real3 direction, real4 lightColor)
+#ifndef REIGN_ProcessSpecular_DirectionalLight_OVERRIDE
+#if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
+inline real4 ProcessSpacular_DirectionalLight(MaterialParams materialParams, real3 eyeDir, real3 eyeRef, real3 direction, real4 lightColor)
 {
 	real d = saturate(dot(-direction, eyeRef));
-	d = pow(d, (200.0 * materialParams.metallic.y) + 1.0) * materialParams.metallic.y;
+	d = pow(d, (200.0 * materialParams.specular.y) + 1.0);
     d *= lightColor;
-    return lerp(d, materialParams.color * d, materialParams.metallic.x) * materialParams.metallic.z;
+    return lerp(d, materialParams.color * d, materialParams.specular.z);
 }
 #endif
 #endif
@@ -89,14 +89,14 @@ inline real4 ProcessMetallic_DirectionalLight(MaterialParams materialParams, rea
 #ifndef REIGN_Process_DirectionalLights_OVERRIDE
 real4 Process_DirectionalLights(MaterialParams materialParams, real3 eyeDir, real3 eyeRef)
 {
-    #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
+    #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
         #ifdef LIGHTMAP_ON
             real4 d = 0.0;
             [branch] if (directionalLight_Direction.w <= .5) d = ProcessDiffuse_DirectionalLight(materialParams, directionalLight_Direction.xyz, directionalLight_Color);
         #else
             real4 d = 0;//ProcessDiffuse_DirectionalLight(materialParams, directionalLight_Direction.xyz, directionalLight_Color);
         #endif
-        real4 s = ProcessMetallic_DirectionalLight(materialParams, eyeDir, eyeRef, directionalLight_Direction.xyz, directionalLight_Color);
+        real4 s = ProcessSpecular_DirectionalLight(materialParams, eyeDir, eyeRef, directionalLight_Direction.xyz, directionalLight_Color);
         return d + s;
     #else
         #ifdef LIGHTMAP_ON
@@ -116,14 +116,14 @@ inline real4 ProcessDiffuse_PointLight(MaterialParams materialParams, real3 dire
 }
 #endif
 
-#ifndef REIGN_ProcessMetallic_PointLight_OVERRIDE
-#if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
-inline real4 ProcessMetallic_PointLight(MaterialParams materialParams, real3 eyeDir, real3 eyeRef, real3 direction, real4 lightColor)
+#ifndef REIGN_ProcessSpecular_PointLight_OVERRIDE
+#if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
+inline real4 ProcessSpecular_PointLight(MaterialParams materialParams, real3 eyeDir, real3 eyeRef, real3 direction, real4 lightColor)
 {
     real d = saturate(dot(-direction, eyeRef));
-    d = pow(d, (200.0 * materialParams.metallic.y) + 1.0) * materialParams.metallic.y;
+    d = pow(d, (200.0 * materialParams.specular.y) + 1.0);
     d *= lightColor;
-    return lerp(d, materialParams.color * d, materialParams.metallic.x) * materialParams.metallic.z;
+    return lerp(d, materialParams.color * d, materialParams.specular.z);
 }
 #endif
 #endif
@@ -131,7 +131,7 @@ inline real4 ProcessMetallic_PointLight(MaterialParams materialParams, real3 eye
 #ifndef REIGN_Process_PointLight_OVERRIDE
 inline real4 Process_PointLight(MaterialParams materialParams, real3 eyeDir, real3 eyeRef, real3 direction, real distance, real4 lightColor, real4 flags, real lightRadius)
 {
-    #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
+    #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
         #ifdef LIGHTMAP_ON
             real4 d = 0.0;
             [branch] if (flags.w <= .5) d = ProcessDiffuse_PointLight(materialParams, direction, lightColor);
@@ -139,7 +139,7 @@ inline real4 Process_PointLight(MaterialParams materialParams, real3 eyeDir, rea
             real4 d = ProcessDiffuse_PointLight(materialParams, direction, lightColor);
         #endif
     
-        real4 s = ProcessMetallic_PointLight(materialParams, eyeDir, eyeRef, direction, lightColor);
+        real4 s = ProcessSpecular_PointLight(materialParams, eyeDir, eyeRef, direction, lightColor);
         distance = 1.0 - saturate(distance / lightRadius);
         return (d * pow(distance, 2.0)) + (s * distance);
     #else

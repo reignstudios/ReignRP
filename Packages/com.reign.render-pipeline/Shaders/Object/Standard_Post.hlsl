@@ -90,12 +90,12 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
     #endif
     
     // metallic
-    #ifndef REIGN_GetMaterialProperties_OVERRIDE_metallic
-        #if defined(_METALLIC_SLIDERS)
-        materialParams.metallic = real4(_Metallic, _MetallicGloss, _MetallicReflection, 0.0);
-        #elif defined(_METALLIC_MAP)
-        real4 m = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_MetallicGlossMap, i.uv);
-        materialParams.metallic = real4(m.x * _Metallic, m.y * _MetallicGloss, m.z * _MetallicReflection, 0.0);
+    #ifndef REIGN_GetMaterialProperties_OVERRIDE_specular
+        #if defined(_SPECULAR_SLIDERS)
+        materialParams.specular = real4(_SpecularIntensity, _SpecularRoughness, _SpecularMetallic, _SpecularFresnel);
+        #elif defined(_SPECULAR_MAP)
+        real4 m = SAMPLE_TEXTURE2D(_SpecularMap, sampler_SpecularMap, i.uv);
+        materialParams.specular = m * real4(_SpecularIntensity, _SpecularRoughness, _SpecularMetallic, _SpecularFresnel);
         #endif
     #endif
 
@@ -171,7 +171,7 @@ PS_OUT frag(VS_OUT i)
     light += Process_PointLights(materialParams, eyeDir, eyeRef, pos);
     #endif
     
-    #if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
+    /*#if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
         real4 e = SampleEnvironment(eyeRef, 1.0 - materialParams.metallic.y) * materialParams.metallic.z;
         #if defined(LIGHTMAP_ON)
         light += e + materialParams.lightmap;
@@ -179,20 +179,16 @@ PS_OUT frag(VS_OUT i)
         light += e + SampleEnvironment(eyeRef, .9);
         #endif
     
-        #ifdef ENABLE_METALLIC_PBR
-            real f = saturate(dot(-eyeDir, materialParams.normal));// slope
-            real4 metallic = lerp(light * materialParams.color * (1.0 - saturate(f - .25)), light * materialParams.color, materialParams.metallic.x);// metallic lerp
-            light = lerp(light, metallic, pow(saturate(f * 2.0), .5));// fresnel lerp
-            light = lerp(metallic, light, materialParams.metallic.z);
-        #else
-            light = lerp((light * materialParams.color + e) * .5, light * materialParams.color, materialParams.metallic.x);
-        #endif
+        real f = saturate(dot(-eyeDir, materialParams.normal));// slope
+        real4 metallic = lerp(light * materialParams.color * (1.0 - saturate(f - .25)), light * materialParams.color, materialParams.metallic.x);// metallic lerp
+        light = lerp(light, metallic, pow(saturate(f * 2.0), .5));// fresnel lerp
+        light = lerp(metallic, light, materialParams.metallic.z);
     
         #if defined(LIGHTMAP_ON)
         //light = dot(materialParams.lightmap, real4(.3333, .3333, .3333, 0.0));// * 4.0;
         //light *= materialParams.lightmap * 4.0;
         #endif
-    #endif
+    #endif*/
     
     #ifdef ENABLE_OCCLUSION
     light *= materialParams.ao;

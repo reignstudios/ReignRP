@@ -8,12 +8,13 @@
         [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
 
-        [KeywordEnum(Off, Sliders, Map)] _METALLIC ("Metallic Mode", Float) = 1
-        [Toggle(ENABLE_METALLIC_PBR)] _ENABLE_METALLIC_PBR ("Enable PBR", Float) = 0
-        _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
-        _MetallicGloss("Metallic Gloss", Range(0.0, 1.0)) = 0.0
-        _MetallicReflection("Metallic Reflection", Range(0.0, 1.0)) = 0.0
-        _MetallicGlossMap("Metallic", 2D) = "white" {}
+        [KeywordEnum(Off, Sliders, Map)] _SPECULAR ("Specular Mode", Float) = 1
+        //[Toggle(ENABLE_SPECULAR_HQ)] _ENABLE_SPECULAR_HQ ("Enable PBR", Float) = 0
+        _SpecularIntensity("Specular Intensity", Range(0.0, 1.0)) = 0.0
+        _SpecularRoughness("Specular Roughness", Range(0.0, 1.0)) = 0.0
+        _SpecularMetallic("Specular Metallic", Range(0.0, 1.0)) = 0.0
+        _SpecularFresnel("Specular Fresnel", Range(0.0, 1.0)) = 0.0
+        _SpecularMap("Specular", 2D) = "white" {}
 
         [Toggle(ENABLE_NORMAL)] _ENABLE_NORMAL ("Enable Normal", Float) = 0
         _BumpMap("Normal Map", 2D) = "bump" {}
@@ -45,8 +46,8 @@
             #pragma multi_compile _ REIGN_AMBIENT_MODE_DISABLE REIGN_AMBIENT_MODE_SKYBOX REIGN_AMBIENT_MODE_GRADIENT REIGN_AMBIENT_MODE_COLOR
 
             #pragma shader_feature _COLOR_COLOR _COLOR_ALBEDO _COLOR_BOTH
-            #pragma shader_feature _ _METALLIC_OFF _METALLIC_SLIDERS _METALLIC_MAP
-            #pragma shader_feature _ ENABLE_METALLIC_PBR
+            #pragma shader_feature _ _SPECULAR_OFF _SPECULAR_SLIDERS _SPECULAR_MAP
+            //#pragma shader_feature _ ENABLE_SPECULAR_HQ
             #pragma shader_feature _ ENABLE_NORMAL
             #pragma shader_feature _ ENABLE_OCCLUSION
             #pragma shader_feature _ ENABLE_EMISSION

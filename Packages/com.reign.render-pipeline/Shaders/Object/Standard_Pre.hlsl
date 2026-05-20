@@ -68,13 +68,13 @@ SAMPLER(sampler_BaseMap);
 TEXTURE2D(_BaseMap);
 #endif
 
-#ifndef _METALLIC_OFF
-half _Metallic, _MetallicGloss, _MetallicReflection;
+#ifndef _SPECULAR_OFF
+half _SpecularIntensity, _SpecularRoughness, _SpecularMetallic, _SpecularFresnel;
 #endif
 
-#ifdef _METALLIC_MAP
-SAMPLER(sampler_MetallicGlossMap);
-TEXTURE2D(_MetallicGlossMap);
+#ifdef _SPECULAR_MAP
+SAMPLER(sampler_SpecularMap);
+TEXTURE2D(_SpecularMap);
 #endif
 
 #if defined(ENABLE_NORMAL)
