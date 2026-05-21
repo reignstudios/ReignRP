@@ -87,16 +87,22 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
         #else
         materialParams.color = 1.0;
         #endif
+    #else
+        materialParams.normal = GetMaterialProperties_Override_Color(i);
     #endif
     
-    // metallic
+    // specular
     #ifndef REIGN_GetMaterialProperties_OVERRIDE_specular
         #if defined(_SPECULAR_SLIDERS)
         materialParams.specular = real4(_SpecularIntensity, _SpecularRoughness, _SpecularMetallic, _SpecularFresnel);
+        materialParams.specularInv = 1.0 - materialParams.specular;
         #elif defined(_SPECULAR_MAP)
         real4 m = SAMPLE_TEXTURE2D(_SpecularMap, sampler_SpecularMap, i.uv);
         materialParams.specular = m * real4(_SpecularIntensity, _SpecularRoughness, _SpecularMetallic, _SpecularFresnel);
+        materialParams.specularInv = 1.0 - materialParams.specular;
         #endif
+    #else
+        materialParams.normal = GetMaterialProperties_Override_Specular(i);
     #endif
 
     // normal
@@ -105,11 +111,12 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
         materialParams.normal = SAMPLE_TEXTURE2D(_BumpMap, sampler_BumpMap, i.uv);
         materialParams.normal.xy -= .5;
         materialParams.normal = normalize(mul(materialParams.normal, i.surfaceMatrix));
+        materialParams.normalObj = i.surfaceMatrix[2];
         #else
-        materialParams.normal = normalize(i.normal);
+        materialParams.normal = materialParams.normalObj = normalize(i.normal);
         #endif
-        #else
-        materialParams.normal = GetMaterialProperties_Override_Normal(i);
+    #else
+        GetMaterialProperties_Override_Normal(i, materialParams.normal, materialParams.normalObj);
     #endif
     
     // ao
@@ -117,6 +124,8 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
         #if defined(ENABLE_OCCLUSION)
         materialParams.ao = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, i.uv);
         #endif
+    #else
+        materialParams.normal = GetMaterialProperties_Override_AO(i);
     #endif
     
     // emissive
@@ -124,6 +133,8 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
         #if defined(ENABLE_EMISSION)
         materialParams.emissive = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, i.uv) * _EmissionColor;
         #endif
+    #else
+        materialParams.normal = GetMaterialProperties_Override_Emissive(i);
     #endif
     
     // lightmap
@@ -131,6 +142,8 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
         #if defined(LIGHTMAP_ON)
         materialParams.lightmap = SampleLightmap(i.lightmapUV);
         #endif
+    #else
+        materialParams.normal = GetMaterialProperties_Override_Lightmap(i);
     #endif
 
     return materialParams;
@@ -156,49 +169,55 @@ PS_OUT frag(VS_OUT i)
     real3 eyeRef = reflect(eyeDir, materialParams.normal);
 
     // compute shade
-    real4 light;
-    #ifndef REIGN_DIRECTIONAL_LIGHTS_DISABLE
-    light = Process_DirectionalLights(materialParams, eyeDir, eyeRef);
-    #else
-    light = 0.0;
+    real4 lightDiffuse = 0.0;
+    #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
+    real4 lightSpecular = 0.0;
     #endif
     
-    /*#if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
-    o.color += SampleEnvironmentMaterial(materialParams, eyeDir, eyeRef);
-    #endif*/
+    #ifndef REIGN_DIRECTIONAL_LIGHTS_DISABLE
+        #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
+        Process_DirectionalLights(materialParams, eyeDir, eyeRef, lightDiffuse, lightSpecular);
+        #else
+        Process_DirectionalLights(materialParams, eyeDir, eyeRef, lightDiffuse);
+        #endif
+    #endif
     
     #ifndef REIGN_POINT_LIGHTS_DISABLE
-    light += Process_PointLights(materialParams, eyeDir, eyeRef, pos);
+        #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
+        Process_PointLights(materialParams, eyeDir, eyeRef, pos, lightDiffuse, lightSpecular);
+        #else
+        Process_PointLights(materialParams, eyeDir, eyeRef, pos, lightDiffuse);
+        #endif
     #endif
     
-    /*#if defined(_METALLIC_SLIDERS) || defined(_METALLIC_MAP)
-        real4 e = SampleEnvironment(eyeRef, 1.0 - materialParams.metallic.y) * materialParams.metallic.z;
-        #if defined(LIGHTMAP_ON)
-        light += e + materialParams.lightmap;
-        #else
-        light += e + SampleEnvironment(eyeRef, .9);
-        #endif
+    #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
+    Process_Environment(materialParams, eyeDir, eyeRef, lightDiffuse, lightSpecular);
+    #else
+    Process_Environment(materialParams, eyeDir, lightDiffuse);
+    #endif
     
-        real f = saturate(dot(-eyeDir, materialParams.normal));// slope
-        real4 metallic = lerp(light * materialParams.color * (1.0 - saturate(f - .25)), light * materialParams.color, materialParams.metallic.x);// metallic lerp
-        light = lerp(light, metallic, pow(saturate(f * 2.0), .5));// fresnel lerp
-        light = lerp(metallic, light, materialParams.metallic.z);
-    
-        #if defined(LIGHTMAP_ON)
-        //light = dot(materialParams.lightmap, real4(.3333, .3333, .3333, 0.0));// * 4.0;
-        //light *= materialParams.lightmap * 4.0;
-        #endif
-    #endif*/
+    #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
+    Process_LightMaterial(materialParams, eyeDir, eyeRef, lightDiffuse, lightSpecular);
+    #else
+    Process_LightMaterial(materialParams, lightDiffuse);
+    #endif
     
     #ifdef ENABLE_OCCLUSION
-    light *= materialParams.ao;
+        lightDiffuse *= materialParams.ao;
+        #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
+        lightSpecular *= materialParams.ao;
+        #endif
+    #endif
+    
+    #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
+    o.color = lightDiffuse + lightSpecular;
+    #else
+    o.color = lightDiffuse;
     #endif
     
     #ifdef ENABLE_EMISSION
-    light += materialParams.emissive;
+    o.color += materialParams.emissive;
     #endif
-    
-    o.color = light;
 
     // custom outs
     #ifdef REIGN_frag_CUSTOM_OUTS

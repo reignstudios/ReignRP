@@ -386,8 +386,8 @@ namespace Reign.SRP
 			if (asset.enableLightmaps) specialRenderParams |= PerObjectData.Lightmaps;
             if (motionBlurEnabled)
             {
-                depthTextureMode = DepthTextureMode.MotionVectors;
-                specialRenderParams = PerObjectData.MotionVectors;
+                depthTextureMode |= DepthTextureMode.MotionVectors;
+                specialRenderParams |= PerObjectData.MotionVectors;
             }
             if ((camera.depthTextureMode & depthTextureMode) == 0) camera.depthTextureMode = depthTextureMode;
 

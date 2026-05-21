@@ -12,19 +12,21 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - ENABLE_METALLIC_PBR
+  - ENABLE_SPECULAR_HQ
   - _COLOR_COLOR
-  - _METALLIC_SLIDERS
+  - _SPECULAR_SLIDERS
   m_InvalidKeywords:
   - ENABLE_METALLIC_FRESNEL
   - ENABLE_METALLIC_HQ
+  - ENABLE_METALLIC_PBR
+  - _METALLIC_SLIDERS
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties: _ENABLE_METALLIC_FRESNEL _MetallicGloss
+  m_LockedProperties: _ENABLE_METALLIC_FRESNEL _MetallicGloss _SpecularIntensity
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -68,6 +70,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SpecularMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _BumpScale: 1
@@ -86,6 +92,7 @@ Material:
     - _ENABLE_NORMAL: 0
     - _ENABLE_NORMAL_NORMALIZE: 0
     - _ENABLE_OCCLUSION: 0
+    - _ENABLE_SPECULAR_HQ: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
@@ -97,13 +104,18 @@ Material:
     - _MyFeature: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _SPECULAR: 1
     - _SmoothnessTextureChannel: 0
+    - _SpecularFresnel: 1
     - _SpecularHighlights: 1
+    - _SpecularIntensity: 1
+    - _SpecularMetallic: 1
+    - _SpecularRoughness: 0.219
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 0, b: 0, a: 1}
+    - _BaseColor: {r: 0.90588236, g: 0.019607844, b: 0.83137256, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0.7735849, g: 0, b: 0, a: 1}
     - _UVScaleOffset: {r: 1, g: 1, b: 0, a: 0}
