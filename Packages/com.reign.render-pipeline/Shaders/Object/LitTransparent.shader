@@ -1,4 +1,4 @@
-﻿Shader "ReignRP/Lit"
+﻿Shader "ReignRP/Lit Transparent"
 {
     Properties
     {
@@ -25,14 +25,22 @@
         [Toggle(ENABLE_EMISSION)] _ENABLE_EMISSION ("Enable Emission", Float) = 0
         [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
+
+        // Blend Options
+        [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 5// SrcAlpha
+        [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", Float) = 10// OneMinusSrcAlpha
+        [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4// 4 = LessEqual (default)
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2// Backface culling
     }
 
     SubShader
     {
-        Tags { "LightMode" = "Reign_Opaque" "Queue" = "Geometry" "RenderType" = "Opaque" }
-        Cull Back
-        ZTest LEqual
-        ZWrite On
+        Tags { "LightMode" = "Reign_Transparent" "Queue" = "Transparent" "RenderType" = "Transparent" }
+
+        Cull [_Cull]
+        ZWrite Off
+        ZTest [_ZTest]
+        Blend [_SrcBlend] [_DstBlend]
 
         Pass
         {

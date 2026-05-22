@@ -218,6 +218,9 @@ PS_OUT frag(VS_OUT i)
     #ifdef ENABLE_EMISSION
     o.color += materialParams.emissive;
     #endif
+    
+    // maintain alpha
+    o.color.a = materialParams.color.a;
 
     // custom outs
     #ifdef REIGN_frag_CUSTOM_OUTS

@@ -69,7 +69,7 @@ PS_OUT frag(VS_OUT i)
     // lightmap
     #ifndef REIGN_GetMaterialProperties_OVERRIDE_lightmap
         #if defined(LIGHTMAP_ON)
-        o.color *= SampleLightmap(i.lightmapUV);
+        o.color.rgb *= SampleLightmap(i.lightmapUV).rgb;// maintain alpha
         #endif
     #else
         o.color *= GetMaterialProperties_Override_Lightmap(i);

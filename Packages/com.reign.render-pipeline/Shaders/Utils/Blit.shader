@@ -1,4 +1,4 @@
-﻿Shader "Reign/Blit"
+﻿Shader "ReignRP/Blit"
 {
     Properties
     {

@@ -1,4 +1,4 @@
-﻿Shader "ReignRP/Unlit"
+﻿Shader "ReignRP/Unlit Transparent"
 {
     Properties
     {
@@ -7,14 +7,22 @@
         [KeywordEnum(Color, Albedo, Both)] _COLOR ("Color Mode", Float) = 0
         [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
+
+        // Blend Options
+        [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 5// SrcAlpha
+        [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", Float) = 10// OneMinusSrcAlpha
+        [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4// 4 = LessEqual (default)
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2// Backface culling
     }
 
     SubShader
     {
-        Tags { "LightMode" = "Reign_Opaque" "Queue" = "Geometry" "RenderType" = "Opaque" }
-        Cull Back
-        ZTest LEqual
-        ZWrite On
+        Tags { "LightMode" = "Reign_Transparent" "Queue" = "Transparent" "RenderType" = "Transparent" }
+        
+        Cull [_Cull]
+        ZWrite Off
+        ZTest [_ZTest]
+        Blend [_SrcBlend] [_DstBlend]
 
         Pass
         {

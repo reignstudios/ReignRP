@@ -1,0 +1,125 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: LitTransparent
+  m_Shader: {fileID: 4800000, guid: 0f90145212092e741ace6ed870858f05, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - ENABLE_SPECULAR_HQ
+  - _COLOR_COLOR
+  - _SPECULAR_SLIDERS
+  m_InvalidKeywords:
+  - ENABLE_METALLIC_FRESNEL
+  - ENABLE_METALLIC_HQ
+  - ENABLE_METALLIC_PBR
+  - _METALLIC_SLIDERS
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: _ENABLE_METALLIC_FRESNEL _MetallicGloss _SpecularIntensity
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SpecularMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _BumpScale: 1
+    - _COLOR: 0
+    - _ColorMode: 0
+    - _Cull: 2
+    - _Cutoff: 0.5
+    - _DetailNormalMapScale: 1
+    - _DstBlend: 10
+    - _ENABLE_ALBEDO: 0
+    - _ENABLE_COLOR: 0
+    - _ENABLE_EMISSION: 0
+    - _ENABLE_METALLIC: 0
+    - _ENABLE_METALLIC_FRESNEL: 1
+    - _ENABLE_METALLIC_HQ: 1
+    - _ENABLE_METALLIC_PBR: 1
+    - _ENABLE_NORMAL: 0
+    - _ENABLE_NORMAL_NORMALIZE: 0
+    - _ENABLE_OCCLUSION: 0
+    - _ENABLE_SPECULAR_HQ: 1
+    - _GlossMapScale: 1
+    - _Glossiness: 0.5
+    - _GlossyReflections: 1
+    - _METALLIC: 1
+    - _Metallic: 1
+    - _MetallicGloss: 1
+    - _MetallicReflection: 1
+    - _Mode: 0
+    - _MyFeature: 0
+    - _OcclusionStrength: 1
+    - _Parallax: 0.02
+    - _SPECULAR: 1
+    - _SmoothnessTextureChannel: 0
+    - _SpecularFresnel: 1
+    - _SpecularHighlights: 1
+    - _SpecularIntensity: 1
+    - _SpecularMetallic: 1
+    - _SpecularRoughness: 0.219
+    - _SrcBlend: 5
+    - _UVSec: 0
+    - _ZTest: 4
+    - _ZWrite: 1
+    m_Colors:
+    - _BaseColor: {r: 0.90588236, g: 0.019607844, b: 0.83137256, a: 0.31764707}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 0.7735849, g: 0, b: 0, a: 1}
+    - _UVScaleOffset: {r: 1, g: 1, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
