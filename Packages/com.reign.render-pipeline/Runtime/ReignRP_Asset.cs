@@ -46,10 +46,11 @@ namespace Reign.SRP
 		public GameViewRenderMode xrPreviewMode = GameViewRenderMode.BothEyes;
 
 		public ReignRenderPipelineResources resources;
-		public override Shader terrainDetailGrassShader => (resources != null && resources.shaders != null) ? resources.shaders.terrainGrassShader : null;
-		public override Shader terrainDetailGrassBillboardShader => (resources != null && resources.shaders != null) ? resources.shaders.terrainGrassBillboardShader : null;
 		public override string renderPipelineShaderTag => "ReignRP";
 		public override Type pipelineType => typeof(ReignRP);
+		public override Shader terrainDetailGrassShader => (resources != null && resources.shaders != null) ? resources.shaders.terrainGrassShader : base.terrainDetailGrassShader;
+		public override Shader terrainDetailGrassBillboardShader => (resources != null && resources.shaders != null) ? resources.shaders.terrainGrassBillboardShader : base.terrainDetailGrassBillboardShader;
+		public override Shader defaultShader => (resources != null && resources.shaders != null) ? resources.shaders.litShader : base.defaultShader;
 
 		private void Awake()
 		{

@@ -52,8 +52,8 @@
             #pragma shader_feature _ ENABLE_OCCLUSION
             #pragma shader_feature _ ENABLE_EMISSION
 
-            #include "Standard_Pre.hlsl"
-            #include "Standard_Post.hlsl"
+            #include "Lit_Pre.hlsl"
+            #include "Lit_Post.hlsl"
             ENDHLSL
         }
     }

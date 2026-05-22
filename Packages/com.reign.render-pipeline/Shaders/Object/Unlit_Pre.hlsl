@@ -15,12 +15,6 @@ struct VS_IN
     #ifdef LIGHTMAP_ON
     float2 lightmapUV : TEXCOORD1;
     #endif
-    
-    float3 normal : NORMAL0;
-    
-    #ifdef ENABLE_NORMAL
-    float3 tangent : TANGENT0;
-    #endif
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -30,16 +24,9 @@ struct VS_IN
 struct VS_OUT
 {
     float2 uv : TEXCOORD0;
-    float3 pos : TEXCOORD1;
-    
-    #if defined(ENABLE_NORMAL)
-    float3x3 surfaceMatrix : TEXCOORD2;
-    #else
-    float3 normal : TEXCOORD2;
-    #endif
     
     #ifdef LIGHTMAP_ON
-    float2 lightmapUV : TEXCOORD8;
+    float2 lightmapUV : TEXCOORD1;
     #endif
 
     float4 positionCS : SV_POSITION;
@@ -67,36 +54,6 @@ half4 _BaseColor;
 SAMPLER(sampler_BaseMap);
 TEXTURE2D(_BaseMap);
 #endif
-
-#ifndef _SPECULAR_OFF
-half _SpecularIntensity, _SpecularRoughness, _SpecularMetallic, _SpecularFresnel;
 #endif
-
-#ifdef _SPECULAR_MAP
-SAMPLER(sampler_SpecularMap);
-TEXTURE2D(_SpecularMap);
-#endif
-
-#if defined(ENABLE_NORMAL)
-SAMPLER(sampler_BumpMap);
-TEXTURE2D(_BumpMap);
-#endif
-
-#if defined(ENABLE_OCCLUSION)
-SAMPLER(sampler_OcclusionMap);
-TEXTURE2D(_OcclusionMap);
-#endif
-
-#if defined(ENABLE_EMISSION)
-half4 _EmissionColor;
-SAMPLER(sampler_EmissionMap);
-TEXTURE2D(_EmissionMap);
-#endif
-#endif
-
-// =====================================
-// Lights
-// =====================================
-#include "Standard_Lights.hlsl"
 
 #endif

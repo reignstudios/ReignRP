@@ -18,8 +18,8 @@
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "Standard_Pre.hlsl"
-            #include "Standard_Post.hlsl"
+            #include "Lit_Pre.hlsl"
+            #include "Lit_Post.hlsl"
             ENDHLSL
         }
 
