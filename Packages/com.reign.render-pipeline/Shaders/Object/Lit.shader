@@ -25,6 +25,9 @@
         [Toggle(ENABLE_EMISSION)] _ENABLE_EMISSION ("Enable Emission", Float) = 0
         [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
+
+        // Clip Options
+        [Toggle(ENABLE_ALPHACLIP)] _ENABLE_ALPHACLIP ("Enable Alpha Clip", Float) = 1
     }
 
     SubShader
@@ -51,6 +54,8 @@
             #pragma shader_feature _ ENABLE_NORMAL
             #pragma shader_feature _ ENABLE_OCCLUSION
             #pragma shader_feature _ ENABLE_EMISSION
+
+            #pragma shader_feature _ ENABLE_ALPHACLIP
 
             #include "Lit_Pre.hlsl"
             #include "Lit_Post.hlsl"

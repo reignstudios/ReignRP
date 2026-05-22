@@ -7,19 +7,20 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: UnlitTransparent
-  m_Shader: {fileID: 4800000, guid: eba92fef2be38cb4fa52d44713087ccf, type: 3}
+  m_Name: LitDitherClip
+  m_Shader: {fileID: 4800000, guid: a4f75d1f04d64074c84b80ec69fd5fa0, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - ENABLE_SPECULAR_HQ
   - _COLOR_COLOR
+  - _SPECULAR_SLIDERS
   m_InvalidKeywords:
+  - ENABLE_ALPHACLIP
   - ENABLE_METALLIC_FRESNEL
   - ENABLE_METALLIC_HQ
   - ENABLE_METALLIC_PBR
-  - ENABLE_SPECULAR_HQ
   - _METALLIC_SLIDERS
-  - _SPECULAR_SLIDERS
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -85,6 +86,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 10
     - _ENABLE_ALBEDO: 0
+    - _ENABLE_ALPHACLIP: 1
     - _ENABLE_COLOR: 0
     - _ENABLE_EMISSION: 0
     - _ENABLE_METALLIC: 0
@@ -118,7 +120,7 @@ Material:
     - _ZTest: 4
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 0.90588236, g: 0.019607844, b: 0.83137256, a: 0.2509804}
+    - _BaseColor: {r: 0.90588236, g: 0.019607844, b: 0.83137256, a: 0.31764707}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0.7735849, g: 0, b: 0, a: 1}
     - _UVScaleOffset: {r: 1, g: 1, b: 0, a: 0}

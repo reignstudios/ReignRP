@@ -54,6 +54,10 @@ half4 _BaseColor;
 SAMPLER(sampler_BaseMap);
 TEXTURE2D(_BaseMap);
 #endif
+
+#ifdef ENABLE_ALPHACLIP
+float _AlphaClip;
+#endif
 #endif
 
 #endif

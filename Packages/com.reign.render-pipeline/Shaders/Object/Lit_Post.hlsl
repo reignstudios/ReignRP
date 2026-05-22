@@ -75,6 +75,10 @@ VS_OUT vert(VS_IN i)
 inline MaterialParams GetMaterialProperties(VS_OUT i)
 {
     MaterialParams materialParams;
+    
+    #ifdef SS_UV
+    materialParams.ssUV = i.positionCS.xy / targetSize.xy;
+    #endif
 
     // color
     #ifndef REIGN_GetMaterialProperties_OVERRIDE_color
@@ -89,6 +93,15 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
         #endif
     #else
         materialParams.normal = GetMaterialProperties_Override_Color(i);
+    #endif
+    
+    // clip
+    #ifdef ENABLE_ALPHACLIP
+    clip(materialParams.color.a - _AlphaClip);
+    #endif
+    
+    #ifdef ENABLE_SS_DITHERALPHA
+    SSDitherClip(materialParams.color.a, materialParams.ssUV);
     #endif
     
     // specular
@@ -159,13 +172,9 @@ PS_OUT frag(VS_OUT i)
     // material params
     MaterialParams materialParams = GetMaterialProperties(i);
     PS_OUT o;
-    
-    // get position
-    float3 pos = i.pos;
-    //float2 posUV = i.positionCS.xy / targetSize.xy;
 
     // get eye direction
-    real3 eyeDir = normalize(pos - _WorldSpaceCameraPos);
+    real3 eyeDir = normalize(i.pos - _WorldSpaceCameraPos);
     real3 eyeRef = reflect(eyeDir, materialParams.normal);
 
     // compute shade
@@ -184,9 +193,9 @@ PS_OUT frag(VS_OUT i)
     
     #ifndef REIGN_POINT_LIGHTS_DISABLE
         #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
-        Process_PointLights(materialParams, eyeDir, eyeRef, pos, lightDiffuse, lightSpecular);
+        Process_PointLights(materialParams, eyeDir, eyeRef, i.pos, lightDiffuse, lightSpecular);
         #else
-        Process_PointLights(materialParams, eyeDir, eyeRef, pos, lightDiffuse);
+        Process_PointLights(materialParams, eyeDir, eyeRef, i.pos, lightDiffuse);
         #endif
     #endif
     

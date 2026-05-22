@@ -1,4 +1,4 @@
-﻿Shader "ReignRP/Blit"
+﻿Shader "Hidden/Blit"
 {
     Properties
     {

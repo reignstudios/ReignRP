@@ -6,6 +6,10 @@
 // =====================================
 struct MaterialParams
 {
+    #ifdef SS_UV
+    float2 ssUV;
+    #endif
+    
 	real4 color;
     
     #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
@@ -190,7 +194,7 @@ inline void Process_Environment(MaterialParams materialParams, real3 eyeDir, ino
     #if defined(LIGHTMAP_ON)
     lightDiffuse += materialParams.lightmap;
     #else
-    lightDiffuse += SampleEnvironment(materialParams.normal, .9);
+    lightDiffuse += SampleEnvironment(materialParams.normal, .9) * 3.0;
     #endif
     
     #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)

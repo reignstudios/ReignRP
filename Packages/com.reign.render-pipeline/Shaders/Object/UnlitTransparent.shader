@@ -9,6 +9,8 @@
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
 
         // Blend Options
+        [Toggle(ENABLE_ALPHACLIP)] _ENABLE_ALPHACLIP ("Enable Alpha Clip", Float) = 1
+        _AlphaClip ("Alpha Clip", Range(0.0, 1.0)) = 0.1
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 5// SrcAlpha
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", Float) = 10// OneMinusSrcAlpha
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4// 4 = LessEqual (default)
@@ -33,6 +35,7 @@
             #pragma multi_compile _ LIGHTMAP_ON
 
             #pragma shader_feature _COLOR_COLOR _COLOR_ALBEDO _COLOR_BOTH
+            #pragma shader_feature _ ENABLE_ALPHACLIP
 
             #include "Unlit_Pre.hlsl"
             #include "Unlit_Post.hlsl"

@@ -92,6 +92,10 @@ half4 _EmissionColor;
 SAMPLER(sampler_EmissionMap);
 TEXTURE2D(_EmissionMap);
 #endif
+
+#ifdef ENABLE_ALPHACLIP
+float _AlphaClip;
+#endif
 #endif
 
 // =====================================

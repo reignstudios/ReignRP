@@ -203,6 +203,7 @@ namespace Reign.SRP
 			cmd.Clear();
 			cmd.SetGlobalVector("randoValues", new Vector4(UnityEngine.Random.value * 12.9898f, UnityEngine.Random.value * 78.233f, UnityEngine.Random.value * 43758.5453123f, 0));
             SetShaderTimeValues(cmd, Time.time, Time.deltaTime, Time.smoothDeltaTime);
+			cmd.SetGlobalTexture("_DitherTex", asset.resources.textures.ditherTexture);
             context.ExecuteCommandBuffer(cmd);
 
 			// start rendering cameras

@@ -66,6 +66,19 @@ PS_OUT frag(VS_OUT i)
         o.color = GetMaterialProperties_Override_Color(i);
     #endif
     
+    // clip
+    #ifdef ENABLE_ALPHACLIP
+    clip(o.color.a - _AlphaClip);
+    #endif
+    
+    #ifdef SS_UV
+    float2 ssUV = i.positionCS.xy / targetSize.xy;
+    #endif
+    
+    #ifdef ENABLE_SS_DITHERALPHA
+    SSDitherClip(o.color.a, ssUV);
+    #endif
+    
     // lightmap
     #ifndef REIGN_GetMaterialProperties_OVERRIDE_lightmap
         #if defined(LIGHTMAP_ON)

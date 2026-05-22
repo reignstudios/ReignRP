@@ -184,14 +184,22 @@ inline float3 ComputeScreenPos(float4 posCS)
 	return (uv * .5) + .5;
 }
 
-inline float3 ComputeScreenNormal(float3 normalWS)
+inline real3 ComputeScreenNormal(real3 normalWS)
 {
-	return mul(unity_MatrixV, float4(normalWS, 0.0)).xyz;
+	return mul(unity_MatrixV, real4(normalWS, 0.0)).xyz;
 }
 
-float LinearEyeDepth(float depth)
+inline float LinearEyeDepth(float depth)
 {
 	return 1.0 / (_ZBufferParams.z * depth + _ZBufferParams.w);
+}
+
+SAMPLER(sampler_DitherTex);
+TEXTURE2D(_DitherTex);
+inline void SSDitherClip(real a, float2 ssUV)
+{
+	real4 d = SAMPLE_TEXTURE2D(_DitherTex, sampler_DitherTex, ssUV * (targetSize.xy * (1.0 / 8.0)));// TODO: add settings for dither texture size
+	clip(a - d.r);
 }
 
 #endif

@@ -1,4 +1,4 @@
-﻿Shader "ReignRP/Lit Transparent"
+﻿Shader "ReignRP/Lit DitherClip"
 {
     Properties
     {
@@ -25,24 +25,14 @@
         [Toggle(ENABLE_EMISSION)] _ENABLE_EMISSION ("Enable Emission", Float) = 0
         [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
-
-        // Blend Options
-        [Toggle(ENABLE_ALPHACLIP)] _ENABLE_ALPHACLIP ("Enable Alpha Clip", Float) = 1
-        _AlphaClip ("Alpha Clip", Range(0.0, 1.0)) = 0.1
-        [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 5// SrcAlpha
-        [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", Float) = 10// OneMinusSrcAlpha
-        [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4// 4 = LessEqual (default)
-        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2// Backface culling
     }
 
     SubShader
     {
-        Tags { "LightMode" = "Reign_Transparent" "Queue" = "Transparent" "RenderType" = "Transparent" }
-
-        Cull [_Cull]
-        ZWrite Off
-        ZTest [_ZTest]
-        Blend [_SrcBlend] [_DstBlend]
+        Tags { "LightMode" = "Reign_Opaque" "Queue" = "Geometry" "RenderType" = "Opaque" }
+        Cull Back
+        ZTest LEqual
+        ZWrite On
 
         Pass
         {
@@ -62,8 +52,8 @@
             #pragma shader_feature _ ENABLE_OCCLUSION
             #pragma shader_feature _ ENABLE_EMISSION
 
-            #pragma shader_feature _ ENABLE_ALPHACLIP
-
+            #define SS_UV
+            #define ENABLE_SS_DITHERALPHA
             #include "Lit_Pre.hlsl"
             #include "Lit_Post.hlsl"
             ENDHLSL

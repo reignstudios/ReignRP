@@ -1,4 +1,4 @@
-﻿Shader "ReignRP/Unlit"
+﻿Shader "ReignRP/Unlit DitherClip"
 {
     Properties
     {
@@ -7,9 +7,6 @@
         [KeywordEnum(Color, Albedo, Both)] _COLOR ("Color Mode", Float) = 0
         [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
-
-        // Clip Options
-        [Toggle(ENABLE_ALPHACLIP)] _ENABLE_ALPHACLIP ("Enable Alpha Clip", Float) = 1
     }
 
     SubShader
@@ -28,8 +25,9 @@
             #pragma multi_compile _ LIGHTMAP_ON
 
             #pragma shader_feature _COLOR_COLOR _COLOR_ALBEDO _COLOR_BOTH
-            #pragma shader_feature _ ENABLE_ALPHACLIP
 
+            #define SS_UV
+            #define ENABLE_SS_DITHERALPHA
             #include "Unlit_Pre.hlsl"
             #include "Unlit_Post.hlsl"
             ENDHLSL
