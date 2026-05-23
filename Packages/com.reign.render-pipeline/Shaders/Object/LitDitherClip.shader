@@ -13,7 +13,7 @@
         [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
 
-        [KeywordEnum(Off, Sliders, Map)] _SPECULAR ("Specular Mode", Float) = 1
+        [KeywordEnum(Off, Sliders, Map)] _SPECULAR ("Specular Mode", Float) = 0
         [Toggle(ENABLE_SPECULAR_HQ)] _ENABLE_SPECULAR_HQ ("Specular HQ", Float) = 0
         _SpecularIntensity("Specular Intensity", Range(0.0, 1.0)) = 1.0
         _SpecularRoughness("Specular Roughness", Range(0.0, 1.0)) = 1.0
