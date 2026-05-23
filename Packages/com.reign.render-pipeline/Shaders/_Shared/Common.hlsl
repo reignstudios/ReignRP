@@ -166,6 +166,15 @@ inline float2 TransformLightmapUV(float2 lightmapUV)
 #endif
 
 // ======================================
+// util input
+// ======================================
+float4 randoValues;
+
+SAMPLER(sampler_DitherTex);
+TEXTURE2D(_DitherTex);
+float4 _DitherTex_TexelSize;
+
+// ======================================
 // util
 // ======================================
 inline float3x3 SurfaceMatrix(float3 normal, float3 tangent)
@@ -194,12 +203,51 @@ inline float LinearEyeDepth(float depth)
 	return 1.0 / (_ZBufferParams.z * depth + _ZBufferParams.w);
 }
 
-SAMPLER(sampler_DitherTex);
-TEXTURE2D(_DitherTex);
+// random
+inline float random2D(float2 uv)
+{
+	return frac(sin(dot(uv, randoValues.xy)) * randoValues.w);
+}
+
+inline float random3D(float3 uv)
+{
+	return frac(sin(dot(uv, randoValues.xyz)) * randoValues.w);
+}
+
+inline float random2DConst(float2 uv)
+{
+	return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453123);
+}
+
+inline float random3DConst(float3 uv)
+{
+	return frac(sin(dot(uv, float3(12.9898, 78.233, 43.849))) * 43758.5453123);
+}
+
+// math
+inline float logE(float base, float x)
+{
+	return log(x) / log(base);
+}
+
+// dither
 inline void SSDitherClip(real a, float2 ssUV)
 {
-	real4 d = SAMPLE_TEXTURE2D(_DitherTex, sampler_DitherTex, ssUV * (targetSize.xy * (1.0 / 8.0)));// TODO: add settings for dither texture size
+	real4 d = SAMPLE_TEXTURE2D(_DitherTex, sampler_DitherTex, ssUV * (targetSize.xy * _DitherTex_TexelSize.xy));
 	clip(a - d.r);
+}
+
+inline void SSPatternClip(real a, float2 ssUV)
+{
+	float3 magic = float3(0.06711056, 0.00583715, 52.9829189);
+	float d = frac(magic.z * frac(dot(ssUV * targetSize.xy, magic.xy)));
+	clip(a - d);
+}
+
+inline void SSRandomClip(real a, float2 ssUV)
+{
+	float d = random2DConst(ssUV);
+	clip(a - d);
 }
 
 #endif

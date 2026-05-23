@@ -19,12 +19,6 @@ namespace Reign.SRP
 		}
 
 		[Serializable]
-		public sealed class MaterialResources
-		{
-			public Material litMaterial;
-		}
-
-		[Serializable]
 		public sealed class MeshResources
 		{
 			public Mesh skyboxMesh;
@@ -39,7 +33,6 @@ namespace Reign.SRP
         }
 
         public ShaderResources shaders;
-		public MaterialResources materials;
 		public MeshResources meshes;
 		public TextureResources textures;
     }

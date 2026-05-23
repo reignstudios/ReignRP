@@ -76,7 +76,13 @@ PS_OUT frag(VS_OUT i)
     #endif
     
     #ifdef ENABLE_SS_DITHERALPHA
-    SSDitherClip(o.color.a, ssUV);
+        #if defined(_CLIP_MODE_DITHER)
+        SSDitherClip(o.color.a, ssUV);
+        #elif defined(_CLIP_MODE_PATTERN)
+        SSPatternClip(o.color.a, ssUV);
+        #else
+        SSRandomClip(o.color.a, ssUV);
+        #endif
     #endif
     
     // lightmap

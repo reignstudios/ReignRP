@@ -2,6 +2,7 @@
 {
     Properties
     {
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2// Backface culling
         _UVScaleOffset("UV Scale Offset", Vector) = (1,1,0,0)
 
         [KeywordEnum(Color, Albedo, Both)] _COLOR ("Color Mode", Float) = 0
@@ -15,7 +16,8 @@
     SubShader
     {
         Tags { "LightMode" = "Reign_Opaque" "Queue" = "Geometry" "RenderType" = "Opaque" }
-        Cull Back
+        
+        Cull [_Cull]
         ZTest LEqual
         ZWrite On
 

@@ -101,7 +101,13 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
     #endif
     
     #ifdef ENABLE_SS_DITHERALPHA
-    SSDitherClip(materialParams.color.a, materialParams.ssUV);
+        #if defined(_CLIP_MODE_DITHER)
+        SSDitherClip(materialParams.color.a, materialParams.ssUV);
+        #elif defined(_CLIP_MODE_PATTERN)
+        SSPatternClip(materialParams.color.a, materialParams.ssUV);
+        #else
+        SSRandomClip(materialParams.color.a, materialParams.ssUV);
+        #endif
     #endif
     
     // specular
@@ -158,7 +164,7 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
     #else
         materialParams.normal = GetMaterialProperties_Override_Lightmap(i);
     #endif
-
+    
     return materialParams;
 }
 #endif

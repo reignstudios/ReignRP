@@ -51,6 +51,7 @@ namespace Reign.SRP
 		public override Shader terrainDetailGrassShader => (resources != null && resources.shaders != null) ? resources.shaders.terrainGrassShader : base.terrainDetailGrassShader;
 		public override Shader terrainDetailGrassBillboardShader => (resources != null && resources.shaders != null) ? resources.shaders.terrainGrassBillboardShader : base.terrainDetailGrassBillboardShader;
 		public override Shader defaultShader => (resources != null && resources.shaders != null) ? resources.shaders.litShader : base.defaultShader;
+		public override Material defaultMaterial => (resources != null && resources.shaders != null) ? new Material(resources.shaders.litShader) : base.defaultMaterial;
 
 		private void Awake()
 		{

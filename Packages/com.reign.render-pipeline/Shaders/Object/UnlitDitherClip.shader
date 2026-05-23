@@ -2,6 +2,11 @@
 {
     Properties
     {
+        [KeywordEnum(Dither, Pattern, Random)] _CLIP_MODE ("Clip Mode", Float) = 0
+        [Space(10)]
+
+        // main
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2// Backface culling
         _UVScaleOffset("UV Scale Offset", Vector) = (1,1,0,0)
 
         [KeywordEnum(Color, Albedo, Both)] _COLOR ("Color Mode", Float) = 0
@@ -12,7 +17,8 @@
     SubShader
     {
         Tags { "LightMode" = "Reign_Opaque" "Queue" = "Geometry" "RenderType" = "Opaque" }
-        Cull Back
+        
+        Cull [_Cull]
         ZTest LEqual
         ZWrite On
 
@@ -25,6 +31,7 @@
             #pragma multi_compile _ LIGHTMAP_ON
 
             #pragma shader_feature _COLOR_COLOR _COLOR_ALBEDO _COLOR_BOTH
+            #pragma shader_feature _ _CLIP_MODE_DITHER _CLIP_MODE_PATTERN _CLIP_MODE_RANDOM
 
             #define SS_UV
             #define ENABLE_SS_DITHERALPHA

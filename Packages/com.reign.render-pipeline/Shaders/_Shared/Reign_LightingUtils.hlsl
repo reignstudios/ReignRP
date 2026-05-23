@@ -8,9 +8,6 @@ float4x4 shadowMatrix1, shadowMatrix2, shadowMatrix3, shadowMatrix4;
 float4 shadowCascades;
 float shadowBias;
 
-// random helper values
-float4 randoValues;
-
 // fog resources
 float4 fogColor;
 float fogDitherStrength, fogFalloff, fogStrength;
@@ -25,21 +22,6 @@ inline float FresnelSchlick(float3 eyeDir, float3 n, float F0)
 inline float FresnelSchlickZero(float3 eyeDir, float3 n)
 {
 	return pow(1.0 - saturate(dot(-eyeDir, n)), 5.0);
-}
-
-inline float random2D(float2 uv)
-{
-	return frac(sin(dot(uv, randoValues.xy)) * randoValues.w);
-}
-
-inline float random3D(float3 uv)
-{
-	return frac(sin(dot(uv, randoValues.xyz)) * randoValues.w);
-}
-
-inline float logE(float base, float x)
-{
-	return log(x) / log(base);
 }
 
 #endif
