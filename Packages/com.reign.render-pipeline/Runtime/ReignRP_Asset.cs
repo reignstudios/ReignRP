@@ -12,7 +12,7 @@ namespace Reign.SRP
 		public static ReignRenderPipelineAsset singleton { get; private set; }
 
 		public bool hdr;
-		public bool useRenderPasses = true;
+		public bool useRenderPasses = false;
 		[Tooltip("If UseRenderPasses is on and you have multiple cameras that clear the same target buffer")]
 		public bool renderPassesMultiCameraClear = false;
 

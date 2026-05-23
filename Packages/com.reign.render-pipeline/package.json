@@ -1,7 +1,7 @@
 {
   "name": "com.reign.render-pipeline",
   "description": "Portable Forward & Deferred render pipeline for Low/High-End Mobile, Console & PC",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "unity": "2020.3",
   "unityRelease": "18f1",
   "displayName": "Reign RP",
