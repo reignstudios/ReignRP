@@ -1,13 +1,16 @@
-﻿Shader "ReignRP/Unlit"
+﻿Shader "ReignRP/Unlit Transparent (OpaquePass)"
 {
     Properties
     {
-        // Clip Options
-        [Toggle(ENABLE_ALPHACLIP)] _ENABLE_ALPHACLIP ("Enable Alpha Clip", Float) = 0
+        // Blend Options
+        [Toggle(ENABLE_ALPHACLIP)] _ENABLE_ALPHACLIP ("Enable Alpha Clip", Float) = 1
         _AlphaClip ("Alpha Clip", Range(0.0, 1.0)) = 0.1
+        [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 5// SrcAlpha
+        [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", Float) = 10// OneMinusSrcAlpha
+        [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4// 4 = LessEqual (default)
         [Space(10)]
 
-        // normal
+        // main
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2// Backface culling
         _UVScaleOffset("UV Scale Offset", Vector) = (1,1,0,0)
 
@@ -21,8 +24,9 @@
         Tags { "LightMode" = "Reign_Opaque" "Queue" = "Geometry" "RenderType" = "Opaque" }
         
         Cull [_Cull]
-        ZTest LEqual
-        ZWrite On
+        ZWrite Off
+        ZTest [_ZTest]
+        Blend [_SrcBlend] [_DstBlend]
 
         Pass
         {
