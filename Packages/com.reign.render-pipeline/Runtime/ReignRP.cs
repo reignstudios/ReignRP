@@ -224,6 +224,7 @@ namespace Reign.SRP
                     else
                     {
                         var subsystem = xrSubsystemList[0];
+						subsystem.foveatedRenderingLevel = 1;
 						int renderPassCount = subsystem.GetRenderPassCount();
                         if (renderPassCount > 0)
                         {
@@ -688,6 +689,17 @@ namespace Reign.SRP
 			{
 				cmd.Clear();
 
+				// foveated rendering
+				if (xrRenderPassInfo.pass.foveatedRenderingInfo != IntPtr.Zero)
+				{
+					cmd.ConfigureFoveatedRendering(xrRenderPassInfo.pass.foveatedRenderingInfo);
+					cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
+				}
+				else
+				{
+					cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+				}
+				
 				// enable targets
 				if (renderPassDesc.renderTargets.Length >= 2) cmd.SetRenderTarget(renderPassDesc.renderTargets, renderPassDesc.renderTarget_Depth, 0, CubemapFace.Unknown, slice);
 				else cmd.SetRenderTarget(renderPassDesc.renderTarget_First, renderPassDesc.renderTarget_Depth, 0, CubemapFace.Unknown, slice);
@@ -810,7 +822,7 @@ namespace Reign.SRP
 		private void DrawOcclusionMesh(CameraResource cameraResource)
 		{
 			// clip invisible pixels stencil
-			cmd.DrawOcclusionMesh(new RectInt(0, 0, cameraResource.widthComposited, cameraResource.heightComposited));
+			cmd.DrawOcclusionMesh(new RectInt((int)cameraResource.viewport.x, (int)cameraResource.viewport.y, (int)cameraResource.viewport.width, (int)cameraResource.viewport.height));
 		}
 
 		private void ClearSkybox(ref ScriptableRenderContext context, Camera camera)
