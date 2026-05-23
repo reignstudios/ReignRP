@@ -12,7 +12,6 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - ENABLE_ALPHACLIP
   - ENABLE_SPECULAR_HQ
   - _COLOR_COLOR
   - _SPECULAR_SLIDERS
@@ -85,7 +84,7 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _ENABLE_ALBEDO: 0
-    - _ENABLE_ALPHACLIP: 1
+    - _ENABLE_ALPHACLIP: 0
     - _ENABLE_COLOR: 0
     - _ENABLE_EMISSION: 0
     - _ENABLE_METALLIC: 0

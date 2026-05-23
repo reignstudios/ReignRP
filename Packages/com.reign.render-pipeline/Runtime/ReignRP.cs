@@ -40,7 +40,7 @@ namespace Reign.SRP
         public const string lightModeID_Transparent = "Reign_Transparent";
 
         public static ReignRP singleton { get; private set; }
-		private ReignRenderPipelineAsset asset;
+		private ReignRP_Asset asset;
 
 		#if !UNITY_EDITOR
 		private int fullscreenSwapchainResolutionDivision;
@@ -82,7 +82,7 @@ namespace Reign.SRP
 		public delegate void CustomDraw(Camera camera, CommandBuffer cmd, in ScriptableRenderContext context, in CullingResults cullResults);
 		public static event CustomDraw DrawCustom_PreOpaque, DrawCustom_PostOpaque, DrawCustom_PreTransparent, DrawCustom_PostTransparent;
 
-		public ReignRP(ReignRenderPipelineAsset asset)
+		public ReignRP(ReignRP_Asset asset)
 		{
 			singleton = this;
 			this.asset = asset;

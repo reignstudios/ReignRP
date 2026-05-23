@@ -87,7 +87,7 @@ namespace Reign.SRP
 
                 var attchment = new AttachmentDescriptor(target.renderTargetFormat);
                 attchment.ConfigureTarget(target.renderTarget, target.load, target.store);
-                if (target.clear && !ReignRenderPipelineAsset.singleton.renderPassesMultiCameraClear) attchment.ConfigureClear(target.backgroundColor);
+                if (target.clear && !ReignRP_Asset.singleton.renderPassesMultiCameraClear) attchment.ConfigureClear(target.backgroundColor);
                 attachments[i] = attchment;
 
                 if (i != depthIndex)
@@ -128,7 +128,7 @@ namespace Reign.SRP
 
             var attchment = new AttachmentDescriptor(target.renderTargetFormat);
             attchment.ConfigureTarget(target.renderTarget, true, true);
-            if (target.clear && !ReignRenderPipelineAsset.singleton.renderPassesMultiCameraClear) attchment.ConfigureClear(target.backgroundColor);
+            if (target.clear && !ReignRP_Asset.singleton.renderPassesMultiCameraClear) attchment.ConfigureClear(target.backgroundColor);
             attachments[index] = attchment;
             targets[index] = target;
             if (firstIndex == index) renderTarget_First = target.renderTarget;
@@ -172,7 +172,7 @@ namespace Reign.SRP
 			public int frame;
 			public readonly Camera camera;
 			public readonly ReignRP pipeline;
-			private readonly ReignRenderPipelineAsset asset;
+			private readonly ReignRP_Asset asset;
 
             public ReignRP_PostProcessResources postProcessResources;
             public ReignRP_PostProcess[] postProcesses;

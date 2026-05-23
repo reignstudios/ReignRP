@@ -2,6 +2,11 @@
 {
     Properties
     {
+        // Clip Options
+        [Toggle(ENABLE_ALPHACLIP)] _ENABLE_ALPHACLIP ("Enable Alpha Clip", Float) = 0
+        [Space(10)]
+
+        // normal
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2// Backface culling
         _UVScaleOffset("UV Scale Offset", Vector) = (1,1,0,0)
 
@@ -26,9 +31,6 @@
         [Toggle(ENABLE_EMISSION)] _ENABLE_EMISSION ("Enable Emission", Float) = 0
         [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
-
-        // Clip Options
-        [Toggle(ENABLE_ALPHACLIP)] _ENABLE_ALPHACLIP ("Enable Alpha Clip", Float) = 1
     }
 
     SubShader

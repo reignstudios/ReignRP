@@ -6,10 +6,10 @@ using UnityEngine.XR;
 
 namespace Reign.SRP
 {
-	[CreateAssetMenu(menuName = "Reign/ReignRenderPipelineAsset")]
-	public class ReignRenderPipelineAsset : RenderPipelineAsset
+	[CreateAssetMenu(menuName = "Reign/ReignRP_Asset")]
+	public class ReignRP_Asset : RenderPipelineAsset
     {
-		public static ReignRenderPipelineAsset singleton { get; private set; }
+		public static ReignRP_Asset singleton { get; private set; }
 
 		public bool hdr;
 		public bool useRenderPasses = false;

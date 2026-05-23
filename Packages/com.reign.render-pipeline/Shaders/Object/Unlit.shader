@@ -2,15 +2,17 @@
 {
     Properties
     {
+        // Clip Options
+        [Toggle(ENABLE_ALPHACLIP)] _ENABLE_ALPHACLIP ("Enable Alpha Clip", Float) = 0
+        [Space(10)]
+
+        // normal
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2// Backface culling
         _UVScaleOffset("UV Scale Offset", Vector) = (1,1,0,0)
 
         [KeywordEnum(Color, Albedo, Both)] _COLOR ("Color Mode", Float) = 0
         [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
-
-        // Clip Options
-        [Toggle(ENABLE_ALPHACLIP)] _ENABLE_ALPHACLIP ("Enable Alpha Clip", Float) = 1
     }
 
     SubShader
