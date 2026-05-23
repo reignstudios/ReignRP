@@ -50,7 +50,7 @@ float4 _UVScaleOffset;
 half4 _BaseColor;
 #endif
     
-#if defined(_COLOR_ALBEDO) || defined(_COLOR_BOTH)
+#if defined(_COLOR_TEXTURE) || defined(_COLOR_BOTH)
 SAMPLER(sampler_BaseMap);
 TEXTURE2D(_BaseMap);
 #endif

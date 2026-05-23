@@ -12,7 +12,7 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
-  - _COLOR_ALBEDO
+  - _COLOR_TEXTURE
   m_InvalidKeywords:
   - ENABLE_METALLIC_FRESNEL
   - ENABLE_METALLIC_HQ
@@ -22,6 +22,7 @@ Material:
   - ENABLE_OCCLUSION
   - ENABLE_SPECULAR_HQ
   - _COLORMODE_ENABLE_ALBEDO
+  - _COLOR_ALBEDO
   - _METALLIC_SLIDERS
   - _SPECULAR_SLIDERS
   m_LightmapFlags: 4

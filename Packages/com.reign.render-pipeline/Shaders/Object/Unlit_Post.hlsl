@@ -57,7 +57,7 @@ PS_OUT frag(VS_OUT i)
         o.color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv) * _BaseColor;
         #elif defined(_COLOR_COLOR)
         o.color = _BaseColor;
-        #elif defined(_COLOR_ALBEDO)
+        #elif defined(_COLOR_TEXTURE)
         o.color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv);
         #else
         o.color = 1.0;

@@ -10,7 +10,7 @@
         [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 2// Backface culling
         _UVScaleOffset("UV Scale Offset", Vector) = (1,1,0,0)
 
-        [KeywordEnum(Color, Albedo, Both)] _COLOR ("Color Mode", Float) = 0
+        [KeywordEnum(Color, Texture, Both)] _COLOR ("Color Mode", Float) = 0
         [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
     }
@@ -31,7 +31,7 @@
             #pragma multi_compile_instancing
             #pragma multi_compile _ LIGHTMAP_ON
 
-            #pragma shader_feature _COLOR_COLOR _COLOR_ALBEDO _COLOR_BOTH
+            #pragma shader_feature _COLOR_COLOR _COLOR_TEXTURE _COLOR_BOTH
             #pragma shader_feature _ ENABLE_ALPHACLIP
 
             #include "Unlit_Pre.hlsl"

@@ -86,7 +86,7 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
         materialParams.color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv) * _BaseColor;
         #elif defined(_COLOR_COLOR)
         materialParams.color = _BaseColor;
-        #elif defined(_COLOR_ALBEDO)
+        #elif defined(_COLOR_TEXTURE)
         materialParams.color = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv);
         #else
         materialParams.color = 1.0;
