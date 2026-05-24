@@ -318,14 +318,14 @@ namespace Reign.SRP
                     desc.msaaSamples = (int)asset.compositionMSAA;
 				    depthTexture = GetTemporaryRenderTexture(desc);
 				    depthTextureID = depthTexture;
-                    SetTextureSamplerState(depthTexture, FilterMode.Point, TextureWrapMode.Clamp, false);
+                    SetTextureSamplerState(depthTexture, FilterMode.Point, TextureWrapMode.Clamp);
 
                     // depth texture clone
                     if (asset.compositionDepthClone)
                     {
                         depthTextureClone = GetTemporaryRenderTexture(desc);
 				        depthTextureCloneID = depthTextureClone;
-                        SetTextureSamplerState(depthTextureClone, FilterMode.Point, TextureWrapMode.Clamp, false);
+                        SetTextureSamplerState(depthTextureClone, FilterMode.Point, TextureWrapMode.Clamp);
                     }
 
 					// color texture
@@ -333,7 +333,7 @@ namespace Reign.SRP
                     desc.msaaSamples = (int)asset.compositionMSAA;
 					colorTexture = GetTemporaryRenderTexture(desc);
 					colorTextureID = colorTexture;
-                    SetTextureSamplerState(colorTexture, FilterMode.Point, TextureWrapMode.Clamp, false);
+                    SetTextureSamplerState(colorTexture, FilterMode.Point, TextureWrapMode.Clamp);
                     
                     // compositing textures
                     desc.msaaSamples = 1;// no MSAA on final textures
@@ -346,7 +346,7 @@ namespace Reign.SRP
                     {
                         compositingTextures[i] = GetTemporaryRenderTexture(desc);
                         compositingTexturesID[i] = compositingTextures[i];
-                        SetTextureSamplerState(compositingTextures[i], FilterMode.Point, TextureWrapMode.Clamp, false);
+                        SetTextureSamplerState(compositingTextures[i], FilterMode.Point, TextureWrapMode.Clamp);
                     }
 
                     // render-pass desc

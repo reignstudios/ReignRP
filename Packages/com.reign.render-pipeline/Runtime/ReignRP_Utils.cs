@@ -40,10 +40,10 @@ namespace Reign.SRP
 
     public partial class ReignRP
     {
-        public static void SetTextureSamplerState(Texture texture, FilterMode filter, TextureWrapMode wrap, bool anisoFiltering)
+        public static void SetTextureSamplerState(Texture texture, FilterMode filter, TextureWrapMode wrap, int anisoFiltering = 0)
 		{
 			if (texture == null) return;
-			texture.anisoLevel = anisoFiltering ? 1 : 0;
+			texture.anisoLevel = anisoFiltering;
 			texture.filterMode = filter;
 			texture.wrapMode = wrap;
 		}
