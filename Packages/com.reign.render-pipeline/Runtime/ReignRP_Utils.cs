@@ -38,6 +38,15 @@ namespace Reign.SRP
 		public XRDisplaySubsystem.XRRenderParameter parameter;
 	}
 
+	enum BlitMode
+	{
+		Load = 0,
+		Sampler = 1,
+		MSAA_2X = 2,
+		MSAA_4X = 3,
+		MSAA_8X = 4
+	}
+
     public partial class ReignRP
     {
         public static void SetTextureSamplerState(Texture texture, FilterMode filter, TextureWrapMode wrap, int anisoFiltering = 0)
@@ -268,15 +277,18 @@ namespace Reign.SRP
             }
         }
 
-		private void CopyTexture(Texture srcTexture, RenderTextureSubElement srcElement, int srcMipLvl, RenderTexture dstTexture, int dstMipLvl, Material copyMaterial, int copyMaterialPass)
+		private void Blit(RenderTargetIdentifier src, RenderTargetIdentifier dst, Mesh blitMesh = null, BlitMode mode = BlitMode.Load) => Blit(src, dst, new Rect(0, 0, 1, 1), new Rect(0, 0, 1, 1), 0, 0, new Rect(), blitMesh, mode);
+		private void Blit(RenderTargetIdentifier src, RenderTargetIdentifier dst, Rect viewport = new Rect(), Mesh blitMesh = null, BlitMode mode = BlitMode.Load) => Blit(src, dst, new Rect(0, 0, 1, 1), new Rect(0, 0, 1, 1), 0, 0, viewport, blitMesh, mode);
+		private void Blit(RenderTargetIdentifier src, RenderTargetIdentifier dst, Rect srcRect, Rect dstRect, int srcMipLvl, int dstMipLvl, Rect viewport, Mesh blitMesh, BlitMode mode)
 		{
-			var blitMesh = BlitMesh.mesh;
-			cmd.SetGlobalVector("srcRect", new Vector4(0, 0, 1, 1));
-			cmd.SetGlobalVector("dstRect", new Vector4(0, 0, 1, 1));
+			if (!blitMesh) blitMesh = BlitMesh.mesh;
+			cmd.SetRenderTarget(dst, dstMipLvl);
+			if (viewport.width > 0 && viewport.height > 0) cmd.SetViewport(viewport);
+			cmd.SetGlobalTexture("_BlitTex", src);
+			cmd.SetGlobalVector("srcRect", new Vector4(srcRect.x, srcRect.y, srcRect.width, srcRect.height));
+			cmd.SetGlobalVector("dstRect", new Vector4(dstRect.x, dstRect.y, dstRect.width, dstRect.height));
 			cmd.SetGlobalFloat("srcMipLvl", srcMipLvl);
-			cmd.SetRenderTarget(dstTexture, dstMipLvl);
-			cmd.SetGlobalTexture("_SrcTex", srcTexture, srcElement);
-			cmd.DrawMesh(blitMesh, Matrix4x4.identity, copyMaterial, 0, copyMaterialPass);
+			cmd.DrawMesh(blitMesh, Matrix4x4.identity, blitMaterial, 0, (int)mode);// Normal Blit shader pass
 		}
     }
 }

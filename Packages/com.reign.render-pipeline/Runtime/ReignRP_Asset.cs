@@ -24,6 +24,7 @@ namespace Reign.SRP
 		public bool enableComposition = false;
 		public bool compositionDepthClone = false;
 		public MSAA_Level compositionMSAA = MSAA_Level.Off;
+		public bool compositionMSAA_ForceHardwareResolve = false;
 		public CommonTextureFormat compositionColorFormat = CommonTextureFormat.UINT_A2_RGB10;
 		public DepthBit compositionDepthBit = DepthBit.Bit24;
 
@@ -90,7 +91,7 @@ namespace Reign.SRP
 		Off = 1,
 		X2 = 2,
 		X4 = 4,
-		x8 = 8
+		X8 = 8
 	}
 
 	/*public enum SkinningMode

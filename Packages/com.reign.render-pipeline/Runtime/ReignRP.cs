@@ -72,6 +72,7 @@ namespace Reign.SRP
         public static GraphicsDeviceType graphicsDeviceType { get; private set; }
 		public static int graphicsShaderLevel { get; private set; }
 		public static bool isOpenGL { get; private set; }
+		public static bool msaaTextureLoadSupported { get; private set; }
 
 		public static bool refreshPostProcessState = true;
 
@@ -127,6 +128,7 @@ namespace Reign.SRP
             graphicsShaderLevel = SystemInfo.graphicsShaderLevel;
 			isOpenGL = graphicsDeviceType == GraphicsDeviceType.OpenGLCore || graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
 			texturesSupported_32Bit = SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, GraphicsFormatUsage.Sample) && SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, GraphicsFormatUsage.SetPixels);
+			msaaTextureLoadSupported = SystemInfo.supportsMultisampledTextures > 0 && !asset.compositionMSAA_ForceHardwareResolve;
 		}
 
 		private void CheckResourceInit()
@@ -539,17 +541,27 @@ namespace Reign.SRP
 				
 				// grab initial target
 				var finalTexture = cameraResource.colorTexture;
+				int postProcessCount = cameraResource.postProcesses != null ? cameraResource.postProcesses.Length : 0;
 
-				// resolve MSAA texture if needed
+				// pre-resolve MSAA texture ONLY if needed
 				cmd.Clear();
+				bool msaaResolved = false;
 				if (asset.compositionMSAA != MSAA_Level.Off)
 				{
-					cameraResource.ResolveCompositedMSAATexture(cmd, cameraResource.compositingTextures[0]);
-					finalTexture = cameraResource.compositingTextures[0];
+					if (!msaaTextureLoadSupported || postProcessCount != 0)// resolve if MSAA-Load not supported or PostProcess tasks are needed
+					{
+						cameraResource.ResolveCompositedMSAATexture(cmd, cameraResource.compositingTextures[0]);
+						finalTexture = cameraResource.compositingTextures[0];
+						msaaResolved = true;
+					}
+				}
+				else
+				{
+					msaaResolved = true;// consider resolved if MSAA not used
 				}
 				
 				// Post-Processing
-				if (cameraResource.postProcesses != null && cameraResource.postProcesses.Length != 0)
+				if (postProcessCount != 0)
 				{
 					var postProcessSrc = finalTexture;
 					var postProcessDst = cameraResource.compositingTextures[1];
@@ -571,9 +583,22 @@ namespace Reign.SRP
 				}
 				
 				// copy final result
-				cmd.SetRenderTarget(cameraResource.cameraTargetTextureID);
-				cmd.SetGlobalTexture("_BlitTex", finalTexture);
-				cmd.DrawMesh(blitMesh, Matrix4x4.identity, blitMaterial);
+				if (msaaResolved)
+				{
+					Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh);
+				}
+				else
+				{
+					var blitMode = BlitMode.Load;
+					switch (asset.compositionMSAA)
+					{
+						case MSAA_Level.X2: blitMode = BlitMode.MSAA_2X; break;
+						case MSAA_Level.X4: blitMode = BlitMode.MSAA_4X; break;
+						case MSAA_Level.X8: blitMode = BlitMode.MSAA_8X; break;
+						default: Debug.LogError("Invalid MSAA BlitMode: " + asset.compositionMSAA); break;
+					}
+					Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh, blitMode);
+				}
 				context.ExecuteCommandBuffer(cmd);
 			}
 			
@@ -583,21 +608,21 @@ namespace Reign.SRP
 				#if UNITY_EDITOR || UNITY_STANDALONE
 				bool copyPreview = false;
 				var eye = XRSettings.gameViewRenderMode;
-				var r = camera.pixelRect;
+				var viewport = camera.pixelRect;
 				if (xrRenderPassInfo.eyePass < 0)
 				{
-					r = camera.pixelRect;
+					viewport = camera.pixelRect;
 					copyPreview = eye == GameViewRenderMode.BothEyes;
 				}
 				else
 				{
-					r = camera.pixelRect;
+					viewport = camera.pixelRect;
 					if (xrRenderPassInfo.eyePass == 0)
 					{
 						if (eye == GameViewRenderMode.BothEyes)
 						{
-							r.x = 0;
-							r.width /= 2;
+							viewport.x = 0;
+							viewport.width /= 2;
 							copyPreview = true;
 						}
 						else if (eye == GameViewRenderMode.LeftEye)
@@ -609,8 +634,8 @@ namespace Reign.SRP
 					{
 						if (eye == GameViewRenderMode.BothEyes)
 						{
-							r.x = r.width / 2;
-							r.width /= 2;
+							viewport.x = viewport.width / 2;
+							viewport.width /= 2;
 							copyPreview = true;
 						}
 						else if (eye == GameViewRenderMode.RightEye)
@@ -625,10 +650,7 @@ namespace Reign.SRP
 				if (copyPreview)
 				{
 					cmd.Clear();
-					cmd.SetRenderTarget(BuiltinRenderTextureType.None);
-					cmd.SetGlobalTexture("_BlitTex", cameraResource.cameraTargetTextureID);
-					cmd.SetViewport(r);
-					cmd.DrawMesh(BlitMesh.meshFlipped, Matrix4x4.identity, blitMaterial);
+					Blit(cameraResource.cameraTargetTextureID, BuiltinRenderTextureType.None, viewport, BlitMesh.meshFlipped);
 					context.ExecuteCommandBuffer(cmd);
 				}
 				#endif

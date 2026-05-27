@@ -316,6 +316,7 @@ namespace Reign.SRP
                     int compositionDepthBit = GetCompositedDepthBit();
                     var desc = new RenderTextureDescriptor(widthComposited, heightComposited, RenderTextureFormat.Depth, compositionDepthBit);
                     desc.msaaSamples = (int)asset.compositionMSAA;
+                    desc.bindMS = msaaTextureLoadSupported && asset.compositionMSAA != MSAA_Level.Off;
 				    depthTexture = GetTemporaryRenderTexture(desc);
 				    depthTextureID = depthTexture;
                     SetTextureSamplerState(depthTexture, FilterMode.Point, TextureWrapMode.Clamp);
@@ -331,12 +332,14 @@ namespace Reign.SRP
 					// color texture
 					desc = new RenderTextureDescriptor(widthComposited, heightComposited, GetCompositionTextureFormat(asset.compositionColorFormat, colorTextureFallbacks), 0);
                     desc.msaaSamples = (int)asset.compositionMSAA;
+                    desc.bindMS = msaaTextureLoadSupported && asset.compositionMSAA != MSAA_Level.Off;
 					colorTexture = GetTemporaryRenderTexture(desc);
 					colorTextureID = colorTexture;
                     SetTextureSamplerState(colorTexture, FilterMode.Point, TextureWrapMode.Clamp);
                     
                     // compositing textures
                     desc.msaaSamples = 1;// no MSAA on final textures
+                    desc.bindMS = false;
                     if (compositingTextures == null)
                     {
                         compositingTextures = new RenderTexture[2];
