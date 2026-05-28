@@ -92,12 +92,14 @@ namespace Reign.SRP
 			GraphicsSettings.useScriptableRenderPipelineBatching = false;
 			GraphicsSettings.lightsUseLinearIntensity = true;
 
-			QualitySettings.antiAliasing = 1;
-			Screen.SetMSAASamples(1);
-			XRSystem.SetDisplayMSAASamples(MSAASamples.None);
+			QualitySettings.antiAliasing = 8;
+			Screen.SetMSAASamples(8);
+			XRSystem.SetDisplayMSAASamples(MSAASamples.MSAA8x);
+			var xrTargetDesc = XRSettings.eyeTextureDesc;
+			xrTargetDesc.msaaSamples = 8;
 
-			XRSettings.eyeTextureResolutionScale = 1;
-            XRSystem.SetRenderScale(1);
+			XRSettings.eyeTextureResolutionScale = 2;
+            XRSystem.SetRenderScale(2);
 			XRSettings.gameViewRenderMode = asset.xrPreviewMode;
 
 			// create command buffer
@@ -472,55 +474,25 @@ namespace Reign.SRP
 			context.Submit();
 
 			// start opaque render pass
-			StartRenderPass(context, cameraResource.renderPass_Opaque, cameraResource);
-			
-			// draw custom pre-opaque objects
-			DrawCustom_PreOpaque?.Invoke(camera, cmd, context, cullResults);
-
-			// draw custom opaque objects
-			DrawCustomUnlitObjects(ref context, ref cullResults, QueueRange.Opaque, camera);
-
-			// draw opaque objects
-			DrawObjects(ref context, ref cullResults, lightModeID_Opaque, QueueRange.Opaque, camera, null, specialRenderParams);
-
-			// draw custom post-opaque objects
-			DrawCustom_PostOpaque?.Invoke(camera, cmd, context, cullResults);
-
-			// finish opaque render pass
+			bool seperateTransparentPass = asset.enableComposition && asset.compositionDepthClone;
+			StartRenderPass(context, cameraResource.renderPass_Opaque, cameraResource, false);
+			DrawOpaque(camera, ref context, ref cullResults, specialRenderParams);
+			if (!seperateTransparentPass) DrawTransparent(camera, ref context, ref cullResults, specialRenderParams);
 			EndRenderPass(context);
 
 			// enable depth-texture to be sampled
-			if (asset.enableComposition && asset.compositionDepthClone)
+			if (seperateTransparentPass)
 			{
 				cmd.Clear();
 				cameraResource.ResolveCompositedDepthTexture(cmd);
 				context.ExecuteCommandBuffer(cmd);
 				context.Submit();
+
+				// start lighting render pass
+				StartRenderPass(context, cameraResource.renderPass_Transparent, cameraResource, true);
+				DrawTransparent(camera, ref context, ref cullResults, specialRenderParams);
+				EndRenderPass(context);
 			}
-
-			// start lighting render pass
-			StartRenderPass(context, cameraResource.renderPass_Transparent, cameraResource);
-
-			// clear skybox (after opaque)
-            ClearSkybox(ref context, camera);
-
-            // draw custom pre-transparent objects
-            DrawCustom_PreTransparent?.Invoke(camera, cmd, context, cullResults);
-
-			// draw custom transparent objects
-			DrawCustomUnlitObjects(ref context, ref cullResults, QueueRange.Transparent, camera);
-
-			// draw transparent objects
-			DrawObjects(ref context, ref cullResults, lightModeID_Transparent, QueueRange.Transparent, camera, null, specialRenderParams);
-
-			// draw custom post-transparent objects
-			DrawCustom_PostTransparent?.Invoke(camera, cmd, context, cullResults);
-
-			// draw unuspported objects & editor gizmos
-			DrawErrorObjectsAndPreGizmos(ref context, ref cullResults, camera);
-
-			// finish lighting render pass
-			EndRenderPass(context);
 
 			// compositing
 			if (asset.enableComposition)
@@ -664,7 +636,43 @@ namespace Reign.SRP
             context.Submit();
         }
 
-		private void StartRenderPass(in ScriptableRenderContext context, in RenderPassDesc renderPassDesc, CameraResource cameraResource)
+		private void DrawOpaque(Camera camera, ref ScriptableRenderContext context, ref CullingResults cullResults, PerObjectData specialRenderParams)
+		{
+			// draw custom pre-opaque objects
+			DrawCustom_PreOpaque?.Invoke(camera, cmd, context, cullResults);
+
+			// draw custom opaque objects
+			DrawCustomUnlitObjects(ref context, ref cullResults, QueueRange.Opaque, camera);
+
+			// draw opaque objects
+			DrawObjects(ref context, ref cullResults, lightModeID_Opaque, QueueRange.Opaque, camera, null, specialRenderParams);
+
+			// draw custom post-opaque objects
+			DrawCustom_PostOpaque?.Invoke(camera, cmd, context, cullResults);
+
+			// clear skybox (after opaque)
+            ClearSkybox(ref context, camera);
+		}
+
+		private void DrawTransparent(Camera camera, ref ScriptableRenderContext context, ref CullingResults cullResults, PerObjectData specialRenderParams)
+		{
+			// draw custom pre-transparent objects
+            DrawCustom_PreTransparent?.Invoke(camera, cmd, context, cullResults);
+
+			// draw custom transparent objects
+			DrawCustomUnlitObjects(ref context, ref cullResults, QueueRange.Transparent, camera);
+
+			// draw transparent objects
+			DrawObjects(ref context, ref cullResults, lightModeID_Transparent, QueueRange.Transparent, camera, null, specialRenderParams);
+
+			// draw custom post-transparent objects
+			DrawCustom_PostTransparent?.Invoke(camera, cmd, context, cullResults);
+
+			// draw unuspported objects & editor gizmos
+			DrawErrorObjectsAndPreGizmos(ref context, ref cullResults, camera);
+		}
+
+		private void StartRenderPass(in ScriptableRenderContext context, in RenderPassDesc renderPassDesc, CameraResource cameraResource, bool transparentPass)
 		{
 			// get binding slice
 			int slice = 0;
@@ -704,7 +712,7 @@ namespace Reign.SRP
 				// prep
 				cmd.Clear();
 				cmd.SetViewport(cameraResource.viewport);// set viewport
-				if (xrRenderPassInfo.isXRActive) DrawOcclusionMesh(cameraResource);// draw occlusion mesh
+				if (!transparentPass && xrRenderPassInfo.isXRActive) DrawOcclusionMesh(cameraResource);// draw occlusion mesh
 				context.ExecuteCommandBuffer(cmd);
 			}
 			else
@@ -712,14 +720,17 @@ namespace Reign.SRP
 				cmd.Clear();
 
 				// foveated rendering
-				if (xrRenderPassInfo.pass.foveatedRenderingInfo != IntPtr.Zero)
+				if (!transparentPass)
 				{
-					cmd.ConfigureFoveatedRendering(xrRenderPassInfo.pass.foveatedRenderingInfo);
-					cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
-				}
-				else
-				{
-					cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+					if (xrRenderPassInfo.pass.foveatedRenderingInfo != IntPtr.Zero)
+					{
+						cmd.ConfigureFoveatedRendering(xrRenderPassInfo.pass.foveatedRenderingInfo);
+						cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
+					}
+					else
+					{
+						cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Disabled);
+					}
 				}
 				
 				// enable targets
@@ -733,7 +744,7 @@ namespace Reign.SRP
 				ClearRenderPass(renderPassDesc);
 
 				// draw occlusion mesh
-				if (xrRenderPassInfo.isXRActive) DrawOcclusionMesh(cameraResource);
+				if (!transparentPass && xrRenderPassInfo.isXRActive) DrawOcclusionMesh(cameraResource);
 
 				context.ExecuteCommandBuffer(cmd);
 			}
@@ -843,7 +854,7 @@ namespace Reign.SRP
 
 		private void DrawOcclusionMesh(CameraResource cameraResource)
 		{
-			// clip invisible pixels stencil
+			// clip invisible pixels via depth
 			cmd.DrawOcclusionMesh(new RectInt((int)cameraResource.viewport.x, (int)cameraResource.viewport.y, (int)cameraResource.viewport.width, (int)cameraResource.viewport.height));
 		}
 
