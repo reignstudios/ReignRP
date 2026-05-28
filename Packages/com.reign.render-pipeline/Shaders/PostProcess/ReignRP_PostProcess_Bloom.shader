@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Reign/HQ/Reign_PostProcess_Bloom"
+﻿Shader "Hidden/ReignRP/PostProcess_Bloom"
 {
     Properties
     {
@@ -13,7 +13,6 @@
         Pass// high-pass
         {
             HLSLPROGRAM
-            #pragma target 2.0
             #pragma vertex vert
             #pragma fragment frag
 
@@ -54,7 +53,6 @@
         Pass// blur radial
         {
             HLSLPROGRAM
-            #pragma target 2.0
             #pragma vertex vert
             #pragma fragment frag
 
@@ -121,7 +119,6 @@
         Pass// blur classic
         {
             HLSLPROGRAM
-            #pragma target 2.0
             #pragma vertex vert
             #pragma fragment frag
 
@@ -177,7 +174,6 @@
         Pass// size down / copy
         {
             HLSLPROGRAM
-            #pragma target 2.0
             #pragma vertex vert
             #pragma fragment frag
 
@@ -216,7 +212,6 @@
         Pass// composite
         {
             HLSLPROGRAM
-            #pragma target 2.0
             #pragma vertex vert
             #pragma fragment frag
 

@@ -92,14 +92,14 @@ namespace Reign.SRP
 			GraphicsSettings.useScriptableRenderPipelineBatching = false;
 			GraphicsSettings.lightsUseLinearIntensity = true;
 
-			QualitySettings.antiAliasing = 8;
-			Screen.SetMSAASamples(8);
-			XRSystem.SetDisplayMSAASamples(MSAASamples.MSAA8x);
+			QualitySettings.antiAliasing = 1;
+			Screen.SetMSAASamples(1);
+			XRSystem.SetDisplayMSAASamples(MSAASamples.None);
 			var xrTargetDesc = XRSettings.eyeTextureDesc;
-			xrTargetDesc.msaaSamples = 8;
+			xrTargetDesc.msaaSamples = 1;
 
-			XRSettings.eyeTextureResolutionScale = 2;
-            XRSystem.SetRenderScale(2);
+			XRSettings.eyeTextureResolutionScale = 1;
+            XRSystem.SetRenderScale(1);
 			XRSettings.gameViewRenderMode = asset.xrPreviewMode;
 
 			// create command buffer
@@ -514,7 +514,7 @@ namespace Reign.SRP
 				// grab initial target
 				var finalTexture = cameraResource.colorTexture;
 				int postProcessCount = cameraResource.postProcesses != null ? cameraResource.postProcesses.Length : 0;
-
+				
 				// pre-resolve MSAA texture ONLY if needed
 				cmd.Clear();
 				bool msaaResolved = false;

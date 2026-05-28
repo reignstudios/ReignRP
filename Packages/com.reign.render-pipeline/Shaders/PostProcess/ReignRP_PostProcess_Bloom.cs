@@ -5,13 +5,13 @@ using UnityEngine.Rendering;
 
 namespace Reign.SRP
 {
-	public enum Reign_PostProcess_Bloom_Type
+	public enum ReignRP_PostProcess_Bloom_Type
 	{
 		Normal,
 		Radial
 	}
 
-	public enum Reign_PostProcess_Bloom_ViewType
+	public enum ReignRP_PostProcess_Bloom_ViewType
 	{
 		FinalImage,
 		HighPass,
@@ -23,14 +23,14 @@ namespace Reign.SRP
 		HighPassBlured_16x
 	}
 
-	public enum Reign_PostProcess_Bloom_SampleQuality
+	public enum ReignRP_PostProcess_Bloom_SampleQuality
 	{
 		Low,
 		Med,
 		High
 	}
 
-	public enum Reign_PostProcess_Bloom_BlurLevel
+	public enum ReignRP_PostProcess_Bloom_BlurLevel
 	{
 		Blured_1x,
 		Blured_2x,
@@ -39,7 +39,7 @@ namespace Reign.SRP
 		Blured_16x
 	}
 
-	public class Reign_PostProcess_Bloom : ReignRP_PostProcess
+	public class ReignRP_PostProcess_Bloom : ReignRP_PostProcess
 	{
 		private const int pass_Blur_HighPass = 0;
 		private const int pass_Blur_Radial = 1;
@@ -50,9 +50,9 @@ namespace Reign.SRP
 		public Shader bloomShader;
 		private Material material;
 
-		public Reign_PostProcess_Bloom_Type type = Reign_PostProcess_Bloom_Type.Radial;
-		public Reign_PostProcess_Bloom_ViewType viewType = Reign_PostProcess_Bloom_ViewType.FinalImage;
-		public Reign_PostProcess_Bloom_BlurLevel blurLevel = Reign_PostProcess_Bloom_BlurLevel.Blured_16x;
+		public ReignRP_PostProcess_Bloom_Type type = ReignRP_PostProcess_Bloom_Type.Normal;
+		public ReignRP_PostProcess_Bloom_ViewType viewType = ReignRP_PostProcess_Bloom_ViewType.FinalImage;
+		public ReignRP_PostProcess_Bloom_BlurLevel blurLevel = ReignRP_PostProcess_Bloom_BlurLevel.Blured_16x;
 
 		[Range(0, 1)]
 		public float highPassRange = 1;
@@ -110,7 +110,7 @@ namespace Reign.SRP
 			ReignRP.SetTextureSamplerState(texture2_1x, FilterMode.Bilinear, TextureWrapMode.Clamp);
 
 			RenderTexture texture_2x = null, texture2_2x = null;
-			if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+			if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 			{
 				textureDesc.width /= 2;
 				textureDesc.height /= 2;
@@ -121,7 +121,7 @@ namespace Reign.SRP
 			}
 
 			RenderTexture texture_4x = null, texture2_4x = null;
-			if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_4x)
+			if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_4x)
 			{
 				textureDesc.width /= 2;
 				textureDesc.height /= 2;
@@ -132,7 +132,7 @@ namespace Reign.SRP
 			}
 
 			RenderTexture texture_8x = null, texture2_8x = null;
-			if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_8x)
+			if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_8x)
 			{
 				textureDesc.width /= 2;
 				textureDesc.height /= 2;
@@ -143,7 +143,7 @@ namespace Reign.SRP
 			}
 
 			RenderTexture texture_16x = null, texture2_16x = null;
-			if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_16x)
+			if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_16x)
 			{
 				textureDesc.width /= 2;
 				textureDesc.height /= 2;
@@ -156,7 +156,7 @@ namespace Reign.SRP
 			// high-pass
 			cmd.SetGlobalFloat("highPassRange", highPassRange);
 			cmd.Blit(src, texture_1x, material, pass_Blur_HighPass);
-			if (viewType == Reign_PostProcess_Bloom_ViewType.HighPass)
+			if (viewType == ReignRP_PostProcess_Bloom_ViewType.HighPass)
 			{
 				cmd.Blit(texture_1x, dst, material, pass_SizeDownCopy);
 				context.ExecuteCommandBuffer(cmd);
@@ -164,25 +164,25 @@ namespace Reign.SRP
 				RenderTexture.ReleaseTemporary(texture_1x);
 				RenderTexture.ReleaseTemporary(texture2_1x);
 
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 				{
 					RenderTexture.ReleaseTemporary(texture_2x);
 					RenderTexture.ReleaseTemporary(texture2_2x);
 				}
 
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 				{
 					RenderTexture.ReleaseTemporary(texture_4x);
 					RenderTexture.ReleaseTemporary(texture2_4x);
 				}
 
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 				{
 					RenderTexture.ReleaseTemporary(texture_8x);
 					RenderTexture.ReleaseTemporary(texture2_8x);
 				}
 
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 				{
 					RenderTexture.ReleaseTemporary(texture_16x);
 					RenderTexture.ReleaseTemporary(texture2_16x);
@@ -202,14 +202,14 @@ namespace Reign.SRP
 			// =========================================
 			// 1x
 			// =========================================
-			if (type == Reign_PostProcess_Bloom_Type.Radial)
+			if (type == ReignRP_PostProcess_Bloom_Type.Radial)
 			{
 				// blur radial
 				cmd.SetGlobalVector("args", r);
 				cmd.Blit(texture_1x, texture2_1x, material, pass_Blur_Radial);
 
 				// size-down
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x) cmd.Blit(texture2_1x, texture_2x, material, pass_SizeDownCopy);
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x) cmd.Blit(texture2_1x, texture_2x, material, pass_SizeDownCopy);
 			}
 			else
 			{
@@ -222,38 +222,38 @@ namespace Reign.SRP
 				cmd.Blit(texture2_1x, texture_1x, material, pass_Blur_Classic);
 
 				// size-down
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x) cmd.Blit(texture_1x, texture_2x, material, pass_SizeDownCopy);
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x) cmd.Blit(texture_1x, texture_2x, material, pass_SizeDownCopy);
 			}
 
 			// high-pass-blured preview
-			if (viewType == Reign_PostProcess_Bloom_ViewType.HighPassBlured_1x)
+			if (viewType == ReignRP_PostProcess_Bloom_ViewType.HighPassBlured_1x)
 			{
-				cmd.Blit(type == Reign_PostProcess_Bloom_Type.Normal ? texture_1x : texture2_1x, dst, material, pass_SizeDownCopy);
+				cmd.Blit(type == ReignRP_PostProcess_Bloom_Type.Normal ? texture_1x : texture2_1x, dst, material, pass_SizeDownCopy);
 				cmd.SetRenderTarget(dst);
 				context.ExecuteCommandBuffer(cmd);
 
 				RenderTexture.ReleaseTemporary(texture_1x);
 				RenderTexture.ReleaseTemporary(texture2_1x);
 
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 				{
 					RenderTexture.ReleaseTemporary(texture_2x);
 					RenderTexture.ReleaseTemporary(texture2_2x);
 				}
 
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 				{
 					RenderTexture.ReleaseTemporary(texture_4x);
 					RenderTexture.ReleaseTemporary(texture2_4x);
 				}
 
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 				{
 					RenderTexture.ReleaseTemporary(texture_8x);
 					RenderTexture.ReleaseTemporary(texture2_8x);
 				}
 
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 				{
 					RenderTexture.ReleaseTemporary(texture_16x);
 					RenderTexture.ReleaseTemporary(texture2_16x);
@@ -265,16 +265,16 @@ namespace Reign.SRP
 			// =========================================
 			// 2x
 			// =========================================
-			if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_4x)
+			if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_4x)
 			{
-				if (type == Reign_PostProcess_Bloom_Type.Radial)
+				if (type == ReignRP_PostProcess_Bloom_Type.Radial)
 				{
 					// blur radial
 					cmd.SetGlobalVector("args", r);
 					cmd.Blit(texture_2x, texture2_2x, material, pass_Blur_Radial);
 
 					// size-down
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_4x) cmd.Blit(texture2_2x, texture_4x, material, pass_SizeDownCopy);
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_4x) cmd.Blit(texture2_2x, texture_4x, material, pass_SizeDownCopy);
 				}
 				else
 				{
@@ -287,37 +287,37 @@ namespace Reign.SRP
 					cmd.Blit(texture2_2x, texture_2x, material, pass_Blur_Classic);
 
 					// size-down
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_4x) cmd.Blit(texture_2x, texture_4x, material, pass_SizeDownCopy);
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_4x) cmd.Blit(texture_2x, texture_4x, material, pass_SizeDownCopy);
 				}
 
 				// high-pass-blured preview
-				if (viewType == Reign_PostProcess_Bloom_ViewType.HighPassBlured_2x)
+				if (viewType == ReignRP_PostProcess_Bloom_ViewType.HighPassBlured_2x)
 				{
-					cmd.Blit(type == Reign_PostProcess_Bloom_Type.Normal ? texture_2x : texture2_2x, dst, material, pass_SizeDownCopy);
+					cmd.Blit(type == ReignRP_PostProcess_Bloom_Type.Normal ? texture_2x : texture2_2x, dst, material, pass_SizeDownCopy);
 					context.ExecuteCommandBuffer(cmd);
 
 					RenderTexture.ReleaseTemporary(texture_1x);
 					RenderTexture.ReleaseTemporary(texture2_1x);
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_2x);
 						RenderTexture.ReleaseTemporary(texture2_2x);
 					}
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_4x);
 						RenderTexture.ReleaseTemporary(texture2_4x);
 					}
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_8x);
 						RenderTexture.ReleaseTemporary(texture2_8x);
 					}
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_16x);
 						RenderTexture.ReleaseTemporary(texture2_16x);
@@ -330,16 +330,16 @@ namespace Reign.SRP
 			// =========================================
 			// 4x
 			// =========================================
-			if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_4x)
+			if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_4x)
 			{
-				if (type == Reign_PostProcess_Bloom_Type.Radial)
+				if (type == ReignRP_PostProcess_Bloom_Type.Radial)
 				{
 					// blur radial
 					cmd.SetGlobalVector("args", r);
 					cmd.Blit(texture_4x, texture2_4x, material, pass_Blur_Radial);
 
 					// size-down
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_8x) cmd.Blit(texture2_4x, texture_8x, material, pass_SizeDownCopy);
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_8x) cmd.Blit(texture2_4x, texture_8x, material, pass_SizeDownCopy);
 				}
 				else
 				{
@@ -352,37 +352,37 @@ namespace Reign.SRP
 					cmd.Blit(texture2_4x, texture_4x, material, pass_Blur_Classic);
 
 					// size-down
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_8x) cmd.Blit(texture_4x, texture_8x, material, pass_SizeDownCopy);
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_8x) cmd.Blit(texture_4x, texture_8x, material, pass_SizeDownCopy);
 				}
 
 				// high-pass-blured preview
-				if (viewType == Reign_PostProcess_Bloom_ViewType.HighPassBlured_4x)
+				if (viewType == ReignRP_PostProcess_Bloom_ViewType.HighPassBlured_4x)
 				{
-					cmd.Blit(type == Reign_PostProcess_Bloom_Type.Normal ? texture_4x : texture2_4x, dst, material, pass_SizeDownCopy);
+					cmd.Blit(type == ReignRP_PostProcess_Bloom_Type.Normal ? texture_4x : texture2_4x, dst, material, pass_SizeDownCopy);
 					context.ExecuteCommandBuffer(cmd);
 
 					RenderTexture.ReleaseTemporary(texture_1x);
 					RenderTexture.ReleaseTemporary(texture2_1x);
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_2x);
 						RenderTexture.ReleaseTemporary(texture2_2x);
 					}
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_4x);
 						RenderTexture.ReleaseTemporary(texture2_4x);
 					}
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_8x);
 						RenderTexture.ReleaseTemporary(texture2_8x);
 					}
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_16x);
 						RenderTexture.ReleaseTemporary(texture2_16x);
@@ -395,16 +395,16 @@ namespace Reign.SRP
 			// =========================================
 			// 8x
 			// =========================================
-			if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_8x)
+			if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_8x)
 			{
-				if (type == Reign_PostProcess_Bloom_Type.Radial)
+				if (type == ReignRP_PostProcess_Bloom_Type.Radial)
 				{
 					// blur radial
 					cmd.SetGlobalVector("args", r);
 					cmd.Blit(texture_8x, texture2_8x, material, pass_Blur_Radial);
 
 					// size-down
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_16x) cmd.Blit(texture2_8x, texture_16x, material, pass_SizeDownCopy);
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_16x) cmd.Blit(texture2_8x, texture_16x, material, pass_SizeDownCopy);
 				}
 				else
 				{
@@ -417,37 +417,37 @@ namespace Reign.SRP
 					cmd.Blit(texture2_8x, texture_8x, material, pass_Blur_Classic);
 
 					// size-down
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_16x) cmd.Blit(texture_8x, texture_16x, material, pass_SizeDownCopy);
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_16x) cmd.Blit(texture_8x, texture_16x, material, pass_SizeDownCopy);
 				}
 
 				// high-pass-blured preview
-				if (viewType == Reign_PostProcess_Bloom_ViewType.HighPassBlured_8x)
+				if (viewType == ReignRP_PostProcess_Bloom_ViewType.HighPassBlured_8x)
 				{
-					cmd.Blit(type == Reign_PostProcess_Bloom_Type.Normal ? texture_8x : texture2_8x, dst, material, pass_SizeDownCopy);
+					cmd.Blit(type == ReignRP_PostProcess_Bloom_Type.Normal ? texture_8x : texture2_8x, dst, material, pass_SizeDownCopy);
 					context.ExecuteCommandBuffer(cmd);
 
 					RenderTexture.ReleaseTemporary(texture_1x);
 					RenderTexture.ReleaseTemporary(texture2_1x);
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_2x);
 						RenderTexture.ReleaseTemporary(texture2_2x);
 					}
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_4x);
 						RenderTexture.ReleaseTemporary(texture2_4x);
 					}
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_8x);
 						RenderTexture.ReleaseTemporary(texture2_8x);
 					}
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_16x);
 						RenderTexture.ReleaseTemporary(texture2_16x);
@@ -460,9 +460,9 @@ namespace Reign.SRP
 			// =========================================
 			// 16x
 			// =========================================
-			if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_16x)
+			if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_16x)
 			{
-				if (type == Reign_PostProcess_Bloom_Type.Radial)
+				if (type == ReignRP_PostProcess_Bloom_Type.Radial)
 				{
 					// blur radial
 					cmd.SetGlobalVector("args", r);
@@ -480,33 +480,33 @@ namespace Reign.SRP
 				}
 
 				// high-pass-blured preview
-				if (viewType == Reign_PostProcess_Bloom_ViewType.HighPassBlured_16x)
+				if (viewType == ReignRP_PostProcess_Bloom_ViewType.HighPassBlured_16x)
 				{
-					cmd.Blit(type == Reign_PostProcess_Bloom_Type.Normal ? texture_16x : texture2_16x, dst, material, pass_SizeDownCopy);
+					cmd.Blit(type == ReignRP_PostProcess_Bloom_Type.Normal ? texture_16x : texture2_16x, dst, material, pass_SizeDownCopy);
 					context.ExecuteCommandBuffer(cmd);
 
 					RenderTexture.ReleaseTemporary(texture_1x);
 					RenderTexture.ReleaseTemporary(texture2_1x);
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_2x);
 						RenderTexture.ReleaseTemporary(texture2_2x);
 					}
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_4x);
 						RenderTexture.ReleaseTemporary(texture2_4x);
 					}
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_8x);
 						RenderTexture.ReleaseTemporary(texture2_8x);
 					}
 
-					if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+					if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 					{
 						RenderTexture.ReleaseTemporary(texture_16x);
 						RenderTexture.ReleaseTemporary(texture2_16x);
@@ -517,21 +517,21 @@ namespace Reign.SRP
 			}
 
 			// composite
-			if (type == Reign_PostProcess_Bloom_Type.Normal)
+			if (type == ReignRP_PostProcess_Bloom_Type.Normal)
 			{
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_1x) cmd.SetGlobalTexture("_MainTex1", texture_1x);
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x) cmd.SetGlobalTexture("_MainTex2", texture_2x);
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_4x) cmd.SetGlobalTexture("_MainTex4", texture_4x);
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_8x) cmd.SetGlobalTexture("_MainTex8", texture_8x);
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_16x) cmd.SetGlobalTexture("_MainTex16", texture_16x);
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_1x) cmd.SetGlobalTexture("_MainTex1", texture_1x);
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x) cmd.SetGlobalTexture("_MainTex2", texture_2x);
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_4x) cmd.SetGlobalTexture("_MainTex4", texture_4x);
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_8x) cmd.SetGlobalTexture("_MainTex8", texture_8x);
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_16x) cmd.SetGlobalTexture("_MainTex16", texture_16x);
 			}
 			else
 			{
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_1x) cmd.SetGlobalTexture("_MainTex1", texture2_1x);
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x) cmd.SetGlobalTexture("_MainTex2", texture2_2x);
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_4x) cmd.SetGlobalTexture("_MainTex4", texture2_4x);
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_8x) cmd.SetGlobalTexture("_MainTex8", texture2_8x);
-				if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_16x) cmd.SetGlobalTexture("_MainTex16", texture2_16x);
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_1x) cmd.SetGlobalTexture("_MainTex1", texture2_1x);
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x) cmd.SetGlobalTexture("_MainTex2", texture2_2x);
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_4x) cmd.SetGlobalTexture("_MainTex4", texture2_4x);
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_8x) cmd.SetGlobalTexture("_MainTex8", texture2_8x);
+				if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_16x) cmd.SetGlobalTexture("_MainTex16", texture2_16x);
 			}
 			float arg1 = Mathf.Pow(falloffStart, falloff);
 			float arg2 = Mathf.Pow(arg1, falloff);
@@ -540,27 +540,27 @@ namespace Reign.SRP
 			float arg5 = Mathf.Pow(arg4, falloff);
 			cmd.SetGlobalVector("mulArgs1", new Vector4(arg1, arg2, arg3, arg4));
 			cmd.SetGlobalVector("mulArgs2", new Vector4(arg5, (1f / (float)(blurLevel + 1)) * strength));
-			string mode = (viewType != Reign_PostProcess_Bloom_ViewType.HighPassBlured_Composited) ? "MODE_NORMAL" : "MODE_HIGHPASS_ONLY";
+			string mode = (viewType != ReignRP_PostProcess_Bloom_ViewType.HighPassBlured_Composited) ? "MODE_NORMAL" : "MODE_HIGHPASS_ONLY";
 			string lvl;
 			switch (blurLevel)
 			{
-				case Reign_PostProcess_Bloom_BlurLevel.Blured_1x:
+				case ReignRP_PostProcess_Bloom_BlurLevel.Blured_1x:
 					lvl = "LVL_1X";
 					break;
 
-				case Reign_PostProcess_Bloom_BlurLevel.Blured_2x:
+				case ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x:
 					lvl = "LVL_2X";
 					break;
 
-				case Reign_PostProcess_Bloom_BlurLevel.Blured_4x:
+				case ReignRP_PostProcess_Bloom_BlurLevel.Blured_4x:
 					lvl = "LVL_4X";
 					break;
 
-				case Reign_PostProcess_Bloom_BlurLevel.Blured_8x:
+				case ReignRP_PostProcess_Bloom_BlurLevel.Blured_8x:
 					lvl = "LVL_8X";
 					break;
 
-				case Reign_PostProcess_Bloom_BlurLevel.Blured_16x:
+				case ReignRP_PostProcess_Bloom_BlurLevel.Blured_16x:
 					lvl = "LVL_16X";
 					break;
 
@@ -579,25 +579,25 @@ namespace Reign.SRP
 			RenderTexture.ReleaseTemporary(texture_1x);
 			RenderTexture.ReleaseTemporary(texture2_1x);
 
-			if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+			if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 			{
 				RenderTexture.ReleaseTemporary(texture_2x);
 				RenderTexture.ReleaseTemporary(texture2_2x);
 			}
 
-			if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+			if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 			{
 				RenderTexture.ReleaseTemporary(texture_4x);
 				RenderTexture.ReleaseTemporary(texture2_4x);
 			}
 
-			if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+			if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 			{
 				RenderTexture.ReleaseTemporary(texture_8x);
 				RenderTexture.ReleaseTemporary(texture2_8x);
 			}
 
-			if (blurLevel >= Reign_PostProcess_Bloom_BlurLevel.Blured_2x)
+			if (blurLevel >= ReignRP_PostProcess_Bloom_BlurLevel.Blured_2x)
 			{
 				RenderTexture.ReleaseTemporary(texture_16x);
 				RenderTexture.ReleaseTemporary(texture2_16x);

@@ -388,7 +388,32 @@ namespace Reign.SRP
                     // post-process resources
                     if (postProcessResources == null) postProcessResources = new ReignRP_PostProcessResources();
                     postProcessResources.Update(widthComposited, heightComposited, camera, colorTexture);
-                    if (refreshPostProcessState) postProcesses = camera.GetComponents<ReignRP_PostProcess>();
+                    if (refreshPostProcessState)
+                    {
+                        #if UNITY_EDITOR
+                        if (camera.cameraType == CameraType.SceneView)
+                        {
+                            var scenePostProcesses = new List<ReignRP_PostProcess>();
+                            foreach (var p in GameObject.FindObjectsByType<ReignRP_PostProcess>(FindObjectsSortMode.None))
+                            {
+                                if (!p.previewInSceneView || !p.enabled) continue;
+
+                                var obj = p.gameObject;
+                                var c = obj.GetComponent<Camera>();
+                                if (!obj.activeInHierarchy || (c && c.targetTexture)) continue;
+                                
+                                scenePostProcesses.Add(p);
+                            }
+                            postProcesses = scenePostProcesses.ToArray();
+                        }
+                        else
+                        {
+                            postProcesses = camera.GetComponents<ReignRP_PostProcess>();
+                        }
+                        #else
+                        postProcesses = camera.GetComponents<ReignRP_PostProcess>();
+                        #endif
+                    }
 				}
                 else
                 {
