@@ -22,6 +22,7 @@ namespace Reign.SRP
 		public bool sortPointLights = false;
 
 		public bool enableComposition = false;
+		public bool compositionColorClone = false;
 		public bool compositionDepthClone = false;
 		public MSAA_Level compositionMSAA = MSAA_Level.Off;
 		public bool compositionMSAA_ForceHardwareResolve = false;
@@ -38,7 +39,7 @@ namespace Reign.SRP
 		[Tooltip("Culls & processes Reflection Probes (disable to increase performance)")]
 		public bool enableReflectionProbes = true;
 		[Tooltip("Culls & processes Lightmaps (disable to increase performance)")]
-		public bool enableLightmaps = true;
+		public bool enableLightmaps = false;
 		[Tooltip("Processes Motion Vectors (disable to increase performance)")]
 		public bool enableMotionVectors = false;
 

@@ -183,12 +183,12 @@ namespace Reign.SRP
             public int cameraTargetDepth;
 
             public RenderTexture depthTexture, depthTextureClone;
-			public RenderTexture colorTexture;
+			public RenderTexture colorTexture, colorTextureClone;
             public RenderTexture[] compositingTextures;
 			//public RenderTexture velocityTexture;
 
             public RenderTargetIdentifier depthTextureID, depthTextureCloneID;
-			public RenderTargetIdentifier colorTextureID;
+			public RenderTargetIdentifier colorTextureID, colorTextureCloneID;
             public RenderTargetIdentifier[] compositingTexturesID;
             public RenderTargetIdentifier velocityTextureID;
             public RenderPassDesc renderPass_Opaque, renderPass_Transparent;
@@ -337,6 +337,14 @@ namespace Reign.SRP
 					colorTextureID = colorTexture;
                     SetTextureSamplerState(colorTexture, FilterMode.Point, TextureWrapMode.Clamp);
                     
+                    // color texture clone
+                    if (asset.compositionColorClone)
+                    {
+                        colorTextureClone = GetTemporaryRenderTexture(desc);
+                        colorTextureCloneID = colorTextureClone;
+                        SetTextureSamplerState(colorTextureClone, FilterMode.Point, TextureWrapMode.Clamp);
+                    }
+                    
                     // compositing textures
                     desc.msaaSamples = 1;// no MSAA on final textures
                     desc.bindMS = false;
@@ -470,6 +478,7 @@ namespace Reign.SRP
                 ReleaseTempRenderTexture(ref depthTexture);
                 ReleaseTempRenderTexture(ref depthTextureClone);
 				ReleaseTempRenderTexture(ref colorTexture);
+                ReleaseTempRenderTexture(ref colorTextureClone);
 				//ReleaseTempRenderTexture(ref velocityTexture);
                 if (compositingTextures != null)
                 {
@@ -481,6 +490,13 @@ namespace Reign.SRP
                     renderPass_Opaque.Dispose();
                     renderPass_Transparent.Dispose();
                 }
+            }
+            
+            public void ResolveCompositedColorTexture(CommandBuffer cmd)
+            {
+                if (asset.compositionMSAA == MSAA_Level.Off) cmd.CopyTexture(colorTextureID, colorTextureCloneID);
+                else ResolveCompositedMSAATexture(cmd, colorTextureClone);
+                cmd.SetGlobalTexture("_CameraColorTexture", colorTextureCloneID, RenderTextureSubElement.Color);
             }
 
             public void ResolveCompositedDepthTexture(CommandBuffer cmd)

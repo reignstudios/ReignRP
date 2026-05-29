@@ -474,7 +474,7 @@ namespace Reign.SRP
 			context.Submit();
 
 			// start opaque render pass
-			bool seperateTransparentPass = asset.enableComposition && asset.compositionDepthClone;
+			bool seperateTransparentPass = asset.enableComposition && (asset.compositionColorClone || asset.compositionDepthClone);
 			StartRenderPass(context, cameraResource.renderPass_Opaque, cameraResource, false);
 			DrawOpaque(camera, ref context, ref cullResults, specialRenderParams);
 			if (!seperateTransparentPass) DrawTransparent(camera, ref context, ref cullResults, specialRenderParams);
@@ -484,7 +484,8 @@ namespace Reign.SRP
 			if (seperateTransparentPass)
 			{
 				cmd.Clear();
-				cameraResource.ResolveCompositedDepthTexture(cmd);
+				if (asset.compositionColorClone) cameraResource.ResolveCompositedColorTexture(cmd);
+				if (asset.compositionDepthClone) cameraResource.ResolveCompositedDepthTexture(cmd);
 				context.ExecuteCommandBuffer(cmd);
 				context.Submit();
 

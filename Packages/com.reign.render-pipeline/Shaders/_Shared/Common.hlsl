@@ -127,12 +127,14 @@ CBUFFER_END
 SamplerState sampler_linear_repeat;
 SamplerState sampler_point_repeat;
 
-// depth resources
+// compositing resources
+TEXTURE2D_FLOAT(_CameraColorTexture);
+SAMPLER(sampler_CameraColorTexture);
+
 TEXTURE2D_FLOAT(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);
-float4x4 clipToWorld;//, worldToClip;
 
-// compositing
+float4x4 clipToWorld;//, worldToClip;
 float4 targetSize;
 
 // ======================================
