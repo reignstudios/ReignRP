@@ -173,6 +173,7 @@ namespace Reign.SRP
 			public readonly Camera camera;
 			public readonly ReignRP pipeline;
 			private readonly ReignRP_Asset asset;
+            public bool enableComposition;
 
             public ReignRP_PostProcessResources postProcessResources;
             public ReignRP_PostProcess[] postProcesses;
@@ -240,6 +241,7 @@ namespace Reign.SRP
 			public void UpdateStart()
 			{
 				frame = 0;
+                enableComposition = asset.enableComposition && (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView);
 
 				// calculate special matricies
 				cameraViewProj_Last = camera.previousViewProjectionMatrix;
@@ -299,7 +301,7 @@ namespace Reign.SRP
                 }
 
                 // compositing
-                if (asset.enableComposition)
+                if (enableComposition)
 				{
                     widthComposited = widthTarget / asset.compositionDivision;
                     heightComposited = heightTarget / asset.compositionDivision;

@@ -96,6 +96,10 @@ TEXTURE2D(_EmissionMap);
 #ifdef ENABLE_ALPHACLIP
 float _AlphaClip;
 #endif
+
+#ifdef REIGN_REFRACTIVE_SS
+float _RefractionIndex, _RefractionRoughness;
+#endif
 #endif
 
 // =====================================

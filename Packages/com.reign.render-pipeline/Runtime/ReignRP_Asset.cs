@@ -22,7 +22,7 @@ namespace Reign.SRP
 		public bool sortPointLights = false;
 
 		public bool enableComposition = false;
-		public bool compositionColorClone = false;
+		public bool compositionColorClone = false, compositionColorCloneBlurredMipmaps = false;
 		public bool compositionDepthClone = false;
 		public MSAA_Level compositionMSAA = MSAA_Level.Off;
 		public bool compositionMSAA_ForceHardwareResolve = false;

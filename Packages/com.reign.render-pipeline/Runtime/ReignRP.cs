@@ -37,6 +37,7 @@ namespace Reign.SRP
 		#endif
 
 		public const string lightModeID_Opaque = "Reign_Opaque";
+		public const string lightModeID_Refractive = "Reign_RefractiveSS";
         public const string lightModeID_Transparent = "Reign_Transparent";
 
         public static ReignRP singleton { get; private set; }
@@ -81,7 +82,9 @@ namespace Reign.SRP
 		public static bool xrActive => singleton != null ? singleton.xrRenderPassInfo.isXRActive : false;
 
 		public delegate void CustomDraw(Camera camera, CommandBuffer cmd, in ScriptableRenderContext context, in CullingResults cullResults);
-		public static event CustomDraw DrawCustom_PreOpaque, DrawCustom_PostOpaque, DrawCustom_PreTransparent, DrawCustom_PostTransparent;
+		public static event CustomDraw DrawCustom_PreOpaque, DrawCustom_PostOpaque;
+		public static event CustomDraw DrawCustom_PreRefractive, DrawCustom_PostRefractive;
+		public static event CustomDraw DrawCustom_PreTransparent, DrawCustom_PostTransparent;
 
 		public ReignRP(ReignRP_Asset asset)
 		{
@@ -467,14 +470,14 @@ namespace Reign.SRP
 
 			// set special data
 			cmd.Clear();
-            if (asset.enableComposition) cmd.SetGlobalVector("targetSize", new Vector4(cameraResource.widthComposited, cameraResource.heightComposited, 1.0f / cameraResource.widthComposited, 1.0f / cameraResource.heightComposited));
+            if (cameraResource.enableComposition) cmd.SetGlobalVector("targetSize", new Vector4(cameraResource.widthComposited, cameraResource.heightComposited, 1.0f / cameraResource.widthComposited, 1.0f / cameraResource.heightComposited));
             else cmd.SetGlobalVector("targetSize", new Vector4(cameraResource.widthTarget, cameraResource.heightTarget, 1.0f / cameraResource.widthTarget, 1.0f / cameraResource.heightTarget));
             cmd.SetGlobalMatrix("clipToWorld", cameraResource.clipToWorld);
 			context.ExecuteCommandBuffer(cmd);
 			context.Submit();
 
 			// start opaque render pass
-			bool seperateTransparentPass = asset.enableComposition && (asset.compositionColorClone || asset.compositionDepthClone);
+			bool seperateTransparentPass = cameraResource.enableComposition && (asset.compositionColorClone || asset.compositionDepthClone);
 			StartRenderPass(context, cameraResource.renderPass_Opaque, cameraResource, false);
 			DrawOpaque(camera, ref context, ref cullResults, specialRenderParams);
 			if (!seperateTransparentPass) DrawTransparent(camera, ref context, ref cullResults, specialRenderParams);
@@ -489,14 +492,15 @@ namespace Reign.SRP
 				context.ExecuteCommandBuffer(cmd);
 				context.Submit();
 
-				// start lighting render pass
+				// start transparent render pass
 				StartRenderPass(context, cameraResource.renderPass_Transparent, cameraResource, true);
+				DrawRefractive(camera, ref context, ref cullResults, specialRenderParams);
 				DrawTransparent(camera, ref context, ref cullResults, specialRenderParams);
 				EndRenderPass(context);
 			}
 
 			// compositing
-			if (asset.enableComposition)
+			if (cameraResource.enableComposition)
 			{
 				Mesh blitMesh;
 				#if UNITY_EDITOR
@@ -655,6 +659,18 @@ namespace Reign.SRP
 
 			// clear skybox (after opaque)
             ClearSkybox(ref context, camera);
+		}
+		
+		private void DrawRefractive(Camera camera, ref ScriptableRenderContext context, ref CullingResults cullResults, PerObjectData specialRenderParams)
+		{
+			// draw custom pre-refractive objects
+			DrawCustom_PreRefractive?.Invoke(camera, cmd, context, cullResults);
+
+			// draw refractive objects
+			DrawObjects(ref context, ref cullResults, lightModeID_Refractive, QueueRange.Opaque, camera, null, specialRenderParams);
+
+			// draw custom post-refractive objects
+			DrawCustom_PostRefractive?.Invoke(camera, cmd, context, cullResults);
 		}
 
 		private void DrawTransparent(Camera camera, ref ScriptableRenderContext context, ref CullingResults cullResults, PerObjectData specialRenderParams)
