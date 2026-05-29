@@ -516,15 +516,16 @@ namespace Reign.SRP
 				int postProcessCount = cameraResource.postProcesses != null ? cameraResource.postProcesses.Length : 0;
 				
 				// pre-resolve MSAA texture ONLY if needed
-				cmd.Clear();
 				bool msaaResolved = false;
 				if (asset.compositionMSAA != MSAA_Level.Off)
 				{
 					if (!msaaTextureLoadSupported || postProcessCount != 0)// resolve if MSAA-Load not supported or PostProcess tasks are needed
 					{
+						cmd.Clear();
 						cameraResource.ResolveCompositedMSAATexture(cmd, cameraResource.compositingTextures[0]);
 						finalTexture = cameraResource.compositingTextures[0];
 						msaaResolved = true;
+						context.ExecuteCommandBuffer(cmd);
 					}
 				}
 				else
@@ -555,6 +556,7 @@ namespace Reign.SRP
 				}
 				
 				// copy final result
+				cmd.Clear();
 				if (msaaResolved)
 				{
 					Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh);
