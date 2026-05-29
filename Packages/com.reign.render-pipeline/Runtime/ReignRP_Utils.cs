@@ -302,8 +302,6 @@ namespace Reign.SRP
 
 		private void BlurRoughnessTexture(RenderTexture roughnessTexture, RenderTextureSubElement roughnessElement, RenderTexture compositingTexture)
 		{
-			var blitMesh = BlitMesh.mesh;
-
 			// start at half size
 			int mipWidth = roughnessTexture.width / 2;
 			int mipHeight = roughnessTexture.height / 2;

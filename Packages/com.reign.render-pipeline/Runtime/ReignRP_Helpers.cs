@@ -344,10 +344,12 @@ namespace Reign.SRP
                     // color texture clone
                     if (asset.compositionColorClone)
                     {
+                        desc.msaaSamples = 1;// no MSAA on clone textures
+                        desc.bindMS = false;
                         if (asset.compositionColorCloneBlurredMipmaps)
                         {
-                            desc.mipCount = Texture.GenerateAllMips;
                             desc.useMipMap = true;
+                            desc.mipCount = Texture.GenerateAllMips;
                             desc.autoGenerateMips = false;
                         }
                         colorTextureClone = GetTemporaryRenderTexture(desc);
@@ -508,7 +510,7 @@ namespace Reign.SRP
             {
                 // copy texture to clone
                 if (asset.compositionMSAA == MSAA_Level.Off) cmd.CopyTexture(colorTextureID, 0, 0, colorTextureCloneID, 0, 0);
-                else ResolveCompositedMSAATexture(cmd, colorTextureClone);
+                else ResolveCompositedMSAATexture(cmd, colorTexture, colorTextureClone);
 
                 // blur texture mipmaps
                 if (asset.compositionColorCloneBlurredMipmaps) pipeline.BlurRoughnessTexture(colorTextureClone, RenderTextureSubElement.Color, compositingTextures[0]);
@@ -524,10 +526,10 @@ namespace Reign.SRP
                 cmd.SetGlobalTexture("_CameraDepthTexture", depthTextureCloneID, RenderTextureSubElement.Depth);
             }
             
-            public void ResolveCompositedMSAATexture(CommandBuffer cmd, RenderTexture target)
+            public void ResolveCompositedMSAATexture(CommandBuffer cmd, RenderTexture src, RenderTexture dst)
             {
-                cmd.SetRenderTarget(colorTextureID);
-                cmd.ResolveAntiAliasedSurface(colorTexture, target);
+                cmd.SetRenderTarget(src);
+                cmd.ResolveAntiAliasedSurface(src, dst);
             }
         }
     }
