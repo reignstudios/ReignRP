@@ -10,7 +10,7 @@
         _UVScaleOffset("UV Scale Offset", Vector) = (1,1,0,0)
 
         [KeywordEnum(Color, Texture, Both)] _COLOR ("Color Mode", Float) = 0
-        [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
+        [MainColor] [HDR] _BaseColor("Color", Color) = (1,1,1,1)
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
     }
 

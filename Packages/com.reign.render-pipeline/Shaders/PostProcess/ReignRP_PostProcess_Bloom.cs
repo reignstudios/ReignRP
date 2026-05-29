@@ -59,10 +59,10 @@ namespace Reign.SRP
 
 		[Tooltip("Iterations increases sample count")]
 		[Range(1, 32)]
-		public int blurIterations = 16;
+		public int blurIterations = 10;
 
 		public float blurStrength = 1;
-		public float sampleTexelOffset = 0;
+		public float sampleTexelOffset = 0.5f;
 
 		[Tooltip("float texMul = pow(falloffStart, falloff)")]
 		[Range(.1f, 1.0f)]
@@ -70,7 +70,7 @@ namespace Reign.SRP
 
 		[Tooltip("texMul = pow(texMul, falloff)")]
 		[Range(1, 10)]
-		public float falloff = 2;
+		public float falloff = 1;
 
 		[Range(0, 1)]
 		public float strength = 1;
