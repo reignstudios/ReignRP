@@ -4,7 +4,7 @@
     {
         // Blend Options
         [Toggle(ENABLE_ALPHACLIP)] _ENABLE_ALPHACLIP ("Enable Alpha Clip", Float) = 1
-        _AlphaClip ("Alpha Clip", Range(0.0, 1.0)) = 0.1
+        _AlphaClip ("Alpha Clip", Range(0.0, 1.0)) = 0.01
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", Float) = 5// SrcAlpha
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", Float) = 10// OneMinusSrcAlpha
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest ("ZTest", Float) = 4// 4 = LessEqual (default)
