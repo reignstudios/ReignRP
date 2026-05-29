@@ -130,6 +130,7 @@ SamplerState sampler_point_repeat;
 // compositing resources
 TEXTURE2D_FLOAT(_CameraColorTexture);
 SAMPLER(sampler_CameraColorTexture);
+float mipmaps_CameraColorTexture;
 
 TEXTURE2D_FLOAT(_CameraDepthTexture);
 SAMPLER(sampler_CameraDepthTexture);

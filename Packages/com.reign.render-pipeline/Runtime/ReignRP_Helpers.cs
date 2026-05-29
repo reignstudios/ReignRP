@@ -316,7 +316,8 @@ namespace Reign.SRP
                     
                     // depth texture
                     int compositionDepthBit = GetCompositedDepthBit();
-                    var desc = new RenderTextureDescriptor(widthComposited, heightComposited, RenderTextureFormat.Depth, compositionDepthBit);
+                    var desc = new RenderTextureDescriptor(widthComposited, heightComposited, RenderTextureFormat.Depth, compositionDepthBit, 1);
+                    desc.stencilFormat = GraphicsFormat.None;
                     desc.msaaSamples = (int)asset.compositionMSAA;
                     desc.bindMS = msaaTextureLoadSupported && asset.compositionMSAA != MSAA_Level.Off;
 				    depthTexture = GetTemporaryRenderTexture(desc);
@@ -332,7 +333,8 @@ namespace Reign.SRP
                     }
 
 					// color texture
-					desc = new RenderTextureDescriptor(widthComposited, heightComposited, GetCompositionTextureFormat(asset.compositionColorFormat, colorTextureFallbacks), 0);
+					desc = new RenderTextureDescriptor(widthComposited, heightComposited, GetCompositionTextureFormat(asset.compositionColorFormat, colorTextureFallbacks), 0, 1);
+                    desc.stencilFormat = GraphicsFormat.None;
                     desc.msaaSamples = (int)asset.compositionMSAA;
                     desc.bindMS = msaaTextureLoadSupported && asset.compositionMSAA != MSAA_Level.Off;
 					colorTexture = GetTemporaryRenderTexture(desc);
@@ -342,12 +344,20 @@ namespace Reign.SRP
                     // color texture clone
                     if (asset.compositionColorClone)
                     {
+                        if (asset.compositionColorCloneBlurredMipmaps)
+                        {
+                            desc.mipCount = Texture.GenerateAllMips;
+                            desc.useMipMap = true;
+                            desc.autoGenerateMips = false;
+                        }
                         colorTextureClone = GetTemporaryRenderTexture(desc);
                         colorTextureCloneID = colorTextureClone;
-                        SetTextureSamplerState(colorTextureClone, FilterMode.Point, TextureWrapMode.Clamp);
+                        SetTextureSamplerState(colorTextureClone, asset.compositionColorCloneBlurredMipmaps ? FilterMode.Trilinear : FilterMode.Point, TextureWrapMode.Clamp);
                     }
                     
                     // compositing textures
+                    desc.mipCount = 1;// no mipmaps on final textures
+                    desc.useMipMap = false;
                     desc.msaaSamples = 1;// no MSAA on final textures
                     desc.bindMS = false;
                     if (compositingTextures == null)
@@ -496,9 +506,16 @@ namespace Reign.SRP
             
             public void ResolveCompositedColorTexture(CommandBuffer cmd)
             {
-                if (asset.compositionMSAA == MSAA_Level.Off) cmd.CopyTexture(colorTextureID, colorTextureCloneID);
+                // copy texture to clone
+                if (asset.compositionMSAA == MSAA_Level.Off) cmd.CopyTexture(colorTextureID, 0, 0, colorTextureCloneID, 0, 0);
                 else ResolveCompositedMSAATexture(cmd, colorTextureClone);
+
+                // blur texture mipmaps
+                if (asset.compositionColorCloneBlurredMipmaps) pipeline.BlurRoughnessTexture(colorTextureClone, RenderTextureSubElement.Color, compositingTextures[0]);
+
+                // set texture
                 cmd.SetGlobalTexture("_CameraColorTexture", colorTextureCloneID, RenderTextureSubElement.Color);
+                cmd.SetGlobalFloat("mipmaps_CameraColorTexture", colorTextureClone.mipmapCount);
             }
 
             public void ResolveCompositedDepthTexture(CommandBuffer cmd)

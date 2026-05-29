@@ -136,30 +136,43 @@ namespace Reign.SRP
 			msaaTextureLoadSupported = SystemInfo.supportsMultisampledTextures > 0 && !asset.compositionMSAA_ForceHardwareResolve;
 		}
 
-		private void CheckResourceInit()
+		private bool CheckResourceInit()
 		{
-			// blit resources
-			BlitMesh.InitCheck();
-			//if (!skyboxMesh) skyboxMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
-			if (!blitMaterial) blitMaterial = new Material(asset.resources.shaders.blitShader);
-
-			// allocate render-path specific light buffers
-			if (asset.maxLights < 0) pointLight_Max = 1024;
-			else pointLight_Max = Math.Max(0, asset.maxLights);
-			if (pointLight_Positions == null || pointLight_Positions.Length != pointLight_Max)
+			try
 			{
-                pointLight_Positions = new Vector4[pointLight_Max];
-				pointLight_Colors = new Vector4[pointLight_Max];
-				pointLight_Flags = new Vector4[pointLight_Max];
-				pointLight_Distances = new float[pointLight_Max];
+				// blit resources
+				BlitMesh.InitCheck();
+
+				//if (!skyboxMesh) skyboxMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
+
+				if (!asset.resources.shaders.blitShader) throw new Exception("Missing Blit Shader");
+				if (!blitMaterial) blitMaterial = new Material(asset.resources.shaders.blitShader);
+
+				// allocate render-path specific light buffers
+				if (asset.maxLights < 0) pointLight_Max = 1024;
+				else pointLight_Max = Math.Max(0, asset.maxLights);
+				if (pointLight_Positions == null || pointLight_Positions.Length != pointLight_Max)
+				{
+					pointLight_Positions = new Vector4[pointLight_Max];
+					pointLight_Colors = new Vector4[pointLight_Max];
+					pointLight_Flags = new Vector4[pointLight_Max];
+					pointLight_Distances = new float[pointLight_Max];
+				}
+
+				if (pointLight_Positions_Const == null)
+				{
+					pointLight_Positions_Const = new Vector4[pointLight_MaxConst];
+					pointLight_Colors_Const = new Vector4[pointLight_MaxConst];
+					pointLight_Flags_Const = new Vector4[pointLight_MaxConst];
+				}
+			}
+			catch (Exception e)
+			{
+				Debug.LogError(e);
+				return false;
 			}
 
-			if (pointLight_Positions_Const == null)
-			{
-				pointLight_Positions_Const = new Vector4[pointLight_MaxConst];
-				pointLight_Colors_Const = new Vector4[pointLight_MaxConst];
-				pointLight_Flags_Const = new Vector4[pointLight_MaxConst];
-			}
+			return true;
         }
 		
         protected override void Render(ScriptableRenderContext context, List<Camera> cameras)
@@ -188,7 +201,7 @@ namespace Reign.SRP
 			#endif
 
 			// check if common resources init
-			CheckResourceInit();
+			if (!CheckResourceInit()) return;
 
 			// check if camera resources need to be released
 			for (int i = cameraResources.Count - 1; i != -1; --i)
@@ -564,7 +577,7 @@ namespace Reign.SRP
 				cmd.Clear();
 				if (msaaResolved)
 				{
-					Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh);
+					Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh:blitMesh);
 				}
 				else
 				{
@@ -576,7 +589,7 @@ namespace Reign.SRP
 						case MSAA_Level.X8: blitMode = BlitMode.MSAA_8X; break;
 						default: Debug.LogError("Invalid MSAA BlitMode: " + asset.compositionMSAA); break;
 					}
-					Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh, blitMode);
+					Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh:blitMesh, mode:blitMode);
 				}
 				context.ExecuteCommandBuffer(cmd);
 			}
@@ -629,7 +642,7 @@ namespace Reign.SRP
 				if (copyPreview)
 				{
 					cmd.Clear();
-					Blit(cameraResource.cameraTargetTextureID, BuiltinRenderTextureType.None, viewport, BlitMesh.meshFlipped);
+					Blit(cameraResource.cameraTargetTexture, BuiltinRenderTextureType.None, viewport:viewport, blitMesh:BlitMesh.meshFlipped);
 					context.ExecuteCommandBuffer(cmd);
 				}
 				#endif

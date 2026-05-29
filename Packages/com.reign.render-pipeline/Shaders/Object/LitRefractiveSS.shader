@@ -5,6 +5,7 @@
         // Refractive Options
         _RefractionIndex("Refraction Index", Range(0.0, 1.0)) = 0.75
         _RefractionRoughness("Refraction Roughness", Range(0.0, 1.0)) = 0.0
+        [HDR] _RefractionColor("Refraction Color", Color) = (1,1,1,1)
         [Space(10)]
         
         // Clip Options

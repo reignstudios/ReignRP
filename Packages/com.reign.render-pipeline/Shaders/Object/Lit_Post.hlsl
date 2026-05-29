@@ -233,7 +233,7 @@ PS_OUT frag(VS_OUT i)
     #ifdef REIGN_REFRACTIVE_SS
     real3 r = refract(eyeDir, materialParams.normal, _RefractionIndex);
     r = mul(UNITY_MATRIX_V, real4(r - eyeDir, 0.0));
-    o.color += SAMPLE_TEXTURE2D(_CameraColorTexture, sampler_CameraColorTexture, materialParams.ssUV + r.xy * .5);
+    o.color += SAMPLE_TEXTURE2D_LOD(_CameraColorTexture, sampler_CameraColorTexture, materialParams.ssUV + r.xy * .5, _RefractionRoughness * mipmaps_CameraColorTexture) * _RefractionColor;
     #endif
     
     #ifdef ENABLE_EMISSION

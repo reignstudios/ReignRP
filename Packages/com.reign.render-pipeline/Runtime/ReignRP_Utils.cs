@@ -40,11 +40,12 @@ namespace Reign.SRP
 
 	enum BlitMode
 	{
-		Load = 0,
-		Sampler = 1,
-		MSAA_2X = 2,
-		MSAA_4X = 3,
-		MSAA_8X = 4
+		Load,
+		Sampler,
+		Blur,
+		MSAA_2X,
+		MSAA_4X,
+		MSAA_8X
 	}
 
     public partial class ReignRP
@@ -277,18 +278,51 @@ namespace Reign.SRP
             }
         }
 
-		private void Blit(RenderTargetIdentifier src, RenderTargetIdentifier dst, Mesh blitMesh = null, BlitMode mode = BlitMode.Load) => Blit(src, dst, new Rect(0, 0, 1, 1), new Rect(0, 0, 1, 1), 0, 0, new Rect(), blitMesh, mode);
-		private void Blit(RenderTargetIdentifier src, RenderTargetIdentifier dst, Rect viewport = new Rect(), Mesh blitMesh = null, BlitMode mode = BlitMode.Load) => Blit(src, dst, new Rect(0, 0, 1, 1), new Rect(0, 0, 1, 1), 0, 0, viewport, blitMesh, mode);
-		private void Blit(RenderTargetIdentifier src, RenderTargetIdentifier dst, Rect srcRect, Rect dstRect, int srcMipLvl, int dstMipLvl, Rect viewport, Mesh blitMesh, BlitMode mode)
+		private Vector4 GetTextureMipLvlTexelSize(Texture texture, int mipLvl)
+		{
+			int width = texture.width / mipLvl;
+			int height = texture.height / mipLvl;
+			return new Vector4(1f / width, 1f / height, width, height);
+		}
+
+		private void Blit(RenderTexture src, RenderTargetIdentifier dst, RenderTextureSubElement srcElement = RenderTextureSubElement.Color, Rect srcRect = default, Rect dstRect = default, int srcMipLvl = 0, int dstMipLvl = 0, Rect viewport = default, Mesh blitMesh = null, BlitMode mode = BlitMode.Load)
 		{
 			if (!blitMesh) blitMesh = BlitMesh.mesh;
 			cmd.SetRenderTarget(dst, dstMipLvl);
 			if (viewport.width > 0 && viewport.height > 0) cmd.SetViewport(viewport);
-			cmd.SetGlobalTexture("_BlitTex", src);
+			if (srcRect.width <= 0 || srcRect.height <= 0) srcRect = new Rect(0, 0, 1, 1);
+			if (dstRect.width <= 0 || dstRect.height <= 0) dstRect = new Rect(0, 0, 1, 1);
+			cmd.SetGlobalTexture("_BlitTex", src, srcElement);
+			if (srcMipLvl != 0 && mode != BlitMode.Sampler) cmd.SetGlobalVector("_BlitTex_TexelSize", GetTextureMipLvlTexelSize(src, srcMipLvl));// override texel size to match mip
 			cmd.SetGlobalVector("srcRect", new Vector4(srcRect.x, srcRect.y, srcRect.width, srcRect.height));
 			cmd.SetGlobalVector("dstRect", new Vector4(dstRect.x, dstRect.y, dstRect.width, dstRect.height));
 			cmd.SetGlobalFloat("srcMipLvl", srcMipLvl);
 			cmd.DrawMesh(blitMesh, Matrix4x4.identity, blitMaterial, 0, (int)mode);// Normal Blit shader pass
 		}
+
+		private void BlurRoughnessTexture(RenderTexture roughnessTexture, RenderTextureSubElement roughnessElement, RenderTexture compositingTexture)
+		{
+			var blitMesh = BlitMesh.mesh;
+
+			// start at half size
+			int mipWidth = roughnessTexture.width / 2;
+			int mipHeight = roughnessTexture.height / 2;
+			float mipWidthUV = 1f / 2f;
+			float mipHeightUV = 1f / 2f;
+
+			// blur mip levels
+			for (int i = 1; i < roughnessTexture.mipmapCount; ++i)
+			{
+				Blit(roughnessTexture, compositingTexture, mode:BlitMode.Sampler, srcMipLvl:(i-1), viewport:new Rect(0, 0, mipWidth, mipHeight));// size-down
+				Blit(compositingTexture, roughnessTexture, mode:BlitMode.Blur, dstMipLvl:i, srcRect:new Rect(0, 0, mipWidthUV, mipHeightUV));// blur
+
+				// prep next Mip Lvl
+				mipWidth /= 2;
+				mipHeight /= 2;
+				mipWidthUV *= .5f;
+				mipHeightUV *= .5f;
+			}
+		}
+
     }
 }

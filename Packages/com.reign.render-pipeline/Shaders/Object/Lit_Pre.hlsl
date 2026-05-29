@@ -99,6 +99,7 @@ float _AlphaClip;
 
 #ifdef REIGN_REFRACTIVE_SS
 float _RefractionIndex, _RefractionRoughness;
+float4 _RefractionColor;
 #endif
 #endif
 

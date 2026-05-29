@@ -1,4 +1,4 @@
-﻿Shader "Hidden/Blit"
+﻿Shader "Hidden/ReignRP/Blit"
 {
     Properties
     {
@@ -102,6 +102,65 @@
             {
                 PSOUT o;
                 o.color = SAMPLE_TEXTURE2D_LOD(_BlitTex, sampler_BlitTex, i.uv, srcMipLvl);
+                return o;
+            }
+            ENDHLSL
+        }
+
+        Pass// Blur
+        {
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #include "../_Shared/Common.hlsl"
+
+            struct appdata
+            {
+                float2 uv : TEXCOORD0;
+                float3 positionOS : POSITION;
+            };
+
+            struct v2f
+            {
+                float2 uv : TEXCOORD0;
+                float4 positionCS : SV_POSITION;
+            };
+
+            Texture2D<float4> _BlitTex;
+            float4 _BlitTex_TexelSize;
+
+            float4 srcRect, dstRect;
+            float srcMipLvl;
+
+            v2f vert (appdata v)
+            {
+                v2f o;
+                o.positionCS = float4((v.positionOS.xy * dstRect.zw) + dstRect.xy, .5, 1);
+                o.uv = (v.uv * srcRect.zw) + srcRect.xy;
+                return o;
+            }
+
+            struct PSOUT
+            {
+                float4 color : SV_Target0;
+            };
+
+            PSOUT frag(v2f i)
+            {
+                PSOUT o;
+
+                int3 uv = int3(i.uv * _BlitTex_TexelSize.zw, srcMipLvl);
+                int3 offsetX = int3(2, 0, 0);
+                int3 offsetY = int3(0, 2, 0);
+
+                o.color = _BlitTex.Load(uv);
+                o.color += _BlitTex.Load(uv - offsetX);
+                o.color += _BlitTex.Load(uv + offsetX);
+                o.color += _BlitTex.Load(uv - offsetY);
+                o.color += _BlitTex.Load(uv + offsetY);
+
+                o.color *= 1.0 / 5.0;
                 return o;
             }
             ENDHLSL

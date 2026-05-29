@@ -1,4 +1,4 @@
-﻿Shader "Hidden/ReignRP/PostProcess_Bloom"
+﻿Shader "ReignRP/PostProcess/Bloom"
 {
     Properties
     {
