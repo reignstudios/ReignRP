@@ -505,6 +505,16 @@ namespace Reign.SRP
                     renderPass_Transparent.Dispose();
                 }
             }
+
+            public void SetFakeCompositedTextures(CommandBuffer cmd)
+            {
+                var t = Texture2D.blackTexture;
+
+                cmd.SetGlobalTexture("_CameraColorTexture", t, RenderTextureSubElement.Color);
+                cmd.SetGlobalFloat("mipmaps_CameraColorTexture", 1);
+
+                cmd.SetGlobalTexture("_CameraDepthTexture", t, RenderTextureSubElement.Color);
+            }
             
             public void ResolveCompositedColorTexture(CommandBuffer cmd)
             {

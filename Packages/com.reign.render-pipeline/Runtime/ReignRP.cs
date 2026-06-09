@@ -493,7 +493,12 @@ namespace Reign.SRP
 			bool seperateTransparentPass = cameraResource.enableComposition && (asset.compositionColorClone || asset.compositionDepthClone);
 			StartRenderPass(context, cameraResource.renderPass_Opaque, cameraResource, false);
 			DrawOpaque(camera, ref context, ref cullResults, specialRenderParams);
-			if (!seperateTransparentPass) DrawTransparent(camera, ref context, ref cullResults, specialRenderParams);
+			if (!seperateTransparentPass)
+			{
+				cameraResource.SetFakeCompositedTextures(cmd);// set fake textures for compositing shaders
+				DrawRefractive(camera, ref context, ref cullResults, specialRenderParams);
+				DrawTransparent(camera, ref context, ref cullResults, specialRenderParams);
+			}
 			EndRenderPass(context);
 
 			// enable depth-texture to be sampled
