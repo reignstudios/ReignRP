@@ -30,6 +30,7 @@
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_instancing
+            #pragma multi_compile _ STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ LIGHTMAP_ON
 
             #pragma shader_feature _COLOR_COLOR _COLOR_TEXTURE _COLOR_BOTH

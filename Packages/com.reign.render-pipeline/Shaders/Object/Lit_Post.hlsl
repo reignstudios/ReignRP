@@ -32,7 +32,7 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
     (
         normalize(i.tangent),
         normalize(cross(i.tangent, i.normal)),
-        normalize(i.normal)
+        i.normal
     );
     o.surfaceMatrix = mul(o.surfaceMatrix, unity_WorldToObject);
     #else

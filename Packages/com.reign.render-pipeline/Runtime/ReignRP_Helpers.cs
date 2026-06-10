@@ -262,13 +262,15 @@ namespace Reign.SRP
                 {
                     if (xrRenderPassInfo.isXRActive)
                     {
-                        cameraTargetTextureID = xrRenderPassInfo.pass.renderTarget;
-                        cameraTargetDepthTextureID = xrRenderPassInfo.pass.renderTarget;
-                        cameraTargetFormat = xrRenderPassInfo.pass.renderTargetDesc.colorFormat;
-                        cameraTargetDepth = xrRenderPassInfo.pass.renderTargetDesc.depthBufferBits;
-                        widthTarget = xrRenderPassInfo.pass.renderTargetDesc.width;
-                        heightTarget = xrRenderPassInfo.pass.renderTargetDesc.height;
-                        viewport = xrRenderPassInfo.parameter.viewport;
+                        ref var pass = ref xrRenderPassInfo.pass[xrRenderPassInfo.passIndex];
+                        ref var parameter = ref xrRenderPassInfo.parameter[xrRenderPassInfo.passIndex];
+                        cameraTargetTextureID = pass.renderTarget;
+                        cameraTargetDepthTextureID = pass.renderTarget;
+                        cameraTargetFormat = pass.renderTargetDesc.colorFormat;
+                        cameraTargetDepth = pass.renderTargetDesc.depthBufferBits;
+                        widthTarget = pass.renderTargetDesc.width;
+                        heightTarget = pass.renderTargetDesc.height;
+                        viewport = parameter.viewport;
                     }
                     else
                     {
@@ -290,15 +292,30 @@ namespace Reign.SRP
                     heightTarget = cameraTargetTexture.height;
                     if (xrRenderPassInfo.isXRActive)
                     {
-                        viewport = xrRenderPassInfo.parameter.viewport;
+                        ref var parameter = ref xrRenderPassInfo.parameter[xrRenderPassInfo.passIndex];
+                        viewport = parameter.viewport;
                     }
                 }
 
-                if (xrRenderPassInfo.isXRActive)
+                /*if (xrRenderPassInfo.isXRActive)
                 {
-                    camera.worldToCameraMatrix = xrRenderPassInfo.parameter.view;
-				    camera.projectionMatrix = xrRenderPassInfo.parameter.projection;
-                }
+                    if (xrRenderPassInfo.eyePass >= 0)// multi-pass
+                    {
+                        ref var parameter = ref xrRenderPassInfo.parameter[xrRenderPassInfo.passIndex];
+                        camera.worldToCameraMatrix = parameter.view;
+                        camera.projectionMatrix = parameter.projection;
+                    }
+                    else// single-pass
+                    {
+                        ref var parameterLeft = ref xrRenderPassInfo.parameter[0];
+                        ref var parameterRight = ref xrRenderPassInfo.parameter[1];
+                        camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, parameterLeft.view);
+                        camera.SetStereoViewMatrix(Camera.StereoscopicEye.Right, parameterRight.view);
+
+                        camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Left, parameterLeft.projection);
+                        camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Right, parameterRight.projection);
+                    }
+                }*/
 
                 // compositing
                 if (enableComposition)

@@ -22,12 +22,21 @@ namespace Reign.SRP.Editor
         [InitializeOnLoadMethod]
         private static void ConfigureAndroidOpenXRFoveation()
         {
-            var settings = OpenXRSettings.GetSettingsForBuildTargetGroup(BuildTargetGroup.Android);
+            Configure(BuildTargetGroup.Standalone);
+            Configure(BuildTargetGroup.Android);
+        }
+
+        private static void Configure(BuildTargetGroup target)
+        {
+            var settings = OpenXRSettings.GetSettingsForBuildTargetGroup(target);
             if (settings == null) return;
 
+            // set SPR/ReignRP to handle foveated rendering
+            settings.renderMode = OpenXRSettings.RenderMode.SinglePassInstanced;
             settings.foveatedRenderingApi = OpenXRSettings.BackendFovationApi.SRPFoveation;
             EditorUtility.SetDirty(settings);
 
+            // correct OpenXR Quest Meta settings
             var metaQuestFeature = settings.GetFeature<MetaQuestFeature>();
             if (metaQuestFeature != null)
             {
@@ -37,6 +46,7 @@ namespace Reign.SRP.Editor
                 EditorUtility.SetDirty(metaQuestFeature);
             }
 
+            // enable OpenXR foveated feature
             var foveatedFeature = settings.GetFeature<FoveatedRenderingFeature>();
             if (foveatedFeature != null)
             {

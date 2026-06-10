@@ -10,6 +10,8 @@ using Unity.Collections.LowLevel.Unsafe;
 using System.Threading;
 using Unity.Collections;
 using static UnityEngine.GraphicsBuffer;
+using System.Linq;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -77,9 +79,12 @@ namespace Reign.SRP
 
 		public static bool refreshPostProcessState = true;
 
+		private XRDisplaySubsystem xrSubsystem;
 		private List<XRDisplaySubsystem> xrSubsystemList;
 		private XRRenderPassInfo xrRenderPassInfo = new XRRenderPassInfo();
 		public static bool xrActive => singleton != null ? singleton.xrRenderPassInfo.isXRActive : false;
+		private Matrix4x4[] stereoMatrices = new Matrix4x4[2];
+		private Vector4[] stereoVectors = new Vector4[2];
 
 		public delegate void CustomDraw(Camera camera, CommandBuffer cmd, in ScriptableRenderContext context, in CullingResults cullResults);
 		public static event CustomDraw DrawCustom_PreOpaque, DrawCustom_PostOpaque;
@@ -243,36 +248,121 @@ namespace Reign.SRP
 					}
                     else
                     {
-                        var subsystem = xrSubsystemList[0];
-						subsystem.foveatedRenderingLevel = 1;
-						int renderPassCount = subsystem.GetRenderPassCount();
+                        xrSubsystem = xrSubsystemList[0];
+						xrSubsystem.foveatedRenderingLevel = 1;// TODO: needs to be an option of 0-1
+						int renderPassCount = xrSubsystem.GetRenderPassCount();
                         if (renderPassCount > 0)
                         {
 							xrRenderPassInfo.isXRActive = true;
 							if (renderPassCount == 2)
 							{
+								cmd.Clear();
+								cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
+								cmd.DisableShaderKeyword("STEREO_MULTIVIEW_ON");
+								context.ExecuteCommandBuffer(cmd);
+
 								for (int i = 0; i != renderPassCount; ++i)
 								{
 									xrRenderPassInfo.eyePass = i;
-									subsystem.GetRenderPass(i, out xrRenderPassInfo.pass);
-									xrRenderPassInfo.pass.GetRenderParameter(camera, 0, out xrRenderPassInfo.parameter);
-									RenderPass(ref context, camera);// manually set eye for multi-pass
+									xrRenderPassInfo.passIndex = i;
+
+									// get multi-pass info
+									xrSubsystem.GetRenderPass(i, out xrRenderPassInfo.pass[i]);
+									xrRenderPassInfo.pass[i].GetRenderParameter(camera, 0, out xrRenderPassInfo.parameter[i]);
+
+									// configure camera matrix
+									ref var parameter = ref xrRenderPassInfo.parameter[xrRenderPassInfo.passIndex];
+									camera.worldToCameraMatrix = parameter.view;
+									camera.projectionMatrix = parameter.projection;
+
+									// setup multi-pass camera
+									context.SetupCameraProperties(camera, true, i);
+									context.StartMultiEye(camera, i);
+
+									// render scene
+									RenderPass(ref context, camera);
+
+									// stop multi-pass camera
+									context.StopMultiEye(camera);
+									context.StereoEndRender(camera, i, i == renderPassCount - 1);
 								}
 							}
 							else
 							{
 								xrRenderPassInfo.eyePass = -1;
-								subsystem.GetRenderPass(0, out xrRenderPassInfo.pass);
-								xrRenderPassInfo.pass.GetRenderParameter(camera, 0, out xrRenderPassInfo.parameter);
-								RenderPass(ref context, camera);// let Unity deside what the eye is for single-pass
+								xrRenderPassInfo.passIndex = 0;
+
+								// get single-pass info
+								xrSubsystem.GetRenderPass(0, out xrRenderPassInfo.pass[0]);// force both passes as the same (as there is only 1)
+								xrRenderPassInfo.pass[1] = xrRenderPassInfo.pass[0];
+								for (int i = 0; i != 2; ++i) xrRenderPassInfo.pass[i].GetRenderParameter(camera, i, out xrRenderPassInfo.parameter[i]);// get both eye parameters
+
+								// configure camera matrix
+								ref var parameterLeft = ref xrRenderPassInfo.parameter[0];
+								ref var parameterRight = ref xrRenderPassInfo.parameter[1];
+								var pLeft = GL.GetGPUProjectionMatrix(parameterLeft.projection, false);
+								var pRight = GL.GetGPUProjectionMatrix(parameterRight.projection, false);
+								camera.SetStereoViewMatrix(Camera.StereoscopicEye.Left, parameterLeft.view);
+								camera.SetStereoViewMatrix(Camera.StereoscopicEye.Right, parameterRight.view);
+
+								camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Left, pLeft);
+								camera.SetStereoProjectionMatrix(Camera.StereoscopicEye.Right, pRight);
+
+								cmd.Clear();
+								if (SystemInfo.supportsMultiview)
+								{
+									cmd.EnableShaderKeyword("STEREO_MULTIVIEW_ON");
+									cmd.SetInstanceMultiplier(1);
+								}
+								else
+								{
+									cmd.EnableShaderKeyword("STEREO_INSTANCING_ON");
+									cmd.SetInstanceMultiplier(2);
+								}
+
+								stereoMatrices[0] = parameterLeft.view;
+								stereoMatrices[1] = parameterRight.view;
+								cmd.SetGlobalMatrixArray("unity_StereoMatrixV", stereoMatrices);
+
+								stereoMatrices[0] = pLeft;
+								stereoMatrices[1] = pRight;
+								cmd.SetGlobalMatrixArray("unity_StereoMatrixP", stereoMatrices);
+
+								stereoMatrices[0] = pLeft * parameterLeft.view;
+								stereoMatrices[1] = pRight * parameterRight.view;
+								cmd.SetGlobalMatrixArray("unity_StereoMatrixVP", stereoMatrices);
+
+								stereoVectors[0] = parameterLeft.view.inverse.GetColumn(3);
+								stereoVectors[1] = parameterRight.view.inverse.GetColumn(3);
+								cmd.SetGlobalVectorArray("unity_StereoWorldSpaceCameraPos", stereoVectors);
+								context.ExecuteCommandBuffer(cmd);
+
+								// setup single-pass camera
+								context.SetupCameraProperties(camera, true);
+								context.StartMultiEye(camera);
+
+								// render scene
+								RenderPass(ref context, camera);
+
+								// stop single-pass camera
+								context.StopMultiEye(camera);
+								context.StereoEndRender(camera);
 							}
                         }
                     }
                 }
                 else
                 {
+					cmd.Clear();
+					cmd.DisableShaderKeyword("STEREO_INSTANCING_ON");
+					cmd.DisableShaderKeyword("STEREO_MULTIVIEW_ON");
+					cmd.SetInstanceMultiplier(1);
+					context.ExecuteCommandBuffer(cmd);
+
 					xrRenderPassInfo.isXRActive = false;
 					xrRenderPassInfo.eyePass = -1;
+					xrRenderPassInfo.passIndex = 0;
+					context.SetupCameraProperties(camera, false);
                     RenderPass(ref context, camera);// non-XR single eye pass
                 }
                 EndCameraRendering(context, camera);
@@ -600,9 +690,9 @@ namespace Reign.SRP
 			}
 			
 			// XR
+			#if UNITY_EDITOR || UNITY_STANDALONE
 			if (xrRenderPassInfo.isXRActive && asset.xrPreview)
 			{
-				#if UNITY_EDITOR || UNITY_STANDALONE
 				bool copyPreview = false;
 				var eye = XRSettings.gameViewRenderMode;
 				var viewport = camera.pixelRect;
@@ -647,11 +737,11 @@ namespace Reign.SRP
 				if (copyPreview)
 				{
 					cmd.Clear();
-					Blit(cameraResource.cameraTargetTexture, BuiltinRenderTextureType.None, viewport:viewport, blitMesh:BlitMesh.meshFlipped);
+					Blit(cameraResource.cameraTargetTextureID, BuiltinRenderTextureType.None, viewport:viewport, blitMesh:BlitMesh.meshFlipped);
 					context.ExecuteCommandBuffer(cmd);
 				}
-				#endif
 			}
+			#endif
 
 			// standard camera finish
 			CameraFinish(ref context, camera, ref cullResults);
@@ -716,7 +806,7 @@ namespace Reign.SRP
 			if (xrRenderPassInfo.isXRActive)
 			{
 				if (xrRenderPassInfo.eyePass < 0) slice = RenderTargetIdentifier.AllDepthSlices;
-				else slice = xrRenderPassInfo.parameter.textureArraySlice;
+				else slice = xrRenderPassInfo.parameter[xrRenderPassInfo.passIndex].textureArraySlice;
 			}
 
 			// configure
@@ -759,9 +849,9 @@ namespace Reign.SRP
 				// foveated rendering
 				if (!transparentPass)
 				{
-					if (xrRenderPassInfo.pass.foveatedRenderingInfo != IntPtr.Zero)
+					if (xrRenderPassInfo.pass[xrRenderPassInfo.passIndex].foveatedRenderingInfo != IntPtr.Zero)
 					{
-						cmd.ConfigureFoveatedRendering(xrRenderPassInfo.pass.foveatedRenderingInfo);
+						cmd.ConfigureFoveatedRendering(xrRenderPassInfo.pass[xrRenderPassInfo.passIndex].foveatedRenderingInfo);
 						cmd.SetFoveatedRenderingMode(FoveatedRenderingMode.Enabled);
 					}
 					else
@@ -833,32 +923,14 @@ namespace Reign.SRP
 
 		private void CameraPrep(ref ScriptableRenderContext context, Camera camera, out CullingResults cullResults, out ScriptableCullingParameters cullingParameters, float shadowDistance)
 		{
-			// setup camera
-			if (xrRenderPassInfo.isXRActive)
-			{
-				if (xrRenderPassInfo.eyePass >= 0)
-				{
-					context.SetupCameraProperties(camera, true, xrRenderPassInfo.eyePass);
-					context.StartMultiEye(camera, xrRenderPassInfo.eyePass);
-				}
-				else
-				{
-					context.SetupCameraProperties(camera, true);
-					context.StartMultiEye(camera);
-				}
-			}
-			else
-			{
-				context.SetupCameraProperties(camera);
-			}
-
 			// allow UI scene objects to be culled
 			#if UNITY_EDITOR
 			if (camera.cameraType == CameraType.SceneView) ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 			#endif
 			
 			// get camera culled objects
-			if (!camera.TryGetCullingParameters(xrRenderPassInfo.isXRActive, out cullingParameters)) Debug.LogError("Failed: TryGetCullingParameters");
+			if (xrRenderPassInfo.isXRActive) xrSubsystem.GetCullingParameters(camera, xrRenderPassInfo.pass[0].cullingPassIndex, out cullingParameters);
+			else if (!camera.TryGetCullingParameters(false, out cullingParameters)) Debug.LogError("Failed: TryGetCullingParameters");
 			cullingParameters.shadowDistance = shadowDistance;
 			cullingParameters.maximumVisibleLights = 1 + pointLight_Max;// directional + point
 			cullResults = context.Cull(ref cullingParameters);
@@ -879,14 +951,6 @@ namespace Reign.SRP
 				context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
 			}
 			#endif
-
-			// finish XR eye rendering
-			if (xrRenderPassInfo.isXRActive)
-			{
-				context.StopMultiEye(camera);
-				if (xrRenderPassInfo.eyePass >= 0) context.StereoEndRender(camera, xrRenderPassInfo.eyePass, xrRenderPassInfo.eyePass != 0);
-				else context.StereoEndRender(camera);
-			}
 		}
 
 		private void DrawOcclusionMesh(CameraResource cameraResource)

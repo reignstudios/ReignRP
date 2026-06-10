@@ -46,6 +46,7 @@
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_instancing
+            #pragma multi_compile _ STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile _ REIGN_DIRECTIONAL_LIGHTS_DISABLE
             #pragma multi_compile _ REIGN_POINT_LIGHTS_DISABLE
