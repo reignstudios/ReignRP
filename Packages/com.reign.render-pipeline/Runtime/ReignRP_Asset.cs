@@ -105,13 +105,13 @@ namespace Reign.SRP
 
 	public enum ShadowRez
 	{
-		Rez_256,
-		Rez_512,
-		Rez_1024,
-		Rez_2048,
-		Rez_4096,
-		Rez_8192,
-		Rez_16384
+		Rez_256 = 256,
+		Rez_512 = 512,
+		Rez_1024 = 1024,
+		Rez_2048 = 2048,
+		Rez_4096 = 4096,
+		Rez_8192 = 8192,
+		Rez_16384 = 16384
 	}
 
 	public enum ShadowCascades

@@ -54,6 +54,8 @@ namespace Reign.SRP
         private CameraDataComparer cameraDataComparer = new CameraDataComparer();
         private List<CameraResource> cameraResources = new List<CameraResource>();
 
+		private Vector3 directionalLight_Position;
+		private Quaternion directionalLight_Rotation;
 		private Vector4 directionalLight_Direction, directionalLight_Color;
 
 		private const int pointLight_MaxConst = 4;
@@ -238,11 +240,6 @@ namespace Reign.SRP
             {
 				motionBlurEnabled = MotionBlurEnabled(camera);
                 BeginCameraRendering(context, camera);
-
-				// render shadow pass
-				RenderShadowPass(ref context, camera);
-
-				// render scene passes
                 if (IsXREnabled(camera))
                 {
                     // validate XR single-pass support
@@ -285,7 +282,7 @@ namespace Reign.SRP
 									context.StartMultiEye(camera, i);
 
 									// render scene
-									RenderPass(ref context, camera);
+									RenderPass(ref context, camera, i == 0);
 
 									// stop multi-pass camera
 									context.StopMultiEye(camera);
@@ -347,7 +344,7 @@ namespace Reign.SRP
 								context.StartMultiEye(camera);
 
 								// render scene
-								RenderPass(ref context, camera);
+								RenderPass(ref context, camera, true);
 
 								// stop single-pass camera
 								context.StopMultiEye(camera);
@@ -368,7 +365,7 @@ namespace Reign.SRP
 					xrRenderPassInfo.eyePass = -1;
 					xrRenderPassInfo.passIndex = 0;
 					context.SetupCameraProperties(camera, false);
-                    RenderPass(ref context, camera);// non-XR single eye pass
+                    RenderPass(ref context, camera, true);// non-XR single eye pass
                 }
                 EndCameraRendering(context, camera);
             }
@@ -466,12 +463,7 @@ namespace Reign.SRP
             }
 		}
 
-		private void RenderShadowPass(ref ScriptableRenderContext context, Camera camera)
-		{
-
-		}
-
-		private void RenderPass(ref ScriptableRenderContext context, Camera camera)
+		private void RenderPass(ref ScriptableRenderContext context, Camera camera, bool renderShadows)
 		{
 			if (asset.compositionDivision < 1) asset.compositionDivision = 1;
 
@@ -512,13 +504,14 @@ namespace Reign.SRP
             }
             if ((camera.depthTextureMode & depthTextureMode) == 0) camera.depthTextureMode = depthTextureMode;
 
-			// setup lighting
+			// process culled lights
 			var lights = cullResults.visibleLights;
 			int directionalLight_Count = 0;
 			int pointLight_Count = 0;
 			foreach (var light in lights)
 			{
-				var bakeType = light.light.bakingOutput.lightmapBakeType;
+				var l = light.light;
+				var bakeType = l.bakingOutput.lightmapBakeType;
 				if (bakeType == LightmapBakeType.Baked) continue;// skip non-realtime
 
 				float bakeFlag = bakeType == LightmapBakeType.Mixed ? 1 : 0;
@@ -527,10 +520,15 @@ namespace Reign.SRP
 					case LightType.Directional:
 						if (directionalLight_Count < 1)
 						{
-							directionalLight_Direction = light.light.transform.forward;
+							var t = l.transform;
+
+							directionalLight_Position = t.position;
+							directionalLight_Rotation = t.rotation;
+
+							directionalLight_Direction = t.forward;
 							directionalLight_Direction.w = bakeFlag;// lightmap diffuse mode
 							directionalLight_Color = light.finalColor;
-							directionalLight_Color.w = light.light.intensity;
+							directionalLight_Color.w = l.intensity;
 							directionalLight_Count++;
 						}
 						break;
@@ -538,10 +536,12 @@ namespace Reign.SRP
 					case LightType.Point:
 						if (pointLight_Count < pointLight_Max)
 						{
-							pointLight_Positions[pointLight_Count] = light.light.transform.position;
+							var t = l.transform;
+
+							pointLight_Positions[pointLight_Count] = t.position;
 							pointLight_Positions[pointLight_Count].w = light.range;
 							pointLight_Colors[pointLight_Count] = light.finalColor;
-							pointLight_Colors[pointLight_Count].w = light.light.intensity;
+							pointLight_Colors[pointLight_Count].w = l.intensity;
 							pointLight_Flags[pointLight_Count].w = bakeFlag;// lightmap diffuse mode
 							pointLight_Count++;
 						}
@@ -549,6 +549,10 @@ namespace Reign.SRP
 				}
 			}
 			
+			// render shadows
+			if (renderShadows) RenderShadowPass_Directional(ref context, camera);
+
+			// apply lighting settings
 			cmd.Clear();
 
 			if (directionalLight_Count > 0)
@@ -769,7 +773,7 @@ namespace Reign.SRP
 			DrawCustomUnlitObjects(ref context, ref cullResults, QueueRange.Opaque, camera);
 
 			// draw opaque objects
-			DrawObjects(ref context, ref cullResults, lightModeID_Opaque, QueueRange.Opaque, camera, null, specialRenderParams);
+			DrawObjects(ref context, ref cullResults, lightModeID_Opaque, QueueRange.Opaque, camera, null, objectData:specialRenderParams);
 
 			// draw custom post-opaque objects
 			DrawCustom_PostOpaque?.Invoke(camera, cmd, context, cullResults);
@@ -784,7 +788,7 @@ namespace Reign.SRP
 			DrawCustom_PreRefractive?.Invoke(camera, cmd, context, cullResults);
 
 			// draw refractive objects
-			DrawObjects(ref context, ref cullResults, lightModeID_Refractive, QueueRange.Opaque, camera, null, specialRenderParams);
+			DrawObjects(ref context, ref cullResults, lightModeID_Refractive, QueueRange.Opaque, camera, null, objectData:specialRenderParams);
 
 			// draw custom post-refractive objects
 			DrawCustom_PostRefractive?.Invoke(camera, cmd, context, cullResults);
@@ -799,7 +803,7 @@ namespace Reign.SRP
 			DrawCustomUnlitObjects(ref context, ref cullResults, QueueRange.Transparent, camera);
 
 			// draw transparent objects
-			DrawObjects(ref context, ref cullResults, lightModeID_Transparent, QueueRange.Transparent, camera, null, specialRenderParams);
+			DrawObjects(ref context, ref cullResults, lightModeID_Transparent, QueueRange.Transparent, camera, null, objectData:specialRenderParams);
 
 			// draw custom post-transparent objects
 			DrawCustom_PostTransparent?.Invoke(camera, cmd, context, cullResults);
@@ -1042,7 +1046,7 @@ namespace Reign.SRP
 			// draw editor objects
 			#if UNITY_EDITOR
 			// draw material error objects
-			foreach (string errorID in errorIDs) DrawObjects(ref context, ref cullResults, errorID, QueueRange.Any, camera, errorMaterial, PerObjectData.None);
+			foreach (string errorID in errorIDs) DrawObjects(ref context, ref cullResults, errorID, QueueRange.Any, camera, overrideMaterial:errorMaterial);
 
 			// draw pre gizmos
 			if (camera.cameraType == CameraType.SceneView && Handles.ShouldRenderGizmos())
@@ -1054,26 +1058,26 @@ namespace Reign.SRP
 
 		private void DrawCustomUnlitObjects(ref ScriptableRenderContext context, ref CullingResults cullResults, QueueRange range, Camera camera)
 		{
-			DrawObjects(ref context, ref cullResults, "SRPDefaultUnlit", range, camera, null, PerObjectData.None);
+			DrawObjects(ref context, ref cullResults, "SRPDefaultUnlit", range, camera);
 		}
 
 		private void DrawCustomUnlitObjects(ref ScriptableRenderContext context, ref CullingResults cullResults, Camera camera)
 		{
-			DrawObjects(ref context, ref cullResults, "SRPDefaultUnlit", QueueRange.Opaque, camera, null, PerObjectData.None);
-			DrawObjects(ref context, ref cullResults, "SRPDefaultUnlit", QueueRange.Transparent, camera, null, PerObjectData.None);
+			DrawObjects(ref context, ref cullResults, "SRPDefaultUnlit", QueueRange.Opaque, camera);
+			DrawObjects(ref context, ref cullResults, "SRPDefaultUnlit", QueueRange.Transparent, camera);
 		}
 
 		public static void DrawObjectsCustom(ScriptableRenderContext context, CullingResults cullResults, string lightModeID, QueueRange range, Camera camera)
 		{
-			singleton.DrawObjects(ref context, ref cullResults, lightModeID, range, camera, null, PerObjectData.None);
+			singleton.DrawObjects(ref context, ref cullResults, lightModeID, range, camera);
 		}
 
-		public static void DrawObjectsCustom(ScriptableRenderContext context, CullingResults cullResults, string lightModeID, QueueRange range, Camera camera, Material overrideMaterial, PerObjectData objectData)
+		public static void DrawObjectsCustom(ScriptableRenderContext context, CullingResults cullResults, string lightModeID, QueueRange range, Camera camera, Shader overrideShader = null, int overrideMaterialPassIndex = 0, Material overrideMaterial = null, PerObjectData objectData = PerObjectData.None)
 		{
-			singleton.DrawObjects(ref context, ref cullResults, lightModeID, range, camera, overrideMaterial, objectData);
+			singleton.DrawObjects(ref context, ref cullResults, lightModeID, range, camera, overrideShader, overrideMaterialPassIndex, overrideMaterial, objectData);
 		}
 
-		private void DrawObjects(ref ScriptableRenderContext context, ref CullingResults cullResults, string lightModeID, QueueRange range, Camera camera, Material overrideMaterial, PerObjectData objectData)
+		private void DrawObjects(ref ScriptableRenderContext context, ref CullingResults cullResults, string lightModeID, QueueRange range, Camera camera, Shader overrideShader = null, int overrideMaterialPassIndex = 0, Material overrideMaterial = null, PerObjectData objectData = PerObjectData.None)
 		{
 			// filter settings
 			var filterSettings = FilteringSettings.defaultValue;
@@ -1084,6 +1088,8 @@ namespace Reign.SRP
 			sortSettings.criteria = sortingCriteria;
 			var drawSettings = new DrawingSettings(new ShaderTagId(lightModeID), sortSettings);
 			drawSettings.overrideMaterial = overrideMaterial;
+			drawSettings.overrideShader = overrideShader;
+			drawSettings.overrideMaterialPassIndex = overrideMaterialPassIndex;
 			drawSettings.perObjectData = objectData;
 			drawSettings.enableDynamicBatching = true;
 			drawSettings.enableInstancing = true;

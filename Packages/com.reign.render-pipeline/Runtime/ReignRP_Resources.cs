@@ -12,7 +12,7 @@ namespace Reign.SRP
 		[Serializable]
 		public sealed class ShaderResources
 		{
-			public Shader litShader;
+			public Shader litShader, shadowShader;
 			public Shader terrainGrassShader;// TerrainGrass shader
 			public Shader terrainGrassBillboardShader;// TerrainGrass shader
 			public Shader blitShader;
