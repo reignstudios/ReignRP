@@ -31,8 +31,8 @@ namespace Reign.SRP
 
 		public ShadowType shadowType = ShadowType.Hard;
 		public ShadowRez shadowResolution = ShadowRez.Rez_1024;
-		public ShadowCascades shadowCascades = ShadowCascades.x1;
-		public Vector4 shadowCascadePlanes = new Vector4(5, 10, 20, 40);
+		//public ShadowCascades shadowCascades = ShadowCascades.x1;
+		//public Vector4 shadowCascadePlanes = new Vector4(5, 10, 20, 40);
 
 		public GlobalAmbientMode ambientMode = GlobalAmbientMode.Unity_SceneSettings;
 

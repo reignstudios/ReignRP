@@ -238,6 +238,11 @@ namespace Reign.SRP
             {
 				motionBlurEnabled = MotionBlurEnabled(camera);
                 BeginCameraRendering(context, camera);
+
+				// render shadow pass
+				RenderShadowPass(ref context, camera);
+
+				// render scene passes
                 if (IsXREnabled(camera))
                 {
                     // validate XR single-pass support
@@ -461,6 +466,10 @@ namespace Reign.SRP
             }
 		}
 
+		private void RenderShadowPass(ref ScriptableRenderContext context, Camera camera)
+		{
+
+		}
 
 		private void RenderPass(ref ScriptableRenderContext context, Camera camera)
 		{
@@ -476,7 +485,7 @@ namespace Reign.SRP
 			cameraResource.UpdateStart();
 
 			// get max shadow plane
-			float maxShadowPlane = 0;
+			/*float maxShadowPlane = 0;
 			if (asset.shadowType != ShadowType.Off)
 			{
 				switch (asset.shadowCascades)
@@ -486,10 +495,10 @@ namespace Reign.SRP
 					case ShadowCascades.x3: maxShadowPlane = asset.shadowCascadePlanes.z; break;
 					case ShadowCascades.x4: maxShadowPlane = asset.shadowCascadePlanes.w; break;
 				}
-			}
+			}*/
 
 			// standard camera prep
-			CameraPrep(ref context, camera, out var cullResults, out var cullingParameters, maxShadowPlane);
+			CameraPrep(ref context, camera, out var cullResults, out var cullingParameters);//, maxShadowPlane);
 
 			// setup camera special data mode
             var depthTextureMode = DepthTextureMode.None;
@@ -921,7 +930,7 @@ namespace Reign.SRP
             }
         }
 
-		private void CameraPrep(ref ScriptableRenderContext context, Camera camera, out CullingResults cullResults, out ScriptableCullingParameters cullingParameters, float shadowDistance)
+		private void CameraPrep(ref ScriptableRenderContext context, Camera camera, out CullingResults cullResults, out ScriptableCullingParameters cullingParameters)//, float shadowDistance)
 		{
 			// allow UI scene objects to be culled
 			#if UNITY_EDITOR
@@ -931,8 +940,9 @@ namespace Reign.SRP
 			// get camera culled objects
 			if (xrRenderPassInfo.isXRActive) xrSubsystem.GetCullingParameters(camera, xrRenderPassInfo.pass[0].cullingPassIndex, out cullingParameters);
 			else if (!camera.TryGetCullingParameters(false, out cullingParameters)) Debug.LogError("Failed: TryGetCullingParameters");
-			cullingParameters.shadowDistance = shadowDistance;
 			cullingParameters.maximumVisibleLights = 1 + pointLight_Max;// directional + point
+			cullingParameters.cullingOptions &= ~CullingOptions.ShadowCasters;// disable shadow culling
+			cullingParameters.shadowDistance = 0;//shadowDistance;
 			cullResults = context.Cull(ref cullingParameters);
 		}
 
