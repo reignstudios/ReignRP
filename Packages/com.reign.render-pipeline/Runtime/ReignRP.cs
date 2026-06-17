@@ -263,6 +263,7 @@ namespace Reign.SRP
 								cmd.DisableShaderKeyword("STEREO_MULTIVIEW_ON");
 								context.ExecuteCommandBuffer(cmd);
 
+								xrRenderPassInfo.renderPassCount = renderPassCount;
 								for (int i = 0; i != renderPassCount; ++i)
 								{
 									xrRenderPassInfo.eyePass = i;
@@ -278,7 +279,7 @@ namespace Reign.SRP
 									camera.projectionMatrix = parameter.projection;
 
 									// setup multi-pass camera
-									context.SetupCameraProperties(camera, true, i);
+									//context.SetupCameraProperties(camera, true, i);
 									context.StartMultiEye(camera, i);
 
 									// render scene
@@ -291,6 +292,7 @@ namespace Reign.SRP
 							}
 							else
 							{
+								xrRenderPassInfo.renderPassCount = 1;
 								xrRenderPassInfo.eyePass = -1;
 								xrRenderPassInfo.passIndex = 0;
 
@@ -340,7 +342,7 @@ namespace Reign.SRP
 								context.ExecuteCommandBuffer(cmd);
 
 								// setup single-pass camera
-								context.SetupCameraProperties(camera, true);
+								//context.SetupCameraProperties(camera, true);
 								context.StartMultiEye(camera);
 
 								// render scene
@@ -362,9 +364,10 @@ namespace Reign.SRP
 					context.ExecuteCommandBuffer(cmd);
 
 					xrRenderPassInfo.isXRActive = false;
+					xrRenderPassInfo.renderPassCount = 0;
 					xrRenderPassInfo.eyePass = -1;
 					xrRenderPassInfo.passIndex = 0;
-					context.SetupCameraProperties(camera, false);
+					//context.SetupCameraProperties(camera, false);
                     RenderPass(ref context, camera, true);// non-XR single eye pass
                 }
                 EndCameraRendering(context, camera);
@@ -551,6 +554,9 @@ namespace Reign.SRP
 			
 			// render shadows
 			if (renderShadows) RenderShadowPass_Directional(ref context, camera);
+			
+			// configure camera after shadows
+			SetCameraShaderProperties(ref context, camera);
 
 			// apply lighting settings
 			cmd.Clear();
@@ -965,6 +971,26 @@ namespace Reign.SRP
 				context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
 			}
 			#endif
+		}
+
+		private void SetCameraShaderProperties(ref ScriptableRenderContext context, Camera camera)
+		{
+			// configure XR or normal pass
+			if (xrRenderPassInfo.isXRActive)
+			{
+				if (xrRenderPassInfo.eyePass >= 0)
+				{
+					context.SetupCameraProperties(camera, true, xrRenderPassInfo.passIndex);
+				}
+				else
+				{
+					context.SetupCameraProperties(camera, true);
+				}
+			}
+			else
+			{
+				context.SetupCameraProperties(camera, false);
+			}
 		}
 
 		private void DrawOcclusionMesh(CameraResource cameraResource)

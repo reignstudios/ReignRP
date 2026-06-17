@@ -33,7 +33,7 @@ namespace Reign.SRP
 	class XRRenderPassInfo
 	{
 		public bool isXRActive;
-		public int eyePass, passIndex;
+		public int eyePass, passIndex, renderPassCount;
 		public XRDisplaySubsystem.XRRenderPass[] pass = new XRDisplaySubsystem.XRRenderPass[2];
 		public XRDisplaySubsystem.XRRenderParameter[] parameter = new XRDisplaySubsystem.XRRenderParameter[2];
 	}

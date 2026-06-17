@@ -44,30 +44,34 @@ namespace Reign.SRP
 				if (!shadowCamera) shadowCamera = shadowGameObject.AddComponent<Camera>();
 				shadowCamera.enabled = false;
 				shadowCamera.targetTexture = shadowTexture;
+				shadowCamera.orthographic = true;
+				shadowCamera.orthographicSize = 10;
 
 				shadowTransform = shadowGameObject.transform;
 			}
 
 			// configure shadow camera
-			shadowCamera.orthographic = true;
-			shadowCamera.orthographicSize = 10;
 			shadowTransform.SetPositionAndRotation(directionalLight_Position, directionalLight_Rotation);
 
 			// draw shadows
 			var shadowShader = asset.resources.shaders.shadowShader;
 			if (shadowShader)
 			{
-				if (!camera.TryGetCullingParameters(false, out var cullingParameters)) Debug.LogError("Failed: TryGetCullingParameters for directional shadow");
+				// cull objects
+				if (!shadowCamera.TryGetCullingParameters(false, out var cullingParameters)) Debug.LogError("Failed: TryGetCullingParameters for directional shadow");
 				cullingParameters.maximumVisibleLights = 0;
 				cullingParameters.cullingOptions = CullingOptions.None;// don't cull anything special
 				cullingParameters.shadowDistance = 0;
 				var cullResults = context.Cull(ref cullingParameters);
+				
+				// configure camera shader properties
+				context.SetupCameraProperties(shadowCamera, false);
 
 				cmd.Clear();
 				cmd.SetRenderTarget(shadowTextureID);
 				cmd.ClearRenderTarget(true, true, Color.white);
 				context.ExecuteCommandBuffer(cmd);
-				DrawObjects(ref context, ref cullResults, lightModeID_Opaque, QueueRange.Any, camera, overrideShader:shadowShader, overrideMaterialPassIndex:0);
+				DrawObjects(ref context, ref cullResults, lightModeID_Opaque, QueueRange.Any, shadowCamera, overrideShader:shadowShader, overrideMaterialPassIndex:0);
 			}
 		}
     }
