@@ -1,6 +1,8 @@
 #ifndef REIGN_LIGHTS
 #define REIGN_LIGHTS
 
+#include "../_Shared/Reign_LightingUtils.hlsl"
+
 // =====================================
 // Materials
 // =====================================

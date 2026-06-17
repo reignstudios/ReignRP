@@ -142,10 +142,6 @@ float4 targetSize;
 // lightmapping
 // ======================================
 #ifdef LIGHTMAP_ON
-/*#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl"
-TEXTURE2D(unity_Lightmap);
-SAMPLER(samplerunity_Lightmap);*/
-
 inline real4 SampleLightmap(float2 uv)
 {
 	real3 result = SampleSingleLightmap

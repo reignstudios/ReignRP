@@ -279,7 +279,6 @@ namespace Reign.SRP
 									camera.projectionMatrix = parameter.projection;
 
 									// setup multi-pass camera
-									//context.SetupCameraProperties(camera, true, i);
 									context.StartMultiEye(camera, i);
 
 									// render scene
@@ -342,7 +341,6 @@ namespace Reign.SRP
 								context.ExecuteCommandBuffer(cmd);
 
 								// setup single-pass camera
-								//context.SetupCameraProperties(camera, true);
 								context.StartMultiEye(camera);
 
 								// render scene
@@ -367,7 +365,6 @@ namespace Reign.SRP
 					xrRenderPassInfo.renderPassCount = 0;
 					xrRenderPassInfo.eyePass = -1;
 					xrRenderPassInfo.passIndex = 0;
-					//context.SetupCameraProperties(camera, false);
                     RenderPass(ref context, camera, true);// non-XR single eye pass
                 }
                 EndCameraRendering(context, camera);

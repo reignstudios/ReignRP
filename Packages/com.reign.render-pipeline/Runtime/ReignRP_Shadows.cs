@@ -67,11 +67,18 @@ namespace Reign.SRP
 				// configure camera shader properties
 				context.SetupCameraProperties(shadowCamera, false);
 
+				// draw shadow objects
 				cmd.Clear();
 				cmd.SetRenderTarget(shadowTextureID);
 				cmd.ClearRenderTarget(true, true, Color.white);
 				context.ExecuteCommandBuffer(cmd);
-				DrawObjects(ref context, ref cullResults, lightModeID_Opaque, QueueRange.Any, shadowCamera, overrideShader:shadowShader, overrideMaterialPassIndex:0);
+				DrawObjects(ref context, ref cullResults, lightModeID_Opaque, QueueRange.Opaque, shadowCamera, overrideShader:shadowShader, overrideMaterialPassIndex:0);
+				
+				// apply shadow properties
+				cmd.Clear();
+				cmd.SetGlobalTexture("_ShadowTex", shadowTextureID);
+				cmd.SetGlobalMatrix("shadowMatrix", GL.GetGPUProjectionMatrix(shadowCamera.projectionMatrix, true) * shadowCamera.cameraToWorldMatrix);
+				context.ExecuteCommandBuffer(cmd);
 			}
 		}
     }

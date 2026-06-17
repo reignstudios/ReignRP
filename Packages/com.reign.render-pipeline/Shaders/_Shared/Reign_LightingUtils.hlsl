@@ -2,11 +2,15 @@
 #define REIGN_LIGHTINGUTILS
 
 // shadow resources
-sampler2D _ShadowTex1, _ShadowTex2, _ShadowTex3, _ShadowTex4;
+/*sampler2D _ShadowTex1, _ShadowTex2, _ShadowTex3, _ShadowTex4;
 float4 _ShadowTex1_TexelSize;
 float4x4 shadowMatrix1, shadowMatrix2, shadowMatrix3, shadowMatrix4;
 float4 shadowCascades;
-float shadowBias;
+float shadowBias;*/
+TEXTURE2D(_ShadowTex);
+SAMPLER(sampler_ShadowTex);
+float4 _ShadowTex1_TexelSize;
+float4x4 shadowMatrix;
 
 // fog resources
 float4 fogColor;
