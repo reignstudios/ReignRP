@@ -240,7 +240,7 @@ inline float SampleShadow(MaterialParams materialParams)
 {
     #ifdef ENABLE_SHADOWS
     float d = SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, materialParams.shadowUV).x;
-    return d;//LinearEyeDepth(d, _ZBufferParams);
+    return d;//Linear01Depth(d, _ZBufferParams) * .1;
     #else
     return 1.0;
     #endif

@@ -88,7 +88,10 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
     
     // shadow UV
     #ifdef ENABLE_SHADOWS
-    materialParams.shadowUV = i.shadowCS.xy;
+    materialParams.shadowUV = (i.shadowCS.xy + 1.0) * .5;
+    #ifdef UNITY_UV_STARTS_AT_TOP
+    materialParams.shadowUV.y = 1.0 - materialParams.shadowUV.y;
+    #endif
     #endif
 
     // color
@@ -255,8 +258,7 @@ PS_OUT frag(VS_OUT i)
     o.color.a = materialParams.color.a;
     
     #ifdef ENABLE_SHADOWS
-    o.color = SampleShadow(materialParams);// * .0001;
-    //o.color = float4(materialParams.shadowUV, 0, 1);
+    o.color = SampleShadow(materialParams);
     #endif
 
     // custom outs

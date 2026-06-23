@@ -815,7 +815,7 @@ namespace Reign.SRP
 			DrawErrorObjectsAndPreGizmos(ref context, ref cullResults, camera);
 		}
 
-		private void StartRenderPass(in ScriptableRenderContext context, in RenderPassDesc renderPassDesc, CameraResource cameraResource, bool transparentPass, bool renderShadow)
+		private void StartRenderPass(in ScriptableRenderContext context, in RenderPassDesc renderPassDesc, CameraResource cameraResource, bool transparentPass, bool renderShadows)
 		{
 			// get binding slice
 			int slice = 0;
@@ -854,7 +854,7 @@ namespace Reign.SRP
 
 				// prep
 				cmd.Clear();
-				if (renderShadow) cmd.SetGlobalTexture("_ShadowTex", shadowTextureID, RenderTextureSubElement.Color);// enable shadow texture
+				if (renderShadows) cmd.SetGlobalTexture("_ShadowTex", shadowTextureID, RenderTextureSubElement.Depth);// enable shadow texture
 				cmd.SetViewport(cameraResource.viewport);// set viewport
 				if (!transparentPass && xrRenderPassInfo.isXRActive) DrawOcclusionMesh(cameraResource);// draw occlusion mesh
 				context.ExecuteCommandBuffer(cmd);
@@ -882,7 +882,7 @@ namespace Reign.SRP
 				else cmd.SetRenderTarget(renderPassDesc.renderTarget_First, renderPassDesc.renderTarget_Depth, 0, CubemapFace.Unknown, slice);
 				
 				// enable shadow texture
-				if (renderShadow) cmd.SetGlobalTexture("_ShadowTex", shadowTextureID, RenderTextureSubElement.Color);
+				if (renderShadows) cmd.SetGlobalTexture("_ShadowTex", shadowTextureID, RenderTextureSubElement.Depth);
 
 				// set viewport
                 cmd.SetViewport(cameraResource.viewport);

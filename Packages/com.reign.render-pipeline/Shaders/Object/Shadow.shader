@@ -10,9 +10,8 @@
     SubShader
     {
         Tags { "LightMode" = "Reign_Shadow" "Queue" = "Geometry" "RenderType"="Opaque" }
-        ZTest Always
-        ZWrite Off
-        Cull Off
+        ZTest LEqual
+        ZWrite On
 
         Pass// Opaque
         {
