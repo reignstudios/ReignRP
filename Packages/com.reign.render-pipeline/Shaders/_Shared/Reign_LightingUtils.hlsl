@@ -7,10 +7,15 @@ float4 _ShadowTex1_TexelSize;
 float4x4 shadowMatrix1, shadowMatrix2, shadowMatrix3, shadowMatrix4;
 float4 shadowCascades;
 float shadowBias;*/
-TEXTURE2D(_ShadowTex);
+TEXTURE2D_FLOAT(_ShadowTex);
 SAMPLER(sampler_ShadowTex);
-float4 _ShadowTex1_TexelSize;
+float4 _ShadowTex_TexelSize;
 float4x4 shadowMatrix;
+
+float4 TransformWorldToHClipShadow(float3 positionWS)
+{
+	return mul(shadowMatrix, float4(positionWS, 1.0));
+}
 
 // fog resources
 float4 fogColor;

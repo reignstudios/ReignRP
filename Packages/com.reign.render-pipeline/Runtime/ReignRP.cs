@@ -589,15 +589,15 @@ namespace Reign.SRP
 
 			// set special data
 			cmd.Clear();
-            if (cameraResource.enableComposition) cmd.SetGlobalVector("targetSize", new Vector4(cameraResource.widthComposited, cameraResource.heightComposited, 1.0f / cameraResource.widthComposited, 1.0f / cameraResource.heightComposited));
-            else cmd.SetGlobalVector("targetSize", new Vector4(cameraResource.widthTarget, cameraResource.heightTarget, 1.0f / cameraResource.widthTarget, 1.0f / cameraResource.heightTarget));
+            if (cameraResource.enableComposition) cmd.SetGlobalVector("targetSize", new Vector4(1.0f / cameraResource.widthComposited, 1.0f / cameraResource.heightComposited, cameraResource.widthComposited, cameraResource.heightComposited));
+            else cmd.SetGlobalVector("targetSize", new Vector4(1.0f / cameraResource.widthTarget, 1.0f / cameraResource.heightTarget, cameraResource.widthTarget, cameraResource.heightTarget));
             cmd.SetGlobalMatrix("clipToWorld", cameraResource.clipToWorld);
 			context.ExecuteCommandBuffer(cmd);
 			context.Submit();
 
 			// start opaque render pass
 			bool seperateTransparentPass = cameraResource.enableComposition && (asset.compositionColorClone || asset.compositionDepthClone);
-			StartRenderPass(context, cameraResource.renderPass_Opaque, cameraResource, false);
+			StartRenderPass(context, cameraResource.renderPass_Opaque, cameraResource, false, renderShadows);
 			DrawOpaque(camera, ref context, ref cullResults, specialRenderParams);
 			if (!seperateTransparentPass)
 			{
@@ -617,7 +617,7 @@ namespace Reign.SRP
 				context.Submit();
 
 				// start transparent render pass
-				StartRenderPass(context, cameraResource.renderPass_Transparent, cameraResource, true);
+				StartRenderPass(context, cameraResource.renderPass_Transparent, cameraResource, true, renderShadows);
 				DrawRefractive(camera, ref context, ref cullResults, specialRenderParams);
 				DrawTransparent(camera, ref context, ref cullResults, specialRenderParams);
 				EndRenderPass(context);
@@ -815,7 +815,7 @@ namespace Reign.SRP
 			DrawErrorObjectsAndPreGizmos(ref context, ref cullResults, camera);
 		}
 
-		private void StartRenderPass(in ScriptableRenderContext context, in RenderPassDesc renderPassDesc, CameraResource cameraResource, bool transparentPass)
+		private void StartRenderPass(in ScriptableRenderContext context, in RenderPassDesc renderPassDesc, CameraResource cameraResource, bool transparentPass, bool renderShadow)
 		{
 			// get binding slice
 			int slice = 0;
@@ -854,6 +854,7 @@ namespace Reign.SRP
 
 				// prep
 				cmd.Clear();
+				if (renderShadow) cmd.SetGlobalTexture("_ShadowTex", shadowTextureID, RenderTextureSubElement.Color);// enable shadow texture
 				cmd.SetViewport(cameraResource.viewport);// set viewport
 				if (!transparentPass && xrRenderPassInfo.isXRActive) DrawOcclusionMesh(cameraResource);// draw occlusion mesh
 				context.ExecuteCommandBuffer(cmd);
@@ -879,6 +880,9 @@ namespace Reign.SRP
 				// enable targets
 				if (renderPassDesc.renderTargets.Length >= 2) cmd.SetRenderTarget(renderPassDesc.renderTargets, renderPassDesc.renderTarget_Depth, 0, CubemapFace.Unknown, slice);
 				else cmd.SetRenderTarget(renderPassDesc.renderTarget_First, renderPassDesc.renderTarget_Depth, 0, CubemapFace.Unknown, slice);
+				
+				// enable shadow texture
+				if (renderShadow) cmd.SetGlobalTexture("_ShadowTex", shadowTextureID, RenderTextureSubElement.Color);
 
 				// set viewport
                 cmd.SetViewport(cameraResource.viewport);

@@ -46,6 +46,8 @@ namespace Reign.SRP
 				shadowCamera.targetTexture = shadowTexture;
 				shadowCamera.orthographic = true;
 				shadowCamera.orthographicSize = 10;
+				shadowCamera.nearClipPlane = 0.1f;
+				shadowCamera.farClipPlane = 20;
 
 				shadowTransform = shadowGameObject.transform;
 			}
@@ -63,22 +65,14 @@ namespace Reign.SRP
 				cullingParameters.cullingOptions = CullingOptions.None;// don't cull anything special
 				cullingParameters.shadowDistance = 0;
 				var cullResults = context.Cull(ref cullingParameters);
-				
-				// configure camera shader properties
-				context.SetupCameraProperties(shadowCamera, false);
 
 				// draw shadow objects
 				cmd.Clear();
+				cmd.SetGlobalMatrix("shadowMatrix", GL.GetGPUProjectionMatrix(shadowCamera.projectionMatrix, true) * shadowCamera.worldToCameraMatrix);
 				cmd.SetRenderTarget(shadowTextureID);
 				cmd.ClearRenderTarget(true, true, Color.white);
 				context.ExecuteCommandBuffer(cmd);
 				DrawObjects(ref context, ref cullResults, lightModeID_Opaque, QueueRange.Opaque, shadowCamera, overrideShader:shadowShader, overrideMaterialPassIndex:0);
-				
-				// apply shadow properties
-				cmd.Clear();
-				cmd.SetGlobalTexture("_ShadowTex", shadowTextureID);
-				cmd.SetGlobalMatrix("shadowMatrix", GL.GetGPUProjectionMatrix(shadowCamera.projectionMatrix, true) * shadowCamera.cameraToWorldMatrix);
-				context.ExecuteCommandBuffer(cmd);
 			}
 		}
     }

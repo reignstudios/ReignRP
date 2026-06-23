@@ -72,7 +72,7 @@ PS_OUT frag(VS_OUT i)
     #endif
     
     #ifdef SS_UV
-    float2 ssUV = i.positionCS.xy / targetSize.xy;
+    float2 ssUV = i.positionCS.xy * targetSize.xy;
     #endif
     
     #ifdef ENABLE_SS_DITHERALPHA

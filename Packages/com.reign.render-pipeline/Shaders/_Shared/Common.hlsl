@@ -232,14 +232,14 @@ inline float logE(float base, float x)
 // dither
 inline void SSDitherClip(real a, float2 ssUV)
 {
-	real4 d = SAMPLE_TEXTURE2D(_DitherTex, sampler_DitherTex, ssUV * (targetSize.xy * _DitherTex_TexelSize.xy));
+	real4 d = SAMPLE_TEXTURE2D(_DitherTex, sampler_DitherTex, ssUV * (targetSize.zw * _DitherTex_TexelSize.xy));
 	clip(a - d.r);
 }
 
 inline void SSPatternClip(real a, float2 ssUV)
 {
 	float3 magic = float3(0.06711056, 0.00583715, 52.9829189);
-	float d = frac(magic.z * frac(dot(ssUV * targetSize.xy, magic.xy)));
+	float d = frac(magic.z * frac(dot(ssUV * targetSize.zw, magic.xy)));
 	clip(a - d);
 }
 

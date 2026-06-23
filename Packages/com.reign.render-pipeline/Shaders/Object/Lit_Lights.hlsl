@@ -12,6 +12,10 @@ struct MaterialParams
     float2 ssUV;
     #endif
     
+    #ifdef ENABLE_SHADOWS
+    float2 shadowUV;
+    #endif
+    
 	real4 color;
     
     #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
@@ -226,6 +230,19 @@ inline void Process_LightMaterial(MaterialParams materialParams, inout real4 lig
     
     real f = saturate(dot(-eyeDir, materialParams.normal));
     lightSpecular = lerp(lightSpecular, l, pow(1.0 - f, 4.0) * materialParams.specular.w);
+    #endif
+}
+#endif
+
+// === Shadows ===
+#ifndef REIGN_SampleShadow_OVERRIDE
+inline float SampleShadow(MaterialParams materialParams)
+{
+    #ifdef ENABLE_SHADOWS
+    float d = SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, materialParams.shadowUV).x;
+    return d;//LinearEyeDepth(d, _ZBufferParams);
+    #else
+    return 1.0;
     #endif
 }
 #endif

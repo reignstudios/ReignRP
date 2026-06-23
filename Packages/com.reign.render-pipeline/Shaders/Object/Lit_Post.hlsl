@@ -21,6 +21,11 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
     // uv
     o.uv = (i.uv * _UVScaleOffset.xy) + _UVScaleOffset.zw;
     
+    // shadow CS
+    #ifdef ENABLE_SHADOWS
+    o.shadowCS = TransformWorldToHClipShadow(o.pos);
+    #endif
+    
     #ifdef LIGHTMAP_ON
     o.lightmapUV = TransformLightmapUV(i.lightmapUV);
     #endif
@@ -76,8 +81,14 @@ inline MaterialParams GetMaterialProperties(VS_OUT i)
 {
     MaterialParams materialParams;
     
+    // SS
     #ifdef SS_UV
-    materialParams.ssUV = i.positionCS.xy / targetSize.xy;
+    materialParams.ssUV = i.positionCS.xy * targetSize.xy;
+    #endif
+    
+    // shadow UV
+    #ifdef ENABLE_SHADOWS
+    materialParams.shadowUV = i.shadowCS.xy;
     #endif
 
     // color
@@ -242,6 +253,11 @@ PS_OUT frag(VS_OUT i)
     
     // maintain alpha
     o.color.a = materialParams.color.a;
+    
+    #ifdef ENABLE_SHADOWS
+    o.color = SampleShadow(materialParams);// * .0001;
+    //o.color = float4(materialParams.shadowUV, 0, 1);
+    #endif
 
     // custom outs
     #ifdef REIGN_frag_CUSTOM_OUTS

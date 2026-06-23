@@ -38,6 +38,10 @@ struct VS_OUT
     float3 normal : TEXCOORD2;
     #endif
     
+    #ifdef ENABLE_SHADOWS
+    float4 shadowCS : TEXCOORD7;
+    #endif
+    
     #ifdef LIGHTMAP_ON
     float2 lightmapUV : TEXCOORD8;
     #endif

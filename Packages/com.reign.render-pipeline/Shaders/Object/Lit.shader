@@ -63,6 +63,7 @@
 
             #pragma shader_feature _ ENABLE_ALPHACLIP
 
+            #define ENABLE_SHADOWS // TODO: change this to option
             #include "Lit_Pre.hlsl"
             #include "Lit_Post.hlsl"
             ENDHLSL
