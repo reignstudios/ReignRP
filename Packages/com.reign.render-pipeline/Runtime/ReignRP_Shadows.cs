@@ -12,8 +12,17 @@ namespace Reign.SRP
 		public RenderTexture shadowTexture;
 		private RenderTargetIdentifier shadowTextureID;
 
+		private int shadowMask = -1, shadowMaskClip = -1;
+
         private void RenderShadowPass_Directional(ref ScriptableRenderContext context, Camera camera)
 		{
+			// get shadow masks
+			if (shadowMask == -1)
+			{
+				shadowMask = LayerMask.GetMask("ReignShadow");
+				shadowMaskClip = LayerMask.GetMask("ReignShadowClip");
+			}
+
 			// only render shadows for supported views
 			var cameraType = camera.cameraType;
 			if (cameraType != CameraType.Game && cameraType != CameraType.SceneView)
@@ -64,6 +73,7 @@ namespace Reign.SRP
 				cullingParameters.maximumVisibleLights = 0;
 				cullingParameters.cullingOptions = CullingOptions.None;// don't cull anything special
 				cullingParameters.shadowDistance = 0;
+				cullingParameters.cullingMask = (uint)shadowMask;
 				var cullResults = context.Cull(ref cullingParameters);
 
 				// draw shadow objects

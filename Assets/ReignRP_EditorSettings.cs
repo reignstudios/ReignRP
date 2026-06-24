@@ -15,18 +15,18 @@ namespace Reign.SRP.Editor
 
         public void OnPreprocessBuild(BuildReport report)
         {
-            if (report.summary.platformGroup != BuildTargetGroup.Android) return;
-            ConfigureAndroidOpenXRFoveation();
+            if (report.summary.platformGroup == BuildTargetGroup.Android) Configure();
         }
 
         [InitializeOnLoadMethod]
-        private static void ConfigureAndroidOpenXRFoveation()
+        private static void Configure()
         {
-            Configure(BuildTargetGroup.Standalone);
-            Configure(BuildTargetGroup.Android);
+            ConfigureOpenXRFoveation(BuildTargetGroup.Standalone);
+            ConfigureOpenXRFoveation(BuildTargetGroup.Android);
+            ConfigureLayers();
         }
 
-        private static void Configure(BuildTargetGroup target)
+        private static void ConfigureOpenXRFoveation(BuildTargetGroup target)
         {
             var settings = OpenXRSettings.GetSettingsForBuildTargetGroup(target);
             if (settings == null) return;
@@ -55,6 +55,66 @@ namespace Reign.SRP.Editor
             }
 
             AssetDatabase.SaveAssets();
+        }
+
+        private static void ConfigureLayers()
+        {
+            SetLayerName(new LayerMaskElement(30, "ReignShadow"), new LayerMaskElement(31, "ReignShadowClip"));
+        }
+
+        struct LayerMaskElement
+        {
+            public int index;
+            public string name;
+
+            public LayerMaskElement(int index, string name)
+            {
+                this.index = index;
+                this.name = name;
+            }
+        }
+
+        private static void SetLayerName(params LayerMaskElement[] layers)
+        {
+            // get resources
+            var tagManager = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+            tagManager.Update();
+            var layersProp = tagManager.FindProperty("layers");
+            if (layersProp == null)
+            {
+                Debug.LogError("Could not find layers property in TagManager.");
+                return;
+            }
+
+            // update
+            bool changeNeed = false;
+            foreach (var layer in layers)
+            {
+                if (layer.index >= 0 && layer.index < layersProp.arraySize)
+                {
+                    var layerProp = layersProp.GetArrayElementAtIndex(layer.index);
+                    if (layerProp.stringValue != layer.name)
+                    {
+                        if (!string.IsNullOrEmpty(layerProp.stringValue))
+                        {
+                            Debug.LogError($"Layer {layer.index} is reserved for ReignRP (clear its value)");
+                            continue;
+                        }
+
+                        changeNeed = true;
+                        layerProp.stringValue = layer.name;
+                        Debug.Log($"Set Layer {layer.index} → \"{layer.name}\"");
+                    }
+                }
+            }
+
+            // save
+            if (changeNeed)
+            {
+                tagManager.ApplyModifiedProperties();
+                AssetDatabase.SaveAssets();
+                EditorUtility.SetDirty(tagManager.targetObject);
+            }
         }
     }
 }

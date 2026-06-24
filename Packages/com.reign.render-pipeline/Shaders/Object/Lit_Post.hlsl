@@ -258,7 +258,7 @@ PS_OUT frag(VS_OUT i)
     o.color.a = materialParams.color.a;
     
     #ifdef ENABLE_SHADOWS
-    o.color = SampleShadow(materialParams);
+    o.color = Process_Shadow(i.shadowCS, materialParams.shadowUV);
     #endif
 
     // custom outs

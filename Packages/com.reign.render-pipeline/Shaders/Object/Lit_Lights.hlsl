@@ -236,14 +236,21 @@ inline void Process_LightMaterial(MaterialParams materialParams, inout real4 lig
 
 // === Shadows ===
 #ifndef REIGN_SampleShadow_OVERRIDE
-inline float SampleShadow(MaterialParams materialParams)
+inline float SampleShadow(float2 shadowUV)
 {
     #ifdef ENABLE_SHADOWS
-    float d = SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, materialParams.shadowUV).x;
-    return d;//Linear01Depth(d, _ZBufferParams) * .1;
+    return SAMPLE_TEXTURE2D(_ShadowTex, sampler_ShadowTex, shadowUV).x;
     #else
     return 1.0;
     #endif
+}
+#endif
+
+#ifndef REIGN_Process_Shadow_OVERRIDE
+inline real Process_Shadow(float4 shadowCS, float2 shadowUV)
+{
+    float d = SampleShadow(shadowUV);
+    return (shadowCS.z + 0.0001 - d) < 0.0 ? 0.0 : 1.0;
 }
 #endif
 
