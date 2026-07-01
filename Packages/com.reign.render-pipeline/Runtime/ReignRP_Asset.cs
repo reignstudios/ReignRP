@@ -137,17 +137,17 @@ namespace Reign.SRP
 		/// <summary>
 		/// Fast and ugly with linear shadow sampling
 		/// </summary>
-		HardLinear,
+		//HardLinear,
 
 		/// <summary>
 		/// Same as 'Hard' with slight AA around edges on some platforms
 		/// </summary>
-		HardAA,
+		//HardAA,
 
 		/// <summary>
 		/// Single-pass diffused edges
 		/// </summary>
-		SoftDiffused,
+		//SoftDiffused,
 
 		/// <summary>
 		/// Single-pass blured edges

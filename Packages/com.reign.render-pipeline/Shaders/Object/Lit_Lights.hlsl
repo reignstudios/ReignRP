@@ -43,6 +43,7 @@ struct MaterialParams
 // =====================================
 float4 directionalLight_Direction;
 float4 directionalLight_Color;
+float directionalLight_Bias;
 
 #define MAX_POINT_LIGHT_COUNT 4
 float4 pointLight_Positions[MAX_POINT_LIGHT_COUNT];
@@ -247,10 +248,42 @@ inline float SampleShadow(float2 shadowUV)
 #endif
 
 #ifndef REIGN_Process_Shadow_OVERRIDE
-inline real Process_Shadow(float4 shadowCS, float2 shadowUV)
+inline real4 Process_Shadow(float4 shadowCS, float2 shadowUV)
 {
-    float d = SampleShadow(shadowUV);
-    return (shadowCS.z + 0.0001 - d) < 0.0 ? 0.0 : 1.0;
+    #if defined(REIGN_SHADOW_HARD)
+        float d = SampleShadow(shadowUV);
+        return (shadowCS.z + directionalLight_Bias - d) < 0.0 ? 0.0 : 1.0;
+    #elif defined(REIGN_SHADOW_SOFT_BLUR)
+        real shadowMul = 0.0;
+        [branch] if (shadowCS.z >= 0.0)
+        {
+            shadowCS.z += directionalLight_Bias;
+            float d = SampleShadow(shadowUV);
+            for (int x = 0; x != 8; ++x)// inner pass
+            {
+                float rot = (x * (1.0 / 8.0)) * 6.28;
+                float2 rUV = float2(cos(rot), sin(rot)) * _ShadowTex_TexelSize.xy * 1.5;
+                rUV += shadowUV;
+                d = SampleShadow(rUV);
+                if (shadowCS.z - d >= 0.0) shadowMul += 1.0;
+            }
+
+            for (int x = 0; x != 12; ++x)// outter pass
+            {
+                float rot = (x * (1.0 / 12.0)) * 6.28;
+                //rot += rot2;
+                float2 rUV = float2(cos(rot), sin(rot)) * _ShadowTex_TexelSize.xy * 2.5;
+                rUV += shadowUV;
+                d = SampleShadow(rUV);
+                if (shadowCS.z - d >= 0.0) shadowMul += 1.0;
+            }
+
+            return lerp(shadowColor, 1.0, shadowMul / 21.0);
+        }
+        return 1.0;
+    #else
+        return 1.0;
+    #endif
 }
 #endif
 

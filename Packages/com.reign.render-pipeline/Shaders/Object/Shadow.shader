@@ -12,6 +12,7 @@
         Tags { "LightMode" = "Reign_Shadow" "Queue" = "Geometry" "RenderType"="Opaque" }
         ZTest LEqual
         ZWrite On
+        Cull Front
 
         Pass// Opaque
         {

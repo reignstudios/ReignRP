@@ -57,6 +57,7 @@ namespace Reign.SRP
 		private Vector3 directionalLight_Position;
 		private Quaternion directionalLight_Rotation;
 		private Vector4 directionalLight_Direction, directionalLight_Color;
+		private float directionalLight_Bias;
 
 		private const int pointLight_MaxConst = 4;
 		private int pointLight_Max;
@@ -529,6 +530,7 @@ namespace Reign.SRP
 							directionalLight_Direction.w = bakeFlag;// lightmap diffuse mode
 							directionalLight_Color = light.finalColor;
 							directionalLight_Color.w = l.intensity;
+							directionalLight_Bias = l.shadowBias;
 							directionalLight_Count++;
 						}
 						break;
@@ -562,6 +564,7 @@ namespace Reign.SRP
 			{
 				cmd.SetGlobalVector("directionalLight_Direction", directionalLight_Direction);
 				cmd.SetGlobalVector("directionalLight_Color", directionalLight_Color);
+				cmd.SetGlobalFloat("directionalLight_Bias", directionalLight_Bias);
 				cmd.DisableShaderKeyword("REIGN_DIRECTIONAL_LIGHTS_DISABLE");
 			}
 			else
@@ -583,6 +586,26 @@ namespace Reign.SRP
 			{
 				cmd.EnableShaderKeyword("REIGN_POINT_LIGHTS_DISABLE");
 			}
+
+			switch (asset.shadowType)
+			{
+				case ShadowType.Off:
+					cmd.DisableShaderKeyword("REIGN_SHADOW_HARD");
+					cmd.DisableShaderKeyword("REIGN_SHADOW_SOFT_BLUR");
+					break;
+
+				case ShadowType.Hard:
+					cmd.EnableShaderKeyword("REIGN_SHADOW_HARD");
+					cmd.DisableShaderKeyword("REIGN_SHADOW_SOFT_BLUR");
+					break;
+
+				case ShadowType.SoftBlur:
+					cmd.DisableShaderKeyword("REIGN_SHADOW_HARD");
+					cmd.EnableShaderKeyword("REIGN_SHADOW_SOFT_BLUR");
+					break;
+			}
+
+			if (asset.shadowType != ShadowType.Off) cmd.SetGlobalVector("shadowColor", RenderSettings.subtractiveShadowColor);
 
 			SetAmbient();
 			context.ExecuteCommandBuffer(cmd);

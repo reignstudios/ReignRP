@@ -231,6 +231,10 @@ PS_OUT frag(VS_OUT i)
     Process_LightMaterial(materialParams, lightDiffuse);
     #endif
     
+    #ifdef ENABLE_SHADOWS
+        lightDiffuse *= Process_Shadow(i.shadowCS, materialParams.shadowUV);
+    #endif
+    
     #ifdef ENABLE_OCCLUSION
         lightDiffuse *= materialParams.ao;
         #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
@@ -256,10 +260,6 @@ PS_OUT frag(VS_OUT i)
     
     // maintain alpha
     o.color.a = materialParams.color.a;
-    
-    #ifdef ENABLE_SHADOWS
-    o.color = Process_Shadow(i.shadowCS, materialParams.shadowUV);
-    #endif
 
     // custom outs
     #ifdef REIGN_frag_CUSTOM_OUTS

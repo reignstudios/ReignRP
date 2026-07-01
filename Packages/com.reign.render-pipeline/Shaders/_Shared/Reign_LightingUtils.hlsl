@@ -11,6 +11,7 @@ TEXTURE2D_FLOAT(_ShadowTex);
 SAMPLER(sampler_ShadowTex);
 float4 _ShadowTex_TexelSize;
 float4x4 shadowMatrix;
+float4 shadowColor;
 
 float4 TransformWorldToHClipShadow(float3 positionWS)
 {
