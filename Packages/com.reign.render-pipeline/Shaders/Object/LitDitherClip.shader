@@ -30,6 +30,8 @@
         [Toggle(ENABLE_EMISSION)] _ENABLE_EMISSION ("Enable Emission", Float) = 0
         [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
+
+        [Toggle(ENABLE_SHADOW_RECEIVE)] _ENABLE_SHADOW_RECEIVE ("Enable Shadow Receive", Float) = 0
     }
 
     SubShader
@@ -61,6 +63,7 @@
             #pragma shader_feature _ ENABLE_EMISSION
 
             #pragma shader_feature _ _CLIP_MODE_DITHER _CLIP_MODE_PATTERN _CLIP_MODE_RANDOM
+            #pragma shader_feature _ ENABLE_SHADOW_RECEIVE
 
             #define SS_UV
             #define ENABLE_SS_DITHERALPHA

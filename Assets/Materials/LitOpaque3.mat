@@ -14,6 +14,7 @@ Material:
   m_ValidKeywords:
   - ENABLE_NORMAL
   - ENABLE_OCCLUSION
+  - ENABLE_SHADOW_RECEIVE
   - ENABLE_SPECULAR_HQ
   - _COLOR_TEXTURE
   - _SPECULAR_SLIDERS
@@ -100,6 +101,7 @@ Material:
     - _ENABLE_NORMAL: 1
     - _ENABLE_NORMAL_NORMALIZE: 1
     - _ENABLE_OCCLUSION: 1
+    - _ENABLE_SHADOW_RECEIVE: 1
     - _ENABLE_SPECULAR_HQ: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5

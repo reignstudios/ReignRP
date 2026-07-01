@@ -165,6 +165,13 @@ inline float2 TransformLightmapUV(float2 lightmapUV)
 #endif
 
 // ======================================
+// shadows
+// ======================================
+#if defined(ENABLE_SHADOW_RECEIVE) && (defined(REIGN_SHADOW_HARD) || defined(REIGN_SHADOW_SOFT_BLUR))
+#define ENABLE_SHADOWS
+#endif
+
+// ======================================
 // util input
 // ======================================
 float4 randoValues;

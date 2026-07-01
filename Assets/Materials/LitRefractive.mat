@@ -12,6 +12,7 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
+  - ENABLE_SHADOW_RECEIVE
   - ENABLE_SPECULAR_HQ
   - _COLOR_COLOR
   - _SPECULAR_SLIDERS
@@ -95,6 +96,7 @@ Material:
     - _ENABLE_NORMAL: 0
     - _ENABLE_NORMAL_NORMALIZE: 0
     - _ENABLE_OCCLUSION: 0
+    - _ENABLE_SHADOW_RECEIVE: 1
     - _ENABLE_SPECULAR_HQ: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5
