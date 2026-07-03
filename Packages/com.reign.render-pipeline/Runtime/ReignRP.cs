@@ -79,6 +79,7 @@ namespace Reign.SRP
 		public static int graphicsShaderLevel { get; private set; }
 		public static bool isOpenGL { get; private set; }
 		public static bool msaaTextureLoadSupported { get; private set; }
+		public static bool msaaSwapChainSupported { get; private set; }
 
 		public static bool refreshPostProcessState = true;
 
@@ -102,15 +103,6 @@ namespace Reign.SRP
 			// set graphic defaults
 			GraphicsSettings.useScriptableRenderPipelineBatching = false;
 			GraphicsSettings.lightsUseLinearIntensity = true;
-
-			QualitySettings.antiAliasing = 1;
-			Screen.SetMSAASamples(1);
-			XRSystem.SetDisplayMSAASamples(MSAASamples.None);
-			var xrTargetDesc = XRSettings.eyeTextureDesc;
-			xrTargetDesc.msaaSamples = 1;
-
-			XRSettings.eyeTextureResolutionScale = 1;
-            XRSystem.SetRenderScale(1);
 			XRSettings.gameViewRenderMode = asset.xrPreviewMode;
 
 			// create command buffer
@@ -142,6 +134,7 @@ namespace Reign.SRP
 			isOpenGL = graphicsDeviceType == GraphicsDeviceType.OpenGLCore || graphicsDeviceType == GraphicsDeviceType.OpenGLES3;
 			texturesSupported_32Bit = SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, GraphicsFormatUsage.Sample) && SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, GraphicsFormatUsage.SetPixels);
 			msaaTextureLoadSupported = SystemInfo.supportsMultisampledTextures > 0 && !asset.compositionMSAA_ForceHardwareResolve;
+			msaaSwapChainSupported = SystemInfo.supportsMultisampledBackBuffer;
 		}
 
 		private bool CheckResourceInit()
@@ -191,6 +184,63 @@ namespace Reign.SRP
 
 			// ensure asset settings are valid
 			asset.ValidateSettings();
+
+			// MSAA
+			if (asset.enableComposition)// always disable swap-buffer MSAA in compositing
+			{
+				if (QualitySettings.antiAliasing != 1)
+				{
+					QualitySettings.antiAliasing = 1;
+					Screen.SetMSAASamples(1);
+				}
+
+				if (XRSettings.enabled)
+				{
+					var xrTargetDesc = XRSettings.eyeTextureDesc;
+					if (XRSystem.GetDisplayMSAASamples() != MSAASamples.None || xrTargetDesc.msaaSamples != 1)
+					{
+						xrTargetDesc.msaaSamples = 1;
+						XRSystem.SetDisplayMSAASamples(MSAASamples.None);
+					}
+				}
+			}
+			else// handle target situations
+			{
+				if (XRSettings.enabled)
+				{
+					// always disable preview MSAA in compositing
+					if (QualitySettings.antiAliasing != 1)
+					{
+						QualitySettings.antiAliasing = 1;
+						Screen.SetMSAASamples(1);
+					}
+
+					var xrTargetDesc = XRSettings.eyeTextureDesc;
+					if (XRSystem.GetDisplayMSAASamples() != (MSAASamples)asset.msaa || xrTargetDesc.msaaSamples != (int)asset.msaa)
+					{
+						XRSystem.SetDisplayMSAASamples(MSAASamples.None);
+						xrTargetDesc.msaaSamples = 1;
+					}
+				}
+				else if (msaaSwapChainSupported)
+				{
+					if (QualitySettings.antiAliasing != (int)asset.msaa)
+					{
+						QualitySettings.antiAliasing = (int)asset.msaa;
+						Screen.SetMSAASamples((int)asset.msaa);
+					}
+				}
+			}
+
+			// scale
+			if (XRSettings.enabled)
+			{
+				if (XRSettings.eyeTextureResolutionScale != 1)// TODO
+				{
+					XRSettings.eyeTextureResolutionScale = 1;
+					XRSystem.SetRenderScale(1);
+				}
+			}
 
 			// validate swap-chain resolution
 			#if !UNITY_EDITOR
@@ -669,7 +719,7 @@ namespace Reign.SRP
 				
 				// pre-resolve MSAA texture ONLY if needed
 				bool msaaResolved = false;
-				if (asset.compositionMSAA != MSAA_Level.Off)
+				if (cameraResource.msaa != MSAA_Level.Off)
 				{
 					if (!msaaTextureLoadSupported || postProcessCount != 0)// resolve if MSAA-Load not supported or PostProcess tasks are needed
 					{
@@ -716,12 +766,12 @@ namespace Reign.SRP
 				else
 				{
 					var blitMode = BlitMode.Load;
-					switch (asset.compositionMSAA)
+					switch (cameraResource.msaa)
 					{
 						case MSAA_Level.X2: blitMode = BlitMode.MSAA_2X; break;
 						case MSAA_Level.X4: blitMode = BlitMode.MSAA_4X; break;
 						case MSAA_Level.X8: blitMode = BlitMode.MSAA_8X; break;
-						default: Debug.LogError("Invalid MSAA BlitMode: " + asset.compositionMSAA); break;
+						default: Debug.LogError("Invalid MSAA BlitMode: " + cameraResource.msaa); break;
 					}
 					Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh:blitMesh, mode:blitMode);
 				}

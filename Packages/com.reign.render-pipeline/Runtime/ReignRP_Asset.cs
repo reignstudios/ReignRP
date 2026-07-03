@@ -21,10 +21,11 @@ namespace Reign.SRP
 		[Tooltip("Uses closes lights to camera")]
 		public bool sortPointLights = false;
 
+		public MSAA_Level msaa = MSAA_Level.Off;
+
 		public bool enableComposition = false;
 		public bool compositionColorClone = false, compositionColorCloneBlurredMipmaps = false;
 		public bool compositionDepthClone = false;
-		public MSAA_Level compositionMSAA = MSAA_Level.Off;
 		public bool compositionMSAA_ForceHardwareResolve = false;
 		public CommonTextureFormat compositionColorFormat = CommonTextureFormat.UINT_A2_RGB10;
 		public DepthBit compositionDepthBit = DepthBit.Bit16;

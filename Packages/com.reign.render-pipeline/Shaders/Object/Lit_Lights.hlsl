@@ -271,7 +271,6 @@ inline real4 Process_Shadow(float4 shadowCS, float2 shadowUV)
             for (int x = 0; x != 12; ++x)// outter pass
             {
                 float rot = (x * (1.0 / 12.0)) * 6.28;
-                //rot += rot2;
                 float2 rUV = float2(cos(rot), sin(rot)) * _ShadowTex_TexelSize.xy * 2.5;
                 rUV += shadowUV;
                 d = SampleShadow(rUV);
