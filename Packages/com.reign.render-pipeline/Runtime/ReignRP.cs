@@ -235,15 +235,15 @@ namespace Reign.SRP
 			// scale
 			if (XRSettings.enabled)
 			{
-				if (XRSettings.eyeTextureResolutionScale != 1)// TODO
+				if (XRSettings.eyeTextureResolutionScale != asset.xrTargetScale)
 				{
-					XRSettings.eyeTextureResolutionScale = 1;
-					XRSystem.SetRenderScale(1);
+					XRSettings.eyeTextureResolutionScale = asset.xrTargetScale;
+					XRSystem.SetRenderScale(asset.xrTargetScale);
 				}
 			}
 
-			// validate swap-chain resolution
-			#if !UNITY_EDITOR
+			// validate swap-chain resolution TODO
+			/*#if !UNITY_EDITOR
 			if (Screen.fullScreen && fullscreenSwapchainResolutionDivision != asset.fullscreenSwapchainResolutionDivision)
 			{
 				int swapchainResolutionDivisionLast = fullscreenSwapchainResolutionDivision;
@@ -256,7 +256,7 @@ namespace Reign.SRP
 					ChangeSwapChainResolution(resolution, Screen.fullScreenMode);
 				}
 			}
-			#endif
+			#endif*/
 
 			// check if common resources init
 			if (!CheckResourceInit()) return;
@@ -516,8 +516,6 @@ namespace Reign.SRP
 
 		private void RenderPass(ref ScriptableRenderContext context, Camera camera, bool renderShadows)
 		{
-			if (asset.compositionDivision < 1) asset.compositionDivision = 1;
-
 			// find or allocate camera resources
 			CameraResource cameraResource = null;
 			if (!CameraResourceExists(camera, out cameraResource))

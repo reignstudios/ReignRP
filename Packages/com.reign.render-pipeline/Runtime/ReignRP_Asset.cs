@@ -16,7 +16,6 @@ namespace Reign.SRP
 		[Tooltip("If UseRenderPasses is on and you have multiple cameras that clear the same target buffer")]
 		public bool renderPassesMultiCameraClear = false;
 
-		public int compositionDivision = 1, fullscreenSwapchainResolutionDivision = 1;
 		public int maxLights = -1;
 		[Tooltip("Uses closes lights to camera")]
 		public bool sortPointLights = false;
@@ -29,6 +28,7 @@ namespace Reign.SRP
 		public bool compositionMSAA_ForceHardwareResolve = false;
 		public CommonTextureFormat compositionColorFormat = CommonTextureFormat.UINT_A2_RGB10;
 		public DepthBit compositionDepthBit = DepthBit.Bit16;
+		public float compositionScale = 1;
 
 		public ShadowType shadowType = ShadowType.Hard;
 		public ShadowRez shadowResolution = ShadowRez.Rez_1024;
@@ -47,6 +47,7 @@ namespace Reign.SRP
 		[Tooltip("Show VR preview in App Window or Editor (ignored on mobile HMDs platforms)")]
 		public bool xrPreview = true;
 		public GameViewRenderMode xrPreviewMode = GameViewRenderMode.BothEyes;
+		public float xrTargetScale = 1;
 
 		public ReignRenderPipelineResources resources;
 		public override string renderPipelineShaderTag => "ReignRP";
@@ -74,11 +75,11 @@ namespace Reign.SRP
 
 		internal void ValidateSettings()
 		{
-			if (compositionDivision < 1) compositionDivision = 1;
-			else if (compositionDivision > 8) compositionDivision = 8;
+			if (compositionScale < .1f) compositionScale = .1f;
+			else if (compositionScale > 2) compositionScale = 2;
 
-			if (fullscreenSwapchainResolutionDivision < 1) fullscreenSwapchainResolutionDivision = 1;
-			else if (fullscreenSwapchainResolutionDivision > 8) fullscreenSwapchainResolutionDivision = 8;
+			if (xrTargetScale < .1f) xrTargetScale = .1f;
+			else if (xrTargetScale > 2) xrTargetScale = 2;
 		}
 
 		protected override RenderPipeline CreatePipeline()

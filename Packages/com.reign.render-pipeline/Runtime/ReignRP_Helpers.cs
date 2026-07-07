@@ -328,8 +328,8 @@ namespace Reign.SRP
                 // compositing
                 if (enableComposition)
 				{
-                    widthComposited = widthTarget / asset.compositionDivision;
-                    heightComposited = heightTarget / asset.compositionDivision;
+                    widthComposited = (int)(widthTarget * asset.compositionScale);
+                    heightComposited = (int)(heightTarget * asset.compositionScale);
                     
                     viewport.x *= widthComposited;
                     viewport.y *= heightComposited;
