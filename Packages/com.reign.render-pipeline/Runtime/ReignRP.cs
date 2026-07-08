@@ -188,20 +188,16 @@ namespace Reign.SRP
 			// MSAA
 			if (asset.enableComposition)// always disable swap-buffer MSAA in compositing
 			{
-				if (QualitySettings.antiAliasing != 1)
+				int antiAliasing = QualitySettings.antiAliasing;
+				if (antiAliasing != 0 && antiAliasing != 1)
 				{
 					QualitySettings.antiAliasing = 1;
 					Screen.SetMSAASamples(1);
 				}
 
-				if (XRSettings.enabled)
+				if (XRSettings.enabled && XRSystem.GetDisplayMSAASamples() != MSAASamples.None)
 				{
-					var xrTargetDesc = XRSettings.eyeTextureDesc;
-					if (XRSystem.GetDisplayMSAASamples() != MSAASamples.None || xrTargetDesc.msaaSamples != 1)
-					{
-						xrTargetDesc.msaaSamples = 1;
-						XRSystem.SetDisplayMSAASamples(MSAASamples.None);
-					}
+					XRSystem.SetDisplayMSAASamples(MSAASamples.None);
 				}
 			}
 			else// handle target situations
@@ -209,22 +205,27 @@ namespace Reign.SRP
 				if (XRSettings.enabled)
 				{
 					// always disable preview MSAA in compositing
-					if (QualitySettings.antiAliasing != 1)
+					int antiAliasing = QualitySettings.antiAliasing;
+					if (antiAliasing != 0 && antiAliasing != 1)
 					{
 						QualitySettings.antiAliasing = 1;
 						Screen.SetMSAASamples(1);
 					}
 
-					var xrTargetDesc = XRSettings.eyeTextureDesc;
-					if (XRSystem.GetDisplayMSAASamples() != (MSAASamples)asset.msaa || xrTargetDesc.msaaSamples != (int)asset.msaa)
+					if (XRSystem.GetDisplayMSAASamples() != (MSAASamples)asset.msaa)
 					{
-						XRSystem.SetDisplayMSAASamples(MSAASamples.None);
-						xrTargetDesc.msaaSamples = 1;
+						XRSystem.SetDisplayMSAASamples((MSAASamples)asset.msaa);
 					}
 				}
 				else if (msaaSwapChainSupported)
 				{
-					if (QualitySettings.antiAliasing != (int)asset.msaa)
+					int antiAliasing = QualitySettings.antiAliasing;
+					if (asset.msaa == MSAA_Level.Off && antiAliasing != 0 && antiAliasing != 1)
+					{
+						QualitySettings.antiAliasing = 1;
+						Screen.SetMSAASamples(1);
+					}
+					else if (antiAliasing != (int)asset.msaa)
 					{
 						QualitySettings.antiAliasing = (int)asset.msaa;
 						Screen.SetMSAASamples((int)asset.msaa);
@@ -717,7 +718,7 @@ namespace Reign.SRP
 				
 				// pre-resolve MSAA texture ONLY if needed
 				bool msaaResolved = false;
-				if (cameraResource.msaa != MSAA_Level.Off)
+				if (cameraResource.msaaComposition != MSAA_Level.Off)
 				{
 					if (!msaaTextureLoadSupported || postProcessCount != 0)// resolve if MSAA-Load not supported or PostProcess tasks are needed
 					{
@@ -764,12 +765,12 @@ namespace Reign.SRP
 				else
 				{
 					var blitMode = BlitMode.Load;
-					switch (cameraResource.msaa)
+					switch (cameraResource.msaaComposition)
 					{
 						case MSAA_Level.X2: blitMode = BlitMode.MSAA_2X; break;
 						case MSAA_Level.X4: blitMode = BlitMode.MSAA_4X; break;
 						case MSAA_Level.X8: blitMode = BlitMode.MSAA_8X; break;
-						default: Debug.LogError("Invalid MSAA BlitMode: " + cameraResource.msaa); break;
+						default: Debug.LogError("Invalid MSAA BlitMode: " + cameraResource.msaaComposition); break;
 					}
 					Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh:blitMesh, mode:blitMode);
 				}

@@ -115,10 +115,11 @@ namespace Reign.SRP
             }
         }
 
-        public void UpdateSize(int width, int height)
+        public void UpdateSize(int width, int height, int msaaSamples)
         {
             this.width = width;
             this.height = height;
+            this.msaaSamples = msaaSamples;
         }
 
         public void UpdateTarget(RenderPassDescTarget target, int index)
@@ -174,7 +175,7 @@ namespace Reign.SRP
 			public readonly ReignRP pipeline;
 			private readonly ReignRP_Asset asset;
             public bool enableComposition;
-            public MSAA_Level msaa;
+            public MSAA_Level msaaComposition;
 
             public ReignRP_PostProcessResources postProcessResources;
             public ReignRP_PostProcess[] postProcesses;
@@ -245,10 +246,10 @@ namespace Reign.SRP
                 enableComposition = asset.enableComposition && (camera.cameraType == CameraType.Game || camera.cameraType == CameraType.SceneView);
 
                 // MSAA
-                msaa = MSAA_Level.Off;
-                if (enableComposition && asset.msaa != MSAA_Level.Off && camera.allowMSAA)
+                msaaComposition = MSAA_Level.Off;
+                if (enableComposition && camera.allowMSAA)
                 {
-                    msaa = asset.msaa;
+                    msaaComposition = asset.msaa;
                 }
 
 				// calculate special matricies
@@ -343,8 +344,8 @@ namespace Reign.SRP
                     int compositionDepthBit = GetCompositedDepthBit();
                     var desc = new RenderTextureDescriptor(widthComposited, heightComposited, RenderTextureFormat.Depth, compositionDepthBit, 1);
                     desc.stencilFormat = GraphicsFormat.None;
-                    desc.msaaSamples = (int)msaa;
-                    desc.bindMS = msaaTextureLoadSupported && msaa != MSAA_Level.Off;
+                    desc.msaaSamples = (int)msaaComposition;
+                    desc.bindMS = msaaTextureLoadSupported && msaaComposition != MSAA_Level.Off;
 				    depthTexture = GetTemporaryRenderTexture(desc);
 				    depthTextureID = depthTexture;
                     SetTextureSamplerState(depthTexture, FilterMode.Point, TextureWrapMode.Clamp);
@@ -360,8 +361,8 @@ namespace Reign.SRP
 					// color texture
 					desc = new RenderTextureDescriptor(widthComposited, heightComposited, GetCompositionTextureFormat(asset.compositionColorFormat, colorTextureFallbacks), 0, 1);
                     desc.stencilFormat = GraphicsFormat.None;
-                    desc.msaaSamples = (int)msaa;
-                    desc.bindMS = msaaTextureLoadSupported && msaa != MSAA_Level.Off;
+                    desc.msaaSamples = (int)msaaComposition;
+                    desc.bindMS = msaaTextureLoadSupported && msaaComposition != MSAA_Level.Off;
 					colorTexture = GetTemporaryRenderTexture(desc);
 					colorTextureID = colorTexture;
                     SetTextureSamplerState(colorTexture, FilterMode.Point, TextureWrapMode.Clamp);
@@ -407,11 +408,11 @@ namespace Reign.SRP
                             new RenderPassDescTarget(depthTextureID, depthTexture.format, depthTexture.depth, false, true, clearDepth, backgroundColor),
                             new RenderPassDescTarget(colorTextureID, colorTexture.format, 0, false, true, clearColor, backgroundColor)
                         };
-                        renderPass_Opaque = new RenderPassDesc(widthComposited, heightComposited, targets, (int)msaa);
+                        renderPass_Opaque = new RenderPassDesc(widthComposited, heightComposited, targets, (int)msaaComposition);
                     }
                     else
                     {
-                        renderPass_Opaque.UpdateSize(widthComposited, heightComposited);
+                        renderPass_Opaque.UpdateSize(widthComposited, heightComposited, (int)msaaComposition);
                         renderPass_Opaque.UpdateTarget(new RenderPassDescTarget(depthTextureID, depthTexture.format, depthTexture.depth, false, true, clearDepth, backgroundColor), 0);
                         renderPass_Opaque.UpdateTarget(new RenderPassDescTarget(colorTextureID, colorTexture.format, 0, false, true, clearColor, backgroundColor), 1);
                     }
@@ -423,11 +424,11 @@ namespace Reign.SRP
                             new RenderPassDescTarget(depthTextureID, depthTexture.format, depthTexture.depth, true, true),
                             new RenderPassDescTarget(colorTextureID, colorTexture.format, 0, true, true)
                         };
-                        renderPass_Transparent = new RenderPassDesc(widthComposited, heightComposited, targets, (int)msaa);
+                        renderPass_Transparent = new RenderPassDesc(widthComposited, heightComposited, targets, (int)msaaComposition);
                     }
                     else
                     {
-                        renderPass_Transparent.UpdateSize(widthComposited, heightComposited);
+                        renderPass_Transparent.UpdateSize(widthComposited, heightComposited, (int)msaaComposition);
                         renderPass_Transparent.UpdateTarget(new RenderPassDescTarget(depthTextureID, depthTexture.format, depthTexture.depth, true, true), 0);
                         renderPass_Transparent.UpdateTarget(new RenderPassDescTarget(colorTextureID, colorTexture.format, 0, true, true), 1);
                     }
@@ -471,6 +472,8 @@ namespace Reign.SRP
                     
                     texelWidth = 1f / widthTarget;
                     texelHeight = 1f / heightTarget;
+
+                    int msaa = msaaSwapChainSupported ? (int)asset.msaa : 1;
                     
                     // render-pass desc
                     if (!renderPass_Opaque.isInit)
@@ -480,11 +483,11 @@ namespace Reign.SRP
                             new RenderPassDescTarget(cameraTargetDepthTextureID, RenderTextureFormat.Depth, cameraTargetDepth, false, true, clearDepth, backgroundColor),
                             new RenderPassDescTarget(cameraTargetTextureID, cameraTargetFormat, 0, false, true, clearColor, backgroundColor)
                         };
-                        renderPass_Opaque = new RenderPassDesc(widthTarget, heightTarget, targets, 1);
+                        renderPass_Opaque = new RenderPassDesc(widthTarget, heightTarget, targets, msaa);
                     }
                     else
                     {
-                        renderPass_Opaque.UpdateSize(widthTarget, heightTarget);
+                        renderPass_Opaque.UpdateSize(widthTarget, heightTarget, msaa);
                         renderPass_Opaque.UpdateTarget(new RenderPassDescTarget(cameraTargetDepthTextureID, RenderTextureFormat.Depth, cameraTargetDepth, false, true, clearDepth, backgroundColor), 0);
                         renderPass_Opaque.UpdateTarget(new RenderPassDescTarget(cameraTargetTextureID, cameraTargetFormat, 0, false, true, clearColor, backgroundColor), 1);
                     }
@@ -496,11 +499,11 @@ namespace Reign.SRP
                             new RenderPassDescTarget(cameraTargetDepthTextureID, RenderTextureFormat.Depth, cameraTargetDepth, true, true),
                             new RenderPassDescTarget(cameraTargetTextureID, cameraTargetFormat, 0, true, true)
                         };
-                        renderPass_Transparent = new RenderPassDesc(widthTarget, heightTarget, targets, 1);
+                        renderPass_Transparent = new RenderPassDesc(widthTarget, heightTarget, targets, msaa);
                     }
                     else
                     {
-                        renderPass_Transparent.UpdateSize(widthTarget, heightTarget);
+                        renderPass_Transparent.UpdateSize(widthTarget, heightTarget, msaa);
                         renderPass_Transparent.UpdateTarget(new RenderPassDescTarget(cameraTargetDepthTextureID, RenderTextureFormat.Depth, cameraTargetDepth, true, true), 0);
                         renderPass_Transparent.UpdateTarget(new RenderPassDescTarget(cameraTargetTextureID, cameraTargetFormat, 0, true, true), 1);
                     }
@@ -544,7 +547,7 @@ namespace Reign.SRP
             public void ResolveCompositedColorTexture(CommandBuffer cmd)
             {
                 // copy texture to clone
-                if (msaa == MSAA_Level.Off) cmd.CopyTexture(colorTextureID, 0, 0, colorTextureCloneID, 0, 0);
+                if (msaaComposition == MSAA_Level.Off) cmd.CopyTexture(colorTextureID, 0, 0, colorTextureCloneID, 0, 0);
                 else ResolveCompositedMSAATexture(cmd, colorTexture, colorTextureClone);
 
                 // blur texture mipmaps
