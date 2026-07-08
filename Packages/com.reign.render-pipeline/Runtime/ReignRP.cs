@@ -333,7 +333,7 @@ namespace Reign.SRP
 									context.StartMultiEye(camera, i);
 
 									// render scene
-									RenderPass(ref context, camera, i == 0);
+									RenderPass(ref context, camera, i == 0 && asset.shadowType != ShadowType.Off);
 
 									// stop multi-pass camera
 									context.StopMultiEye(camera);
@@ -395,7 +395,7 @@ namespace Reign.SRP
 								context.StartMultiEye(camera);
 
 								// render scene
-								RenderPass(ref context, camera, true);
+								RenderPass(ref context, camera, asset.shadowType != ShadowType.Off);
 
 								// stop single-pass camera
 								context.StopMultiEye(camera);
@@ -416,7 +416,7 @@ namespace Reign.SRP
 					xrRenderPassInfo.renderPassCount = 0;
 					xrRenderPassInfo.eyePass = -1;
 					xrRenderPassInfo.passIndex = 0;
-                    RenderPass(ref context, camera, true);// non-XR single eye pass
+                    RenderPass(ref context, camera, asset.shadowType != ShadowType.Off);// non-XR single eye pass
                 }
                 EndCameraRendering(context, camera);
             }
