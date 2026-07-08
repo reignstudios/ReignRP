@@ -302,7 +302,7 @@ namespace Reign.SRP
                     else
                     {
                         xrSubsystem = xrSubsystemList[0];
-						xrSubsystem.foveatedRenderingLevel = 1;// TODO: needs to be an option of 0-1
+						if (xrSubsystem.foveatedRenderingLevel != asset.xrFoveatedRenderingLevel) xrSubsystem.foveatedRenderingLevel = asset.xrFoveatedRenderingLevel;
 						int renderPassCount = xrSubsystem.GetRenderPassCount();
                         if (renderPassCount > 0)
                         {

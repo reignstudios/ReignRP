@@ -48,6 +48,7 @@ namespace Reign.SRP
 		public bool xrPreview = true;
 		public GameViewRenderMode xrPreviewMode = GameViewRenderMode.BothEyes;
 		public float xrTargetScale = 1;
+		public float xrFoveatedRenderingLevel = 1;
 
 		public ReignRenderPipelineResources resources;
 		public override string renderPipelineShaderTag => "ReignRP";
@@ -80,6 +81,9 @@ namespace Reign.SRP
 
 			if (xrTargetScale < .1f) xrTargetScale = .1f;
 			else if (xrTargetScale > 2) xrTargetScale = 2;
+
+			if (xrFoveatedRenderingLevel < 0) xrFoveatedRenderingLevel = 0;
+			else if (xrFoveatedRenderingLevel > 1) xrFoveatedRenderingLevel = 1;
 		}
 
 		protected override RenderPipeline CreatePipeline()
