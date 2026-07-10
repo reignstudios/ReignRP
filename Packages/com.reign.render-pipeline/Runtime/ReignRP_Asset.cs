@@ -36,6 +36,8 @@ namespace Reign.SRP
 		public ShadowRez shadowResolution = ShadowRez.Rez_1024;
 		//public ShadowCascades shadowCascades = ShadowCascades.x1;
 		//public Vector4 shadowCascadePlanes = new Vector4(5, 10, 20, 40);
+		[Tooltip("Adjust shadow color for objects with no specular")]
+		public Color shadowColorAdjust = new Color(.25f, .25f, .25f, 0);
 
 		public GlobalAmbientMode ambientMode = GlobalAmbientMode.Unity_SceneSettings;
 

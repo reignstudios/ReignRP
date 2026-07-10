@@ -224,10 +224,12 @@ inline void Process_LightMaterial(MaterialParams materialParams, inout real4 lig
     real4 l = lightSpecular;
     lightSpecular = lerp(l, l * materialParams.color, materialParams.specular.z) * materialParams.specular.x;
     
-    #ifdef ENABLE_SPECULAR_HQ
+    /*
+    #ifdef ENABLE_SPECULAR_HQ// TODO: maybe change this to a distance based addition for reflective roads
     l = SampleEnvironment(eyeRef, 0.0);// sample more accurate fresnel reflection
     l.rgb *= saturate(dot(materialParams.normal, materialParams.normalObj));
     #endif
+    */
     
     real f = saturate(dot(-eyeDir, materialParams.normal));
     lightSpecular = lerp(lightSpecular, l, pow(1.0 - f, 4.0) * materialParams.specular.w);
@@ -255,7 +257,11 @@ inline real4 Process_Shadow(float4 shadowCS, float2 shadowUV)
         {
             float d = SampleShadow(shadowUV);
             real shadowMul = (shadowCS.z + directionalLight_Bias - d) < 0.0 ? 0.0 : 1.0;
+            #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
             return lerp(shadowColor, 1.0, shadowMul);
+            #else
+            return lerp(saturate(shadowColor_Adjusted), 1.0, shadowMul);// adjust shadow ambient color without specualar acting as ambient
+            #endif
         }
         return 1.0;
     #elif defined(REIGN_SHADOW_SOFT_BLUR)
@@ -282,7 +288,11 @@ inline real4 Process_Shadow(float4 shadowCS, float2 shadowUV)
                 if (shadowCS.z - d >= 0.0) shadowMul += 1.0;
             }
 
+            #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
             return lerp(shadowColor, 1.0, shadowMul / 21.0);
+            #else
+            return lerp(saturate(shadowColor_Adjusted), 1.0, shadowMul / 21.0);// adjust shadow ambient color without specualar acting as ambient
+            #endif
         }
         return 1.0;
     #else

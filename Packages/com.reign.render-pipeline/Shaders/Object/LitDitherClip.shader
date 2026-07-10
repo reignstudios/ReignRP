@@ -14,7 +14,7 @@
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
 
         [KeywordEnum(Off, Sliders, Map)] _SPECULAR ("Specular Mode", Float) = 0
-        [Toggle(ENABLE_SPECULAR_HQ)] _ENABLE_SPECULAR_HQ ("Specular HQ", Float) = 0
+        //[Toggle(ENABLE_SPECULAR_HQ)] _ENABLE_SPECULAR_HQ ("Specular HQ", Float) = 0
         _SpecularIntensity("Specular Intensity", Range(0.0, 1.0)) = 1.0
         _SpecularRoughness("Specular Roughness", Range(0.0, 1.0)) = 1.0
         _SpecularMetallic("Specular Metallic", Range(0.0, 1.0)) = 1.0
@@ -57,7 +57,7 @@
 
             #pragma shader_feature _COLOR_COLOR _COLOR_TEXTURE _COLOR_BOTH
             #pragma shader_feature _ _SPECULAR_OFF _SPECULAR_SLIDERS _SPECULAR_MAP
-            #pragma shader_feature _ ENABLE_SPECULAR_HQ
+            //#pragma shader_feature _ ENABLE_SPECULAR_HQ
             #pragma shader_feature _ ENABLE_NORMAL
             #pragma shader_feature _ ENABLE_OCCLUSION
             #pragma shader_feature _ ENABLE_EMISSION

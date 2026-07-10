@@ -654,7 +654,12 @@ namespace Reign.SRP
 					break;
 			}
 
-			if (asset.shadowType != ShadowType.Off) cmd.SetGlobalVector("shadowColor", RenderSettings.subtractiveShadowColor);
+			if (asset.shadowType != ShadowType.Off)
+			{
+				cmd.SetGlobalVector("shadowColor", RenderSettings.subtractiveShadowColor);
+				var adjustedColor = RenderSettings.subtractiveShadowColor + asset.shadowColorAdjust;
+				cmd.SetGlobalVector("shadowColor_Adjusted", new Color(Mathf.Clamp01(adjustedColor.r), Mathf.Clamp01(adjustedColor.g), Mathf.Clamp01(adjustedColor.b), Mathf.Clamp01(adjustedColor.a)));
+			}
 
 			SetAmbient();
 			context.ExecuteCommandBuffer(cmd);
