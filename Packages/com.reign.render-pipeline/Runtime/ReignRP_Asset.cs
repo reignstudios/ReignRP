@@ -38,6 +38,8 @@ namespace Reign.SRP
 		//public Vector4 shadowCascadePlanes = new Vector4(5, 10, 20, 40);
 		[Tooltip("Adjust shadow color for objects with no specular")]
 		public Color shadowColorAdjust = new Color(.25f, .25f, .25f, 0);
+		public bool debugShadow;
+		public RenderTexture debugShadowTexture;
 
 		public GlobalAmbientMode ambientMode = GlobalAmbientMode.Unity_SceneSettings;
 
@@ -88,6 +90,10 @@ namespace Reign.SRP
 
 			if (xrFoveatedRenderingLevel < 0) xrFoveatedRenderingLevel = 0;
 			else if (xrFoveatedRenderingLevel > 1) xrFoveatedRenderingLevel = 1;
+
+			#if !UNITY_EDITOR
+			asset.debugShadow = false;
+			#endif
 		}
 
 		protected override RenderPipeline CreatePipeline()

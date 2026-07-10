@@ -1176,12 +1176,12 @@ namespace Reign.SRP
 			singleton.DrawObjects(ref context, ref cullResults, lightModeID, range, camera);
 		}
 
-		public static void DrawObjectsCustom(ScriptableRenderContext context, CullingResults cullResults, string lightModeID, QueueRange range, Camera camera, Shader overrideShader = null, int overrideMaterialPassIndex = 0, Material overrideMaterial = null, PerObjectData objectData = PerObjectData.None)
+		public static void DrawObjectsCustom(ScriptableRenderContext context, CullingResults cullResults, string lightModeID, QueueRange range, Camera camera, Shader overrideShader = null, int overrideShaderPassIndex = 0, Material overrideMaterial = null, int overrideMaterialPassIndex = 0, PerObjectData objectData = PerObjectData.None)
 		{
-			singleton.DrawObjects(ref context, ref cullResults, lightModeID, range, camera, overrideShader, overrideMaterialPassIndex, overrideMaterial, objectData);
+			singleton.DrawObjects(ref context, ref cullResults, lightModeID, range, camera, overrideShader, overrideShaderPassIndex, overrideMaterial, overrideMaterialPassIndex, objectData);
 		}
 
-		private void DrawObjects(ref ScriptableRenderContext context, ref CullingResults cullResults, string lightModeID, QueueRange range, Camera camera, Shader overrideShader = null, int overrideMaterialPassIndex = 0, Material overrideMaterial = null, PerObjectData objectData = PerObjectData.None)
+		private void DrawObjects(ref ScriptableRenderContext context, ref CullingResults cullResults, string lightModeID, QueueRange range, Camera camera, Shader overrideShader = null, int overrideShaderPassIndex = 0, Material overrideMaterial = null, int overrideMaterialPassIndex = 0, PerObjectData objectData = PerObjectData.None)
 		{
 			// filter settings
 			var filterSettings = FilteringSettings.defaultValue;
@@ -1193,6 +1193,7 @@ namespace Reign.SRP
 			var drawSettings = new DrawingSettings(new ShaderTagId(lightModeID), sortSettings);
 			drawSettings.overrideMaterial = overrideMaterial;
 			drawSettings.overrideShader = overrideShader;
+			drawSettings.overrideShaderPassIndex = overrideShaderPassIndex;
 			drawSettings.overrideMaterialPassIndex = overrideMaterialPassIndex;
 			drawSettings.perObjectData = objectData;
 			drawSettings.enableDynamicBatching = true;

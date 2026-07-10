@@ -16,6 +16,50 @@
 
         Pass// Opaque
         {
+            ColorMask 0// don't draw color information
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #include "../_Shared/Common.hlsl"
+            #include "../_Shared/Reign_LightingUtils.hlsl"
+
+            struct appdata
+            {
+                float3 positionOS : POSITION;
+            };
+
+            struct v2f
+            {
+                float4 positionCS : SV_POSITION;
+            };
+
+            v2f vert (appdata v)
+            {
+                v2f o;
+                o.positionCS = TransformWorldToHClipShadow(TransformObjectToWorld(v.positionOS));
+                return o;
+            }
+
+            struct PSOUT
+            {
+                float4 color : SV_Target0;
+            };
+
+            PSOUT frag(v2f i)
+            {
+                PSOUT o;
+                o.color = 0;
+                return o;
+            }
+            ENDHLSL
+        }
+
+        Pass// Opaque Preview
+        {
+            ColorMask RGBA// don't draw color information
+
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag

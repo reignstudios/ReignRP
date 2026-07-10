@@ -9,7 +9,7 @@ namespace Reign.SRP
 		private Camera shadowCamera;
 		private Transform shadowTransform;
 
-		public RenderTexture shadowTexture;
+		private RenderTexture shadowTexture;
 		private RenderTargetIdentifier shadowTextureID;
 
 		private int shadowMask = -1, shadowMaskClip = -1;
@@ -35,12 +35,17 @@ namespace Reign.SRP
 			if (!shadowTexture)
 			{
 				int rez = (int)asset.shadowResolution;
-				shadowTexture = new RenderTexture(rez, rez, 16, RenderTextureFormat.Default, 1);
+				shadowTexture = new RenderTexture(rez, rez, 16, asset.debugShadow ? RenderTextureFormat.Default : RenderTextureFormat.Depth, 1);
 				shadowTexture.useMipMap = false;
 				shadowTexture.autoGenerateMips = false;
 				shadowTexture.Create();
 				shadowTextureID = shadowTexture;
 			}
+
+			#if UNITY_EDITOR
+			if (asset.debugShadow) asset.debugShadowTexture = shadowTexture;
+			else asset.debugShadowTexture = null;
+			#endif
 
 			// create shadow camera if needed
 			if (!shadowGameObject)
@@ -82,7 +87,7 @@ namespace Reign.SRP
 				cmd.SetRenderTarget(shadowTextureID);
 				cmd.ClearRenderTarget(true, true, Color.white);
 				context.ExecuteCommandBuffer(cmd);
-				DrawObjects(ref context, ref cullResults, lightModeID_Opaque, QueueRange.Opaque, shadowCamera, overrideShader:shadowShader, overrideMaterialPassIndex:0);
+				DrawObjects(ref context, ref cullResults, lightModeID_Opaque, QueueRange.Opaque, shadowCamera, overrideShader:shadowShader, overrideShaderPassIndex:(asset.debugShadow ? 1 : 0));
 			}
 		}
     }
