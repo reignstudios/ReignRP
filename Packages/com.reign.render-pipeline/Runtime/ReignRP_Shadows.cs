@@ -43,7 +43,7 @@ namespace Reign.SRP
 				shadowTexture = new RenderTexture(rez, rez, 16, asset.debugShadow ? RenderTextureFormat.Default : RenderTextureFormat.Depth, 1);
 				shadowTexture.useMipMap = false;
 				shadowTexture.autoGenerateMips = false;
-				SetTextureSamplerState(shadowTexture, FilterMode.Point, TextureWrapMode.Clamp);
+				SetTextureSamplerState(shadowTexture, asset.shadowSampler == ShadowSampler.Linear ? FilterMode.Bilinear : FilterMode.Point, TextureWrapMode.Clamp);
 				shadowTexture.Create();
 				shadowTextureID = shadowTexture;
 			}

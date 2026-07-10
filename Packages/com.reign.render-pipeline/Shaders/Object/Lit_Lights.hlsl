@@ -264,7 +264,7 @@ inline real4 Process_Shadow(float4 shadowCS, float2 shadowUV)
             #endif
         }
         return 1.0;
-    #elif defined(REIGN_SHADOW_SOFT_BLUR)
+    #elif defined(REIGN_SHADOW_SOFT)
         real shadowMul = 0.0;
         [branch] if (shadowCS.z >= 0.0 && all(shadowCS.xy >= -1.0) && all(shadowCS.xy <= 1.0))
         {
@@ -289,9 +289,31 @@ inline real4 Process_Shadow(float4 shadowCS, float2 shadowUV)
             }
 
             #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
-            return lerp(shadowColor, 1.0, shadowMul / 21.0);
+            return lerp(shadowColor, 1.0, shadowMul * (1.0 / 21.0));
             #else
-            return lerp(saturate(shadowColor_Adjusted), 1.0, shadowMul / 21.0);// adjust shadow ambient color without specualar acting as ambient
+            return lerp(saturate(shadowColor_Adjusted), 1.0, shadowMul * (1.0 / 21.0));// adjust shadow ambient color without specualar acting as ambient
+            #endif
+        }
+        return 1.0;
+    #elif defined(REIGN_SHADOW_SOFT_FAST)
+        real shadowMul = 0.0;
+        [branch] if (shadowCS.z >= 0.0 && all(shadowCS.xy >= -1.0) && all(shadowCS.xy <= 1.0))
+        {
+            shadowCS.z += directionalLight_Bias;
+            float d = SampleShadow(shadowUV);
+            for (int x = 0; x != 8; ++x)// inner pass
+            {
+                float rot = (x * (1.0 / 8.0)) * 6.28;
+                float2 rUV = float2(cos(rot), sin(rot)) * _ShadowTex_TexelSize.xy * 1.5;
+                rUV += shadowUV;
+                d = SampleShadow(rUV);
+                if (shadowCS.z - d >= 0.0) shadowMul += 1.0;
+            }
+
+            #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
+            return lerp(shadowColor, 1.0, shadowMul * (1.0 / 8.0));
+            #else
+            return lerp(saturate(shadowColor_Adjusted), 1.0, shadowMul * (1.0 / 8.0));// adjust shadow ambient color without specualar acting as ambient
             #endif
         }
         return 1.0;

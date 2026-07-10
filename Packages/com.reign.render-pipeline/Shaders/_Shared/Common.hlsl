@@ -167,7 +167,7 @@ inline float2 TransformLightmapUV(float2 lightmapUV)
 // ======================================
 // shadows
 // ======================================
-#if defined(ENABLE_SHADOW_RECEIVE) && (defined(REIGN_SHADOW_HARD) || defined(REIGN_SHADOW_SOFT_BLUR))
+#if defined(ENABLE_SHADOW_RECEIVE) && (defined(REIGN_SHADOW_HARD) || defined(REIGN_SHADOW_SOFT) || defined(REIGN_SHADOW_SOFT_FAST))
 #define ENABLE_SHADOWS
 #endif
 

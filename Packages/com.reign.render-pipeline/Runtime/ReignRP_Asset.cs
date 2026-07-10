@@ -32,7 +32,9 @@ namespace Reign.SRP
 		[Tooltip("This is slower but makes SS upscaling look nicer (does not work with MSAA on)")]
 		public bool compositionFinalBlitSampler = false;
 
-		public ShadowType shadowType = ShadowType.Hard;
+		public ShadowType shadowType = ShadowType.Off;
+		public ShadowSampler shadowSampler = ShadowSampler.Point;
+		public SoftShadowOption softShadowOption = SoftShadowOption.Fast;
 		public ShadowRez shadowResolution = ShadowRez.Rez_1024;
 		//public ShadowCascades shadowCascades = ShadowCascades.x1;
 		//public Vector4 shadowCascadePlanes = new Vector4(5, 10, 20, 40);
@@ -140,35 +142,21 @@ namespace Reign.SRP
 
 	public enum ShadowType
 	{
-		/// <summary>
-		/// No shadows
-		/// </summary>
 		Off,
-
-		/// <summary>
-		/// Fast and ugly with point shadow sampling
-		/// </summary>
 		Hard,
+		Soft
+	}
 
-		/// <summary>
-		/// Fast and ugly with linear shadow sampling
-		/// </summary>
-		//HardLinear,
+	public enum ShadowSampler
+	{
+		Point,
+		Linear
+	}
 
-		/// <summary>
-		/// Same as 'Hard' with slight AA around edges on some platforms
-		/// </summary>
-		//HardAA,
-
-		/// <summary>
-		/// Single-pass diffused edges
-		/// </summary>
-		//SoftDiffused,
-
-		/// <summary>
-		/// Single-pass blured edges
-		/// </summary>
-		SoftBlur
+	public enum SoftShadowOption
+	{
+		Fast,
+		HQ
 	}
 
 	public enum CommonTextureFormat

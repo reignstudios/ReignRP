@@ -38,7 +38,7 @@
             #pragma multi_compile_instancing
             #pragma multi_compile _ STEREO_INSTANCING_ON STEREO_MULTIVIEW_ON
             #pragma multi_compile _ LIGHTMAP_ON
-            #pragma multi_compile _ REIGN_SHADOW_HARD REIGN_SHADOW_SOFT_BLUR
+            #pragma multi_compile _ REIGN_SHADOW_HARD REIGN_SHADOW_SOFT REIGN_SHADOW_SOFT_FAST
 
             #pragma shader_feature _COLOR_COLOR _COLOR_TEXTURE _COLOR_BOTH
             #pragma shader_feature _ ENABLE_ALPHACLIP

@@ -61,7 +61,7 @@
             #pragma multi_compile _ REIGN_DIRECTIONAL_LIGHTS_DISABLE
             #pragma multi_compile _ REIGN_POINT_LIGHTS_DISABLE
             #pragma multi_compile _ REIGN_AMBIENT_MODE_DISABLE REIGN_AMBIENT_MODE_SKYBOX REIGN_AMBIENT_MODE_GRADIENT REIGN_AMBIENT_MODE_COLOR
-            #pragma multi_compile _ REIGN_SHADOW_HARD REIGN_SHADOW_SOFT_BLUR
+            #pragma multi_compile _ REIGN_SHADOW_HARD REIGN_SHADOW_SOFT REIGN_SHADOW_SOFT_FAST
 
             #pragma shader_feature _COLOR_COLOR _COLOR_TEXTURE _COLOR_BOTH
             #pragma shader_feature _ _SPECULAR_OFF _SPECULAR_SLIDERS _SPECULAR_MAP

@@ -661,17 +661,28 @@ namespace Reign.SRP
 			{
 				case ShadowType.Off:
 					cmd.DisableShaderKeyword("REIGN_SHADOW_HARD");
-					cmd.DisableShaderKeyword("REIGN_SHADOW_SOFT_BLUR");
+					cmd.DisableShaderKeyword("REIGN_SHADOW_SOFT");
+					cmd.DisableShaderKeyword("REIGN_SHADOW_SOFT_FAST");
 					break;
 
 				case ShadowType.Hard:
 					cmd.EnableShaderKeyword("REIGN_SHADOW_HARD");
-					cmd.DisableShaderKeyword("REIGN_SHADOW_SOFT_BLUR");
+					cmd.DisableShaderKeyword("REIGN_SHADOW_SOFT");
+					cmd.DisableShaderKeyword("REIGN_SHADOW_SOFT_FAST");
 					break;
 
-				case ShadowType.SoftBlur:
+				case ShadowType.Soft:
 					cmd.DisableShaderKeyword("REIGN_SHADOW_HARD");
-					cmd.EnableShaderKeyword("REIGN_SHADOW_SOFT_BLUR");
+					if (asset.softShadowOption == SoftShadowOption.Fast)
+					{
+						cmd.EnableShaderKeyword("REIGN_SHADOW_SOFT_FAST");
+						cmd.DisableShaderKeyword("REIGN_SHADOW_SOFT");
+					}
+					else
+					{
+						cmd.EnableShaderKeyword("REIGN_SHADOW_SOFT");
+						cmd.DisableShaderKeyword("REIGN_SHADOW_SOFT_FAST");
+					}
 					break;
 			}
 
