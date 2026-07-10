@@ -15,7 +15,7 @@ namespace Reign.SRP.Editor
 
         public void OnPreprocessBuild(BuildReport report)
         {
-            if (report.summary.platformGroup == BuildTargetGroup.Android) Configure();
+            Configure();
         }
 
         [InitializeOnLoadMethod]
