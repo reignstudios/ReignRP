@@ -29,6 +29,8 @@ namespace Reign.SRP
 		public CommonTextureFormat compositionColorFormat = CommonTextureFormat.UINT_A2_RGB10;
 		public DepthBit compositionDepthBit = DepthBit.Bit16;
 		public float compositionScale = 1;
+		[Tooltip("This is slower but makes SS upscaling look nicer (does not work with MSAA on)")]
+		public bool compositionFinalBlitSampler = false;
 
 		public ShadowType shadowType = ShadowType.Hard;
 		public ShadowRez shadowResolution = ShadowRez.Rez_1024;

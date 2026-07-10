@@ -101,7 +101,8 @@
             PSOUT frag(v2f i)
             {
                 PSOUT o;
-                o.color = SAMPLE_TEXTURE2D_LOD(_BlitTex, sampler_BlitTex, i.uv, srcMipLvl);
+                //o.color = SAMPLE_TEXTURE2D_LOD(_BlitTex, sampler_BlitTex, i.uv, srcMipLvl);
+                o.color = SAMPLE_TEXTURE2D_LOD(_BlitTex, sampler_linear_repeat, i.uv, srcMipLvl);// force linear sampling
                 return o;
             }
             ENDHLSL

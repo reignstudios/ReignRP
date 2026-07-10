@@ -760,7 +760,7 @@ namespace Reign.SRP
 				cmd.Clear();
 				if (msaaResolved)
 				{
-					Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh:blitMesh);
+					Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh:blitMesh, mode:(asset.compositionFinalBlitSampler ? BlitMode.Sampler : BlitMode.Load));
 				}
 				else
 				{
