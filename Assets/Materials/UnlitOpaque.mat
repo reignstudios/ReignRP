@@ -13,6 +13,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - ENABLE_ALPHACLIP
+  - ENABLE_SHADOW_RECEIVE
   - _COLOR_COLOR
   m_InvalidKeywords:
   - ENABLE_METALLIC_FRESNEL
@@ -77,9 +78,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AlphaClip: 0.1
     - _BumpScale: 1
     - _COLOR: 0
     - _ColorMode: 0
+    - _Cull: 2
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
@@ -94,6 +97,7 @@ Material:
     - _ENABLE_NORMAL: 0
     - _ENABLE_NORMAL_NORMALIZE: 0
     - _ENABLE_OCCLUSION: 0
+    - _ENABLE_SHADOW_RECEIVE: 1
     - _ENABLE_SPECULAR_HQ: 1
     - _GlossMapScale: 1
     - _Glossiness: 0.5

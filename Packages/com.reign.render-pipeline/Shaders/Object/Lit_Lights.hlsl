@@ -251,8 +251,13 @@ inline float SampleShadow(float2 shadowUV)
 inline real4 Process_Shadow(float4 shadowCS, float2 shadowUV)
 {
     #if defined(REIGN_SHADOW_HARD)
-        float d = SampleShadow(shadowUV);
-        return (shadowCS.z + directionalLight_Bias - d) < 0.0 ? 0.0 : 1.0;
+        [branch] if (shadowCS.z >= 0.0)
+        {
+            float d = SampleShadow(shadowUV);
+            real shadowMul = (shadowCS.z + directionalLight_Bias - d) < 0.0 ? 0.0 : 1.0;
+            return lerp(shadowColor, 1.0, shadowMul);
+        }
+        return 1.0;
     #elif defined(REIGN_SHADOW_SOFT_BLUR)
         real shadowMul = 0.0;
         [branch] if (shadowCS.z >= 0.0)

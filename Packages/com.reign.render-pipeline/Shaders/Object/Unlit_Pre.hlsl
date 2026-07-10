@@ -25,8 +25,12 @@ struct VS_OUT
 {
     float2 uv : TEXCOORD0;
     
+    #ifdef ENABLE_SHADOWS
+    float4 shadowCS : TEXCOORD7;
+    #endif
+    
     #ifdef LIGHTMAP_ON
-    float2 lightmapUV : TEXCOORD1;
+    float2 lightmapUV : TEXCOORD8;
     #endif
 
     float4 positionCS : SV_POSITION;

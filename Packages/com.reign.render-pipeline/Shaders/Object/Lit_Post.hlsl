@@ -21,11 +21,12 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
     // uv
     o.uv = (i.uv * _UVScaleOffset.xy) + _UVScaleOffset.zw;
     
-    // shadow CS
+    // shadow
     #ifdef ENABLE_SHADOWS
     o.shadowCS = TransformWorldToHClipShadow(o.pos);
     #endif
     
+    // lightmap
     #ifdef LIGHTMAP_ON
     o.lightmapUV = TransformLightmapUV(i.lightmapUV);
     #endif
@@ -231,10 +232,12 @@ PS_OUT frag(VS_OUT i)
     Process_LightMaterial(materialParams, lightDiffuse);
     #endif
     
+    // shadows
     #ifdef ENABLE_SHADOWS
         lightDiffuse *= Process_Shadow(i.shadowCS, materialParams.shadowUV);
     #endif
     
+    // occlusion
     #ifdef ENABLE_OCCLUSION
         lightDiffuse *= materialParams.ao;
         #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
@@ -242,18 +245,21 @@ PS_OUT frag(VS_OUT i)
         #endif
     #endif
     
+    // final light application
     #if defined(_SPECULAR_SLIDERS) || defined(_SPECULAR_MAP)
     o.color = lightDiffuse + lightSpecular;
     #else
     o.color = lightDiffuse;
     #endif
     
+    // refraction
     #ifdef REIGN_REFRACTIVE_SS
     real3 r = refract(eyeDir, materialParams.normal, _RefractionIndex);
     r = mul(UNITY_MATRIX_V, real4(r - eyeDir, 0.0));
     o.color += SAMPLE_TEXTURE2D_LOD(_CameraColorTexture, sampler_CameraColorTexture, materialParams.ssUV + r.xy * .5, _RefractionRoughness * mipmaps_CameraColorTexture) * _RefractionColor;
     #endif
     
+    // emission
     #ifdef ENABLE_EMISSION
     o.color += materialParams.emissive;
     #endif

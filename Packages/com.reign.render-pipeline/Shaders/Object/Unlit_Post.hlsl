@@ -1,25 +1,42 @@
 #ifndef REIGN_POST
 #define REIGN_POST
 
+#ifdef ENABLE_SHADOWS
+#include "Lit_Lights.hlsl"
+#endif
+
 // =====================================
 // Base
 // =====================================
 #ifndef REIGN_GetVertexOutput_OVERRIDE
 inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
 {
+    // get local position
+    float3 pos = i.positionOS;
+
+    // custom local pos
+    #ifdef REIGN_GetVertexOutput_OVERRIDE_LOCAL_POS
+    GetVertexOutput_OverrideLocalPos(i, pos);
+    #endif
+    
+    // get world position
+    pos = TransformObjectToWorld(pos);
+    
     // uv
     o.uv = (i.uv * _UVScaleOffset.xy) + _UVScaleOffset.zw;
     
+    // shadow
+    #ifdef ENABLE_SHADOWS
+    o.shadowCS = TransformWorldToHClipShadow(pos);
+    #endif
+    
+    // lightmap
     #ifdef LIGHTMAP_ON
     o.lightmapUV = TransformLightmapUV(i.lightmapUV);
     #endif
 
     // finish
-    #ifdef REIGN_GetVertexOutput_OVERRIDE_LOCAL_POS
-    o.positionCS = GetVertexOutput_OverrideLocalPos(i, i.positionOS);
-    #else
-    o.positionCS = TransformWorldToHClip(TransformObjectToWorld(i.positionOS));
-    #endif
+    o.positionCS = TransformWorldToHClip(pos);
 }
 #endif
 
@@ -92,6 +109,15 @@ PS_OUT frag(VS_OUT i)
         #endif
     #else
         o.color *= GetMaterialProperties_Override_Lightmap(i);
+    #endif
+    
+    // shadows
+    #ifdef ENABLE_SHADOWS
+        float2 shadowUV = (i.shadowCS.xy + 1.0) * .5;
+        #ifdef UNITY_UV_STARTS_AT_TOP
+        shadowUV.y = 1.0 - shadowUV.y;
+        #endif
+        o.color *= Process_Shadow(i.shadowCS, shadowUV);
     #endif
 
     // custom outs
