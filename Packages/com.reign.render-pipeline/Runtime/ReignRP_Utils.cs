@@ -321,6 +321,5 @@ namespace Reign.SRP
 				mipHeightUV *= .5f;
 			}
 		}
-
     }
 }

@@ -54,10 +54,13 @@ namespace Reign.SRP
         private CameraDataComparer cameraDataComparer = new CameraDataComparer();
         private List<CameraResource> cameraResources = new List<CameraResource>();
 
-		private Vector3 directionalLight_Position;
-		private Quaternion directionalLight_Rotation;
+		internal Vector3 directionalLight_Position;
+		internal Quaternion directionalLight_Rotation;
+		internal Vector3 directionalLight_ShadowScale;
+		private float directionalLight_ShadowBias;
+		internal float directionalLight_ShadowNearPlane;
+		private LightShadows directionalLight_ShadowType;
 		private Vector4 directionalLight_Direction, directionalLight_Color;
-		private float directionalLight_Bias;
 
 		private const int pointLight_MaxConst = 4;
 		private int pointLight_Max;
@@ -528,7 +531,7 @@ namespace Reign.SRP
 
 			// get max shadow plane
 			/*float maxShadowPlane = 0;
-			if (asset.shadowType != ShadowType.Off)
+			if (renderShadows)
 			{
 				switch (asset.shadowCascades)
 				{
@@ -574,12 +577,15 @@ namespace Reign.SRP
 
 							directionalLight_Position = t.position;
 							directionalLight_Rotation = t.rotation;
+							directionalLight_ShadowScale = t.lossyScale;
 
 							directionalLight_Direction = t.forward;
 							directionalLight_Direction.w = bakeFlag;// lightmap diffuse mode
 							directionalLight_Color = light.finalColor;
 							directionalLight_Color.w = l.intensity;
-							directionalLight_Bias = l.shadowBias;
+							directionalLight_ShadowBias = l.shadowBias;
+							directionalLight_ShadowNearPlane = l.shadowNearPlane;
+							directionalLight_ShadowType = l.shadows;
 							directionalLight_Count++;
 						}
 						break;
@@ -600,6 +606,21 @@ namespace Reign.SRP
 				}
 			}
 			
+			// adjust shadow type
+			var shadowType = asset.shadowType;
+			if (shadowType != ShadowType.Off)
+			{
+				switch (directionalLight_ShadowType)
+				{
+					case LightShadows.None:
+						shadowType = ShadowType.Off;
+						renderShadows = false;
+						break;
+
+					case LightShadows.Hard: shadowType = ShadowType.Hard; break;
+				}
+			}
+
 			// render shadows
 			if (renderShadows) RenderShadowPass_Directional(ref context, camera);
 			
@@ -613,7 +634,7 @@ namespace Reign.SRP
 			{
 				cmd.SetGlobalVector("directionalLight_Direction", directionalLight_Direction);
 				cmd.SetGlobalVector("directionalLight_Color", directionalLight_Color);
-				cmd.SetGlobalFloat("directionalLight_Bias", directionalLight_Bias);
+				cmd.SetGlobalFloat("directionalLight_Bias", directionalLight_ShadowBias);
 				cmd.DisableShaderKeyword("REIGN_DIRECTIONAL_LIGHTS_DISABLE");
 			}
 			else
@@ -636,7 +657,7 @@ namespace Reign.SRP
 				cmd.EnableShaderKeyword("REIGN_POINT_LIGHTS_DISABLE");
 			}
 
-			switch (asset.shadowType)
+			switch (shadowType)
 			{
 				case ShadowType.Off:
 					cmd.DisableShaderKeyword("REIGN_SHADOW_HARD");
@@ -654,7 +675,7 @@ namespace Reign.SRP
 					break;
 			}
 
-			if (asset.shadowType != ShadowType.Off)
+			if (shadowType != ShadowType.Off)
 			{
 				cmd.SetGlobalVector("shadowColor", RenderSettings.subtractiveShadowColor);
 				var adjustedColor = RenderSettings.subtractiveShadowColor + asset.shadowColorAdjust;
@@ -1044,9 +1065,11 @@ namespace Reign.SRP
 			context.ExecuteCommandBuffer(cmd);
 
 			// draw post gizmos
-			if (camera.cameraType == CameraType.SceneView && Handles.ShouldRenderGizmos())
+			if (camera.cameraType == CameraType.SceneView)
 			{
-				context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
+				context.DrawWireOverlay(camera);
+				if (Handles.ShouldRenderGizmos()) context.DrawGizmos(camera, GizmoSubset.PostImageEffects);
+
 			}
 			#endif
 		}

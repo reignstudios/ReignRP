@@ -1,5 +1,10 @@
-using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine;
+
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace Reign.SRP
 {
@@ -38,6 +43,7 @@ namespace Reign.SRP
 				shadowTexture = new RenderTexture(rez, rez, 16, asset.debugShadow ? RenderTextureFormat.Default : RenderTextureFormat.Depth, 1);
 				shadowTexture.useMipMap = false;
 				shadowTexture.autoGenerateMips = false;
+				SetTextureSamplerState(shadowTexture, FilterMode.Point, TextureWrapMode.Clamp);
 				shadowTexture.Create();
 				shadowTextureID = shadowTexture;
 			}
@@ -59,14 +65,14 @@ namespace Reign.SRP
 				shadowCamera.enabled = false;
 				shadowCamera.targetTexture = shadowTexture;
 				shadowCamera.orthographic = true;
-				shadowCamera.orthographicSize = 10;
-				shadowCamera.nearClipPlane = 0.1f;
-				shadowCamera.farClipPlane = 20;
 
 				shadowTransform = shadowGameObject.transform;
 			}
 
-			// configure shadow camera
+			// configure state changes
+			shadowCamera.orthographicSize = Mathf.Max(directionalLight_ShadowScale.x, directionalLight_ShadowScale.y) * .5f;
+			shadowCamera.nearClipPlane = directionalLight_ShadowNearPlane;
+			shadowCamera.farClipPlane = directionalLight_ShadowScale.z;
 			shadowTransform.SetPositionAndRotation(directionalLight_Position, directionalLight_Rotation);
 
 			// draw shadows

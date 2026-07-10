@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -26,7 +27,7 @@ namespace Reign.SRP.Editor
             ConfigureLayers();
         }
 
-        private static void ConfigureOpenXRFoveation(BuildTargetGroup target)
+		private static void ConfigureOpenXRFoveation(BuildTargetGroup target)
         {
             var settings = OpenXRSettings.GetSettingsForBuildTargetGroup(target);
             if (settings == null) return;
