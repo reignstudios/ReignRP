@@ -94,7 +94,7 @@ namespace Reign.SRP
 			else if (xrFoveatedRenderingLevel > 1) xrFoveatedRenderingLevel = 1;
 
 			#if !UNITY_EDITOR
-			asset.debugShadow = false;
+			debugShadow = false;
 			#endif
 		}
 

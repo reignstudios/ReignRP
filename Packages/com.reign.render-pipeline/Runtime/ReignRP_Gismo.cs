@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 
@@ -41,3 +42,4 @@ namespace Reign.SRP
 		}
 	}
 }
+#endif
