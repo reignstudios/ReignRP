@@ -105,6 +105,10 @@ float _AlphaClip;
 float _RefractionIndex, _RefractionRoughness;
 float4 _RefractionColor;
 #endif
+
+#ifdef ENABLE_EXTRUDE
+float _ExtrudeValue;
+#endif
 #endif
 
 // =====================================

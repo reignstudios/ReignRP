@@ -21,11 +21,6 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
     // uv
     o.uv = (i.uv * _UVScaleOffset.xy) + _UVScaleOffset.zw;
     
-    // shadow
-    #ifdef ENABLE_SHADOWS
-    o.shadowCS = TransformWorldToHClipShadow(o.pos);
-    #endif
-    
     // lightmap
     #ifdef LIGHTMAP_ON
     o.lightmapUV = TransformLightmapUV(i.lightmapUV);
@@ -33,24 +28,38 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
 
     // surface
     #ifndef REIGN_GetVertexOutput_OVERRIDE_surfaceMatrix
-    #if defined(ENABLE_NORMAL)
-    o.surfaceMatrix = float3x3
-    (
-        normalize(i.tangent),
-        normalize(cross(i.tangent, i.normal)),
-        i.normal
-    );
-    o.surfaceMatrix = mul(o.surfaceMatrix, unity_WorldToObject);
+        #if defined(ENABLE_NORMAL)
+            o.surfaceMatrix = float3x3
+            (
+                normalize(i.tangent),
+                normalize(cross(i.tangent, i.normal)),
+                i.normal
+            );
+            o.surfaceMatrix = mul(o.surfaceMatrix, unity_WorldToObject);
+            #ifdef ENABLE_EXTRUDE
+            o.pos += normalize(mul(unity_ObjectToWorld, float4(o.surfaceMatrix[2], 0.0))) * _ExtrudeValue;
+            #endif
+        #else
+            o.normal = mul(i.normal, unity_WorldToObject);
+            #ifdef ENABLE_EXTRUDE
+            o.pos += normalize(mul(unity_ObjectToWorld, float4(i.normal, 0.0))) * _ExtrudeValue;
+            #endif
+        #endif
     #else
-    o.normal = mul(i.normal, unity_WorldToObject);
-    #endif
-    #else
-    o.surfaceMatrix = GetVertexOutput_OVERRIDE_surfaceMatrix(i, o);
+        o.surfaceMatrix = GetVertexOutput_OVERRIDE_surfaceMatrix(i, o);
+        #ifdef ENABLE_EXTRUDE
+        o.pos += normalize(mul(unity_ObjectToWorld, float4(o.surfaceMatrix[2], 0.0))) * _ExtrudeValue;
+        #endif
     #endif
 
     // custom world pos
     #ifdef REIGN_GetVertexOutput_OVERRIDE_WORLD_POS
     GetVertexOutput_OverrideWorldPos(i, o, o.pos);
+    #endif
+    
+    // shadow
+    #ifdef ENABLE_SHADOWS
+    o.shadowCS = TransformWorldToHClipShadow(o.pos);
     #endif
 
     // finish

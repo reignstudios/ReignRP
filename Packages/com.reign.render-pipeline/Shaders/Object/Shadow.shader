@@ -56,7 +56,7 @@
             ENDHLSL
         }
 
-        Pass// Opaque Preview
+        Pass// Opaque Preview (Used for Editor debuggig)
         {
             ColorMask RGBA// don't draw color information
 

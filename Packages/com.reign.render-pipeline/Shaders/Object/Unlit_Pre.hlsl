@@ -12,6 +12,10 @@ struct VS_IN
     float3 positionOS : POSITION;
     float2 uv : TEXCOORD0;
     
+    #ifdef ENABLE_EXTRUDE
+    float3 normal : NORMAL;
+    #endif
+    
     #ifdef LIGHTMAP_ON
     float2 lightmapUV : TEXCOORD1;
     #endif
@@ -61,6 +65,10 @@ TEXTURE2D(_BaseMap);
 
 #ifdef ENABLE_ALPHACLIP
 float _AlphaClip;
+#endif
+
+#ifdef ENABLE_EXTRUDE
+float _ExtrudeValue;
 #endif
 #endif
 

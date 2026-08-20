@@ -14,6 +14,11 @@
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
 
         [Toggle(ENABLE_SHADOW_RECEIVE)] _ENABLE_SHADOW_RECEIVE ("Enable Shadow Receive", Float) = 0
+
+        // Extrude
+        [Space(10)]
+        [Toggle(ENABLE_EXTRUDE)] _ENABLE_EXTRUDE ("Extrude", Float) = 0
+        _ExtrudeValue ("Extrude Value", Float) = 0.0
     }
 
     SubShader
@@ -37,6 +42,8 @@
             #pragma shader_feature _COLOR_COLOR _COLOR_TEXTURE _COLOR_BOTH
             #pragma shader_feature _ _CLIP_MODE_DITHER _CLIP_MODE_PATTERN _CLIP_MODE_RANDOM
             #pragma shader_feature _ ENABLE_SHADOW_RECEIVE
+
+            #pragma shader_feature _ ENABLE_EXTRUDE
 
             #define SS_UV
             #define ENABLE_SS_DITHERALPHA

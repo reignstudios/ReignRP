@@ -13,13 +13,13 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - ENABLE_SHADOW_RECEIVE
-  - ENABLE_SPECULAR_HQ
   - _COLOR_COLOR
   - _SPECULAR_SLIDERS
   m_InvalidKeywords:
   - ENABLE_METALLIC_FRESNEL
   - ENABLE_METALLIC_HQ
   - ENABLE_METALLIC_PBR
+  - ENABLE_SPECULAR_HQ
   - _METALLIC_SLIDERS
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -89,6 +89,7 @@ Material:
     - _ENABLE_ALPHACLIP: 0
     - _ENABLE_COLOR: 0
     - _ENABLE_EMISSION: 0
+    - _ENABLE_EXTRUDE: 0
     - _ENABLE_METALLIC: 0
     - _ENABLE_METALLIC_FRESNEL: 1
     - _ENABLE_METALLIC_HQ: 1
@@ -98,6 +99,7 @@ Material:
     - _ENABLE_OCCLUSION: 0
     - _ENABLE_SHADOW_RECEIVE: 1
     - _ENABLE_SPECULAR_HQ: 1
+    - _ExtrudeValue: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
