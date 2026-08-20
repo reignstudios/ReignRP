@@ -12,7 +12,7 @@ struct VS_IN
     float3 positionOS : POSITION;
     float2 uv : TEXCOORD0;
     
-    #ifdef ENABLE_EXTRUDE
+    #ifndef _EXTRUDE_OFF
     float3 normal : NORMAL;
     #endif
     
@@ -67,7 +67,7 @@ TEXTURE2D(_BaseMap);
 float _AlphaClip;
 #endif
 
-#ifdef ENABLE_EXTRUDE
+#ifndef _EXTRUDE_OFF
 float _ExtrudeValue;
 #endif
 #endif

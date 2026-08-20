@@ -106,7 +106,7 @@ float _RefractionIndex, _RefractionRoughness;
 float4 _RefractionColor;
 #endif
 
-#ifdef ENABLE_EXTRUDE
+#ifndef _EXTRUDE_OFF
 float _ExtrudeValue;
 #endif
 #endif

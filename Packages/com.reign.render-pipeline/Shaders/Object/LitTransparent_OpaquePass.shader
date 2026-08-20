@@ -40,7 +40,7 @@
 
         // Extrude
         [Space(10)]
-        [Toggle(ENABLE_EXTRUDE)] _ENABLE_EXTRUDE ("Extrude", Float) = 0
+        [KeywordEnum(Off, WS, SS)] _EXTRUDE ("Extrude Mode", Float) = 0
         _ExtrudeValue ("Extrude Value", Float) = 0.0
     }
 
@@ -76,7 +76,7 @@
             #pragma shader_feature _ ENABLE_ALPHACLIP
             #pragma shader_feature _ ENABLE_SHADOW_RECEIVE
 
-            #pragma shader_feature _ ENABLE_EXTRUDE
+            #pragma shader_feature _EXTRUDE_OFF _EXTRUDE_WS _EXTRUDE_SS
 
             #include "Lit_Pre.hlsl"
             #include "Lit_Post.hlsl"

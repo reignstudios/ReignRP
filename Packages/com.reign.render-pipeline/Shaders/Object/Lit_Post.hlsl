@@ -17,6 +17,11 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
 
     // get world position
     o.pos = TransformObjectToWorld(o.pos);
+    
+    // extrude WS
+    #ifdef _EXTRUDE_WS
+    o.pos += normalize(mul(unity_ObjectToWorld, float4(i.normal, 0.0))) * _ExtrudeValue;
+    #endif
 
     // uv
     o.uv = (i.uv * _UVScaleOffset.xy) + _UVScaleOffset.zw;
@@ -36,20 +41,11 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
                 i.normal
             );
             o.surfaceMatrix = mul(o.surfaceMatrix, unity_WorldToObject);
-            #ifdef ENABLE_EXTRUDE
-            o.pos += normalize(mul(unity_ObjectToWorld, float4(o.surfaceMatrix[2], 0.0))) * _ExtrudeValue;
-            #endif
         #else
             o.normal = mul(i.normal, unity_WorldToObject);
-            #ifdef ENABLE_EXTRUDE
-            o.pos += normalize(mul(unity_ObjectToWorld, float4(i.normal, 0.0))) * _ExtrudeValue;
-            #endif
         #endif
     #else
         o.surfaceMatrix = GetVertexOutput_OVERRIDE_surfaceMatrix(i, o);
-        #ifdef ENABLE_EXTRUDE
-        o.pos += normalize(mul(unity_ObjectToWorld, float4(o.surfaceMatrix[2], 0.0))) * _ExtrudeValue;
-        #endif
     #endif
 
     // custom world pos
@@ -64,6 +60,12 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
 
     // finish
     o.positionCS = TransformWorldToHClip(o.pos);
+    
+    // extrude SS
+    #if _EXTRUDE_SS
+    float2 n = normalize(mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, float4(i.normal, 0.0))).xy) * _ExtrudeValue;
+    o.positionCS.xy += n * o.positionCS.w;
+    #endif
 }
 #endif
 

@@ -22,7 +22,8 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
     // get world position
     pos = TransformObjectToWorld(pos);
     
-    #ifdef ENABLE_EXTRUDE
+    // extrude WS
+    #ifdef _EXTRUDE_WS
     pos += normalize(mul(unity_ObjectToWorld, float4(i.normal, 0.0))) * _ExtrudeValue;
     #endif
     
@@ -41,6 +42,12 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
 
     // finish
     o.positionCS = TransformWorldToHClip(pos);
+    
+    // extrude SS
+    #if _EXTRUDE_SS
+    float2 n = normalize(mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, float4(i.normal, 0.0))).xy) * _ExtrudeValue;
+    o.positionCS.xy += n * o.positionCS.w;
+    #endif
 }
 #endif
 
