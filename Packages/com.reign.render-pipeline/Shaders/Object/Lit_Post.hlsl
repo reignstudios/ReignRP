@@ -9,6 +9,9 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
 {
     // get local position
     float3 pos = i.positionOS;
+    #ifdef ENABLE_POS_LOCAL
+    o.posLocal = pos;
+    #endif
 
     // custom local pos
     #ifdef REIGN_GetVertexOutput_OVERRIDE_LOCAL_POS

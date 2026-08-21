@@ -42,14 +42,18 @@ struct VS_OUT
     
     float3 pos : TEXCOORD1;
     
+    #ifdef ENABLE_POS_LOCAL
+    float3 posLocal : TEXCOORD2;
+    #endif
+    
     #if defined(ENABLE_NORMAL)
-    float3x3 surfaceMatrix : TEXCOORD2;
+    float3x3 surfaceMatrix : TEXCOORD3;
     #else
-    float3 normal : TEXCOORD2;
+    float3 normal : TEXCOORD3;
     #endif
     
     #ifdef ENABLE_COLOR
-    float4 color : TEXCOORD3;
+    float4 color : TEXCOORD4;
     #endif
     
     #ifdef ENABLE_SHADOWS

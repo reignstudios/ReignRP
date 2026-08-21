@@ -42,8 +42,12 @@ struct VS_OUT
     float3 pos : TEXCOORD1;
     #endif
     
+    #ifdef ENABLE_POS_LOCAL
+    float3 posLocal : TEXCOORD2;
+    #endif
+    
     #ifdef ENABLE_COLOR
-    float4 color : TEXCOORD2;
+    float4 color : TEXCOORD3;
     #endif
     
     #ifdef ENABLE_SHADOWS
