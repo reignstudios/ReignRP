@@ -7,25 +7,6 @@
 #ifndef REIGN_GetVertexOutput_OVERRIDE
 inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
 {
-    // get local position
-    float3 pos = i.positionOS;
-    #ifdef ENABLE_POS_LOCAL
-    o.posLocal = pos;
-    #endif
-
-    // custom local pos
-    #ifdef REIGN_GetVertexOutput_OVERRIDE_LOCAL_POS
-    GetVertexOutput_OverrideLocalPos(i, pos);
-    #endif
-
-    // get world position
-    pos = TransformObjectToWorld(pos);
-    
-    // extrude WS
-    #ifdef _EXTRUDE_WS
-    pos += normalize(mul(unity_ObjectToWorld, float4(i.normal, 0.0))) * _ExtrudeValue;
-    #endif
-
     // uv
     #ifdef ENABLE_UV
     o.uv = (i.uv * _UVScaleOffset.xy) + _UVScaleOffset.zw;
@@ -57,10 +38,28 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
     #else
         o.surfaceMatrix = GetVertexOutput_OVERRIDE_surfaceMatrix(i, o);
     #endif
+    
+    // get local position
+    float3 pos = i.positionOS;
 
-    // custom world pos
-    #ifdef REIGN_GetVertexOutput_OVERRIDE_WORLD_POS
-    GetVertexOutput_OverrideWorldPos(i, o, pos);
+    // custom local pos
+    #ifdef REIGN_GetVertexOutput_OVERRIDE_LOCAL_POS
+    GetVertexOutput_Override_LocalPos(i, o, pos);
+    #endif
+    
+    #ifdef ENABLE_POS_LOCAL
+    o.posLocal = pos;
+    #endif
+
+    // get world position
+    pos = TransformObjectToWorld(pos);
+    #ifdef REIGN_GetVertexOutput_OVERRIDE_POS
+    GetVertexOutput_Override_WorldPos(i, o, pos);
+    #endif
+    
+    // extrude WS
+    #ifdef _EXTRUDE_WS
+    pos += normalize(mul(unity_ObjectToWorld, float4(i.normal, 0.0))) * _ExtrudeValue;
     #endif
     
     // shadow

@@ -11,25 +11,6 @@
 #ifndef REIGN_GetVertexOutput_OVERRIDE
 inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
 {
-    // get local position
-    float3 pos = i.positionOS;
-    #ifdef ENABLE_POS_LOCAL
-    o.posLocal = pos;
-    #endif
-
-    // custom local pos
-    #ifdef REIGN_GetVertexOutput_OVERRIDE_LOCAL_POS
-    GetVertexOutput_OverrideLocalPos(i, pos);
-    #endif
-    
-    // get world position
-    pos = TransformObjectToWorld(pos);
-    
-    // extrude WS
-    #ifdef _EXTRUDE_WS
-    pos += normalize(mul(unity_ObjectToWorld, float4(i.normal, 0.0))) * _ExtrudeValue;
-    #endif
-    
     // uv
     #ifdef ENABLE_UV
     o.uv = (i.uv * _UVScaleOffset.xy) + _UVScaleOffset.zw;
@@ -40,14 +21,46 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
     o.color = i.color;
     #endif
     
-    // shadow
-    #ifdef ENABLE_SHADOWS
-    o.shadowCS = TransformWorldToHClipShadow(pos);
-    #endif
-    
     // lightmap
     #ifdef LIGHTMAP_ON
     o.lightmapUV = TransformLightmapUV(i.lightmapUV);
+    #endif
+    
+    // get local position
+    float3 pos = i.positionOS;
+
+    // custom local pos
+    #ifdef REIGN_GetVertexOutput_OVERRIDE_LOCAL_POS
+    GetVertexOutput_Override_LocalPos(i, o, pos);
+    #endif
+    
+    #ifdef ENABLE_POS_LOCAL
+    o.posLocal = pos;
+    #endif
+    
+    // normal
+    #if !defined(_EXTRUDE_OFF) || defined(ENABLE_NORMAL)
+	float3 n = normalize(mul(unity_ObjectToWorld, float4(i.normal, 0.0)));
+    #endif
+    
+    #ifdef ENABLE_NORMAL
+    o.normal = n;
+    #endif
+    
+    // get world position
+    pos = TransformObjectToWorld(pos);
+    #ifdef REIGN_GetVertexOutput_OVERRIDE_POS
+    GetVertexOutput_Override_WorldPos(i, o, pos);
+    #endif
+    
+    // extrude WS
+    #ifdef _EXTRUDE_WS
+    pos += n * _ExtrudeValue;
+    #endif
+    
+    // shadow
+    #ifdef ENABLE_SHADOWS
+    o.shadowCS = TransformWorldToHClipShadow(pos);
     #endif
 
     // finish
@@ -58,8 +71,8 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
     
     // extrude SS
     #if _EXTRUDE_SS
-    float2 n = normalize(mul(UNITY_MATRIX_VP, mul(unity_ObjectToWorld, float4(i.normal, 0.0))).xy) * _ExtrudeValue;
-    o.positionCS.xy += n * o.positionCS.w;
+    float2 nSS = normalize(mul(UNITY_MATRIX_VP, float4(n, 0.0)).xy) * _ExtrudeValue;
+    o.positionCS.xy += nSS * o.positionCS.w;
     #endif
 }
 #endif

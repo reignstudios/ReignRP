@@ -19,7 +19,7 @@ struct VS_IN
     float4 color : COLOR;
     #endif
     
-    #ifndef _EXTRUDE_OFF
+    #if !defined(_EXTRUDE_OFF) || defined(ENABLE_NORMAL)
     float3 normal : NORMAL;
     #endif
     
@@ -48,6 +48,10 @@ struct VS_OUT
     
     #ifdef ENABLE_COLOR
     float4 color : TEXCOORD3;
+    #endif
+    
+    #ifdef ENABLE_NORMAL
+    float3 normal : TEXCOORD4;
     #endif
     
     #ifdef ENABLE_SHADOWS
