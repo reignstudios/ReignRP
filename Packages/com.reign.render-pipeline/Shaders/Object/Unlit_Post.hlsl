@@ -28,7 +28,14 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
     #endif
     
     // uv
+    #ifdef ENABLE_UV
     o.uv = (i.uv * _UVScaleOffset.xy) + _UVScaleOffset.zw;
+    #endif
+    
+    // color
+    #ifdef ENABLE_COLOR
+    o.color = i.color;
+    #endif
     
     // shadow
     #ifdef ENABLE_SHADOWS
@@ -41,6 +48,9 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
     #endif
 
     // finish
+    #ifdef ENABLE_POS
+    o.pos = pos;
+    #endif
     o.positionCS = TransformWorldToHClip(pos);
     
     // extrude SS
@@ -92,6 +102,10 @@ PS_OUT frag(VS_OUT i)
         #endif
     #else
         o.color = GetMaterialProperties_Override_Color(i);
+    #endif
+    
+    #ifdef ENABLE_VERTEX_COLOR
+    o.color *= i.color;
     #endif
     
     // clip

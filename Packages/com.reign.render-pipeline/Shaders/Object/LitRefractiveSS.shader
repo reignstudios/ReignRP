@@ -41,6 +41,10 @@
 
         [Toggle(ENABLE_SHADOW_RECEIVE)] _ENABLE_SHADOW_RECEIVE ("Enable Shadow Receive", Float) = 0
 
+        // vertex Color
+        [Space(10)]
+        [Toggle(ENABLE_VERTEX_COLOR)] _ENABLE_VERTEX_COLOR ("Enable Vertex Color", Float) = 0
+
         // Extrude
         [Space(10)]
         [KeywordEnum(Off, WS, SS)] _EXTRUDE ("Extrude Mode", Float) = 0
@@ -77,8 +81,17 @@
 
             #pragma shader_feature _ ENABLE_ALPHACLIP
             #pragma shader_feature _ ENABLE_SHADOW_RECEIVE
+            #pragma shader_feature _ ENABLE_VERTEX_COLOR
 
             #pragma shader_feature _EXTRUDE_OFF _EXTRUDE_WS _EXTRUDE_SS
+
+            #if defined(_COLOR_TEXTURE) || defined(_COLOR_BOTH) || defined(_SPECULAR_MAP) || defined(ENABLE_NORMAL) || defined(ENABLE_OCCLUSION) || defined(ENABLE_EMISSION)
+            #define ENABLE_UV
+            #endif
+
+            #ifdef ENABLE_VERTEX_COLOR
+            #define ENABLE_COLOR
+            #endif
 
             #define SS_UV
             #define REIGN_REFRACTIVE_SS

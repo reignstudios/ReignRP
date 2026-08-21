@@ -81,6 +81,9 @@
             #pragma vertex vert
             #pragma fragment frag
 
+            #define ENABLE_UV
+            #define ENABLE_POS
+
             #include "Lit_Pre.hlsl"
             #include "Lit_Post.hlsl"
             ENDHLSL

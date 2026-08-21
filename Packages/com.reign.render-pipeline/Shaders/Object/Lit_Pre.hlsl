@@ -10,7 +10,14 @@
 struct VS_IN
 {
     float3 positionOS : POSITION;
+    
+    #ifdef ENABLE_UV
     float2 uv : TEXCOORD0;
+    #endif
+    
+    #ifdef ENABLE_COLOR
+    float4 color : COLOR;
+    #endif
     
     #ifdef LIGHTMAP_ON
     float2 lightmapUV : TEXCOORD1;
@@ -29,13 +36,20 @@ struct VS_IN
 #ifndef REIGN_VS_OUT_OVERRIDE
 struct VS_OUT
 {
+    #ifdef ENABLE_UV
     float2 uv : TEXCOORD0;
+    #endif
+    
     float3 pos : TEXCOORD1;
     
     #if defined(ENABLE_NORMAL)
     float3x3 surfaceMatrix : TEXCOORD2;
     #else
     float3 normal : TEXCOORD2;
+    #endif
+    
+    #ifdef ENABLE_COLOR
+    float4 color : TEXCOORD3;
     #endif
     
     #ifdef ENABLE_SHADOWS

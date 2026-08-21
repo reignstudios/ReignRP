@@ -15,6 +15,7 @@ Material:
   - ENABLE_SHADOW_RECEIVE
   - _CLIP_MODE_DITHER
   - _COLOR_BOTH
+  - _EXTRUDE_OFF
   m_InvalidKeywords:
   - ENABLE_ALPHACLIP
   - ENABLE_METALLIC_FRESNEL
@@ -102,6 +103,7 @@ Material:
     - _ENABLE_OCCLUSION: 0
     - _ENABLE_SHADOW_RECEIVE: 1
     - _ENABLE_SPECULAR_HQ: 1
+    - _EXTRUDE: 0
     - _ExtrudeValue: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5

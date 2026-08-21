@@ -10,7 +10,14 @@
 struct VS_IN
 {
     float3 positionOS : POSITION;
+    
+    #ifdef ENABLE_UV
     float2 uv : TEXCOORD0;
+    #endif
+    
+    #ifdef ENABLE_COLOR
+    float4 color : COLOR;
+    #endif
     
     #ifndef _EXTRUDE_OFF
     float3 normal : NORMAL;
@@ -27,7 +34,17 @@ struct VS_IN
 #ifndef REIGN_VS_OUT_OVERRIDE
 struct VS_OUT
 {
+    #ifdef ENABLE_UV
     float2 uv : TEXCOORD0;
+    #endif
+    
+    #ifdef ENABLE_POS
+    float3 pos : TEXCOORD1;
+    #endif
+    
+    #ifdef ENABLE_COLOR
+    float4 color : TEXCOORD2;
+    #endif
     
     #ifdef ENABLE_SHADOWS
     float4 shadowCS : TEXCOORD7;

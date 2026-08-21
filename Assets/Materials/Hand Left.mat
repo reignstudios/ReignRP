@@ -13,6 +13,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _COLOR_COLOR
+  - _EXTRUDE_OFF
   - _SPECULAR_OFF
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -54,7 +55,10 @@ Material:
     - _ENABLE_EMISSION: 0
     - _ENABLE_NORMAL: 0
     - _ENABLE_OCCLUSION: 0
+    - _ENABLE_SHADOW_RECEIVE: 0
     - _ENABLE_SPECULAR_HQ: 0
+    - _EXTRUDE: 0
+    - _ExtrudeValue: 0
     - _SPECULAR: 0
     - _SpecularFresnel: 1
     - _SpecularIntensity: 1

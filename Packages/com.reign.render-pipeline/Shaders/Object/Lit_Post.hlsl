@@ -8,23 +8,30 @@
 inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
 {
     // get local position
-    o.pos = i.positionOS;
+    float3 pos = i.positionOS;
 
     // custom local pos
     #ifdef REIGN_GetVertexOutput_OVERRIDE_LOCAL_POS
-    GetVertexOutput_OverrideLocalPos(i, o.pos);
+    GetVertexOutput_OverrideLocalPos(i, pos);
     #endif
 
     // get world position
-    o.pos = TransformObjectToWorld(o.pos);
+    pos = TransformObjectToWorld(pos);
     
     // extrude WS
     #ifdef _EXTRUDE_WS
-    o.pos += normalize(mul(unity_ObjectToWorld, float4(i.normal, 0.0))) * _ExtrudeValue;
+    pos += normalize(mul(unity_ObjectToWorld, float4(i.normal, 0.0))) * _ExtrudeValue;
     #endif
 
     // uv
+    #ifdef ENABLE_UV
     o.uv = (i.uv * _UVScaleOffset.xy) + _UVScaleOffset.zw;
+    #endif
+    
+    // color
+    #ifdef ENABLE_COLOR
+    o.color = i.color;
+    #endif
     
     // lightmap
     #ifdef LIGHTMAP_ON
@@ -50,16 +57,17 @@ inline void GetVertexOutput(VS_IN i, inout VS_OUT o)
 
     // custom world pos
     #ifdef REIGN_GetVertexOutput_OVERRIDE_WORLD_POS
-    GetVertexOutput_OverrideWorldPos(i, o, o.pos);
+    GetVertexOutput_OverrideWorldPos(i, o, pos);
     #endif
     
     // shadow
     #ifdef ENABLE_SHADOWS
-    o.shadowCS = TransformWorldToHClipShadow(o.pos);
+    o.shadowCS = TransformWorldToHClipShadow(pos);
     #endif
 
     // finish
-    o.positionCS = TransformWorldToHClip(o.pos);
+    o.pos = pos;
+    o.positionCS = TransformWorldToHClip(pos);
     
     // extrude SS
     #if _EXTRUDE_SS
