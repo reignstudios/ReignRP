@@ -1,6 +1,7 @@
 "Light Space Shadow Perspective Shadow Map"
 Fast Single Shadow Cascade method: https://lotusspring.substack.com/p/a-more-unique-approach-to-shadow
 https://www.cg.tuwien.ac.at/research/vr/lispsm/
+https://github.com/asylum2010/Asylum_Tutorials/blob/master/ShaderTutors/43_LightSpacePerspectiveSM/main.cpp#L541
 
 ToneMapping shader: https://github.com/TheRealMJP/BakingLab/blob/master/BakingLab/ACES.hlsl
 
