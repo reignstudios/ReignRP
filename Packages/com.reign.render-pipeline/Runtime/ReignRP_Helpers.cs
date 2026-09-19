@@ -180,6 +180,9 @@ namespace Reign.SRP
             public ReignRP_PostProcessResources postProcessResources;
             public ReignRP_PostProcess[] postProcesses;
 
+            public ReignRP_UpscalerResources upscalerResources;
+            public ReignRP_Upscaler upscaler;
+
             public RenderTexture cameraTargetTexture;
             public RenderTargetIdentifier cameraTargetTextureID, cameraTargetDepthTextureID;
             public RenderTextureFormat cameraTargetFormat;
@@ -287,8 +290,8 @@ namespace Reign.SRP
                         cameraTargetDepthTextureID = BuiltinRenderTextureType.Depth;// swap-buffer
                         cameraTargetFormat = asset.hdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;// assume defaults
                         cameraTargetDepth = 24;// assume 24
-                        widthTarget = Screen.width;
-                        heightTarget = Screen.height;
+                        widthTarget = camera.pixelWidth;//Screen.width;
+                        heightTarget = camera.pixelHeight;//Screen.height;
                     }
                 }
                 else
@@ -359,7 +362,8 @@ namespace Reign.SRP
                     }
 
 					// color texture
-					desc = new RenderTextureDescriptor(widthComposited, heightComposited, GetCompositionTextureFormat(asset.compositionColorFormat, colorTextureFallbacks), 0, 1);
+                    var compositionFormat = GetCompositionTextureFormat(asset.compositionColorFormat, colorTextureFallbacks);
+					desc = new RenderTextureDescriptor(widthComposited, heightComposited, compositionFormat, 0, 1);
                     desc.stencilFormat = GraphicsFormat.None;
                     desc.msaaSamples = (int)msaaComposition;
                     desc.bindMS = msaaTextureLoadSupported && msaaComposition != MSAA_Level.Off;
@@ -460,6 +464,55 @@ namespace Reign.SRP
                         }
                         #else
                         postProcesses = camera.GetComponents<ReignRP_PostProcess>();
+                        #endif
+                    }
+
+                    // upscaler resources
+                    if (asset.enableUpscalers)
+                    {
+                        if (upscalerResources == null) upscalerResources = new ReignRP_UpscalerResources(postProcessResources);
+                        upscalerResources.Update(widthTarget, heightTarget, camera);
+
+                        #if UNITY_EDITOR
+                        if (camera.cameraType == CameraType.SceneView)
+                        {
+                            upscaler = null;
+                            foreach (var u in GameObject.FindObjectsByType<ReignRP_Upscaler>(FindObjectsSortMode.None))
+                            {
+                                if (!u.previewInSceneView || !u.enabled) continue;
+
+                                var obj = u.gameObject;
+                                var c = obj.GetComponent<Camera>();
+                                if (!obj.activeInHierarchy || (c && c.targetTexture)) continue;
+                                
+                                upscaler = u;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            upscaler = null;
+                            var upscalers = camera.GetComponents<ReignRP_Upscaler>();
+                            foreach (var u in upscalers)
+                            {
+                                if (u.isActiveAndEnabled)
+                                {
+                                    upscaler = u;
+                                    break;
+                                }
+                            }
+                        }
+                        #else
+                        upscaler = null;
+                        var upscalers = camera.GetComponents<ReignRP_Upscaler>();
+                        foreach (var u in upscalers)
+                        {
+                            if (u.isActiveAndEnabled)
+                            {
+                                upscaler = u;
+                                break;
+                            }
+                        }
                         #endif
                     }
 				}

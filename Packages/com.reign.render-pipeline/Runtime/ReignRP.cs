@@ -794,13 +794,30 @@ namespace Reign.SRP
 				}
 				
 				// copy final result
+				bool upscalerActive = asset.enableUpscalers && cameraResource.upscaler;
 				cmd.Clear();
 				if (msaaResolved)
 				{
-					Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh:blitMesh, mode:(asset.compositionFinalBlitSampler ? BlitMode.Sampler : BlitMode.Load));
+					if (upscalerActive) cameraResource.upscaler.OnUpscale(cameraResource.upscalerResources, cmd, context, finalTexture, cameraResource.cameraTargetTextureID);// upscale blit
+					else Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh:blitMesh, mode:(asset.compositionFinalBlitSampler ? BlitMode.Sampler : BlitMode.Load));// normal blit
 				}
 				else
 				{
+					// choose MSAA target
+					RenderTexture msaaTargetTexture;
+					RenderTargetIdentifier msaaTarget;
+					if (upscalerActive)
+					{
+						if (finalTexture == cameraResource.compositingTextures[1]) msaaTarget = msaaTargetTexture = cameraResource.compositingTextures[0];
+						else msaaTarget = msaaTargetTexture = cameraResource.compositingTextures[1];
+					}
+					else
+					{
+						msaaTargetTexture = null;
+						msaaTarget = cameraResource.cameraTargetTextureID;
+					}
+
+					// blit MSAA
 					var blitMode = BlitMode.Load;
 					switch (cameraResource.msaaComposition)
 					{
@@ -809,7 +826,13 @@ namespace Reign.SRP
 						case MSAA_Level.X8: blitMode = BlitMode.MSAA_8X; break;
 						default: Debug.LogError("Invalid MSAA BlitMode: " + cameraResource.msaaComposition); break;
 					}
-					Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh:blitMesh, mode:blitMode);
+					Blit(finalTexture, msaaTarget, blitMesh:blitMesh, mode:blitMode);
+
+					// blit upscale
+					if (upscalerActive)
+					{
+						cameraResource.upscaler.OnUpscale(cameraResource.upscalerResources, cmd, context, msaaTargetTexture, cameraResource.cameraTargetTextureID);
+					}
 				}
 				context.ExecuteCommandBuffer(cmd);
 			}

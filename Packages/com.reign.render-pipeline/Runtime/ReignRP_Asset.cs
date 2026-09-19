@@ -32,6 +32,10 @@ namespace Reign.SRP
 		[Tooltip("This is slower but makes SS upscaling look nicer (does not work with MSAA on)")]
 		public bool compositionFinalBlitSampler = false;
 
+		[Tooltip("Requires Composition enabled and CompositionScale to be less than 1")]
+		public bool enableUpscalers = false;
+		public float upscalerScale = 1;
+
 		public ShadowType shadowType = ShadowType.Off;
 		public ShadowSampler shadowSampler = ShadowSampler.Point;
 		public SoftShadowOption softShadowOption = SoftShadowOption.Fast;
@@ -86,6 +90,8 @@ namespace Reign.SRP
 		{
 			if (compositionScale < .1f) compositionScale = .1f;
 			else if (compositionScale > 2) compositionScale = 2;
+
+			if (enableUpscalers && !enableComposition || compositionScale >= 1) enableUpscalers = false;
 
 			if (xrTargetScale < .1f) xrTargetScale = .1f;
 			else if (xrTargetScale > 2) xrTargetScale = 2;

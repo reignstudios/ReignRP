@@ -86,4 +86,24 @@ namespace Reign.SRP
 			//this.velocityTexture = velocityTexture;
 		}
 	}
+
+	public class ReignRP_UpscalerResources
+	{
+		public int width { get; private set; }
+		public int height { get; private set; }
+		public Camera camera { get; private set; }
+		public readonly ReignRP_PostProcessResources postProcessResources;
+
+		public ReignRP_UpscalerResources(ReignRP_PostProcessResources postProcessResources)
+		{
+			this.postProcessResources = postProcessResources;
+		}
+
+		internal void Update(int width, int height, Camera camera)
+		{
+			this.width = width;
+			this.height = height;
+			this.camera = camera;
+		}
+	}
 }
