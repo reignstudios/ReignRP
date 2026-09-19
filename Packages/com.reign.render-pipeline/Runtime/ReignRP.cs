@@ -786,9 +786,9 @@ namespace Reign.SRP
 						#endif
 
 						postProcess.OnPostProcess(cameraResource.postProcessResources, cmd, context, postProcessSrc, postProcessDst);
-						compositingIndex = 1 - compositingIndex;
-						postProcessSrc = postProcessDst;
 						postProcessDst = cameraResource.compositingTextures[compositingIndex];
+						compositingIndex = 1 - compositingIndex;
+						postProcessSrc = cameraResource.compositingTextures[compositingIndex];
 					}
 					finalTexture = postProcessSrc;
 				}

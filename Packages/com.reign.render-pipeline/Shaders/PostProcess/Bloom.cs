@@ -47,7 +47,7 @@ namespace Reign.SRP
 		private const int pass_SizeDownCopy = 3;
 		private const int pass_Composite = 4;
 
-		public Shader bloomShader;
+		public Shader shader;
 		private Material material;
 
 		public Bloom_Type type = Bloom_Type.Normal;
@@ -83,14 +83,14 @@ namespace Reign.SRP
 		public override void OnPostProcess(ReignRP_PostProcessResources resources, CommandBuffer cmd, in ScriptableRenderContext context, RenderTexture src, RenderTexture dst)
 		{
 			// validate resources
-			if (bloomShader == null)
+			if (shader == null)
 			{
 				Debug.LogError("Bloom resource is null");
 				return;
 			}
 
 			// make sure init
-			if (material == null) material = new Material(bloomShader);
+			if (material == null) material = new Material(shader);
 
 			// ensure src sampler state
 			ReignRP.SetTextureSamplerState(src, FilterMode.Point, TextureWrapMode.Clamp);

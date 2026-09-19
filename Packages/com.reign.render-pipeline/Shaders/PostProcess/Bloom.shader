@@ -44,7 +44,7 @@
 
             float4 frag (v2f i) : SV_Target
             {
-                real4 color = tex2D(_MainTex, i.uv);
+                float4 color = tex2D(_MainTex, i.uv);
                 return max(0.0, color - highPassRange);
             }
             ENDHLSL
@@ -85,9 +85,9 @@
                 return o;
             }
 
-            real4 frag(v2f i) : SV_Target
+            float4 frag(v2f i) : SV_Target
             {
-                real4 color = tex2D(_MainTex, i.uv);
+                float4 color = tex2D(_MainTex, i.uv);
                 float2 texelStep = _MainTex_TexelSize.xy * args.xy;
                 float2 texelStepHalf = texelStep * args2.x;
                 float samples = 1;
@@ -151,9 +151,9 @@
                 return o;
             }
 
-            real4 frag(v2f i) : SV_Target
+            float4 frag(v2f i) : SV_Target
             {
-                real4 color = 0.0;
+                float4 color = 0.0;
                 int startIndex = -args.z;
                 int endIndex = args.z + 1;
                 float2 texelStep = _MainTex_TexelSize.xy * args.xy;
@@ -202,7 +202,7 @@
                 return o;
             }
 
-            real4 frag(v2f i) : SV_Target
+            float4 frag(v2f i) : SV_Target
             {
                 return tex2D(_MainTex, i.uv);
             }
@@ -262,9 +262,9 @@
                 return o;
             }
 
-            real4 frag(v2f i) : SV_Target
+            float4 frag(v2f i) : SV_Target
             {
-                real4 color = tex2D(_MainTex1, i.uv) * mulArgs1.x;
+                float4 color = tex2D(_MainTex1, i.uv) * mulArgs1.x;
                 
                 #if defined(LVL_2X) || defined(LVL_4X) || defined(LVL_8X) || defined(LVL_16X)
                 color += tex2D(_MainTex2, i.uv) * mulArgs1.y;
