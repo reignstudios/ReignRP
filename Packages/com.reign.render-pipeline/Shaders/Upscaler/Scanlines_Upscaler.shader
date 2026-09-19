@@ -34,6 +34,7 @@
             sampler2D _MainTex, _MaskTex;
             float4 _MainTex_TexelSize, _MaskTex_TexelSize;
             float4 args;// brightness, contrast, pow, maskScale
+            float4 upscaleTargetSize;
 
             v2f vert (appdata v)
             {
@@ -51,28 +52,27 @@
 
                 // read mask
                 float2 maskSizeDiv = _MaskTex_TexelSize.zw * args.w;
-                real mask = tex2D(_MaskTex, (uv * _MainTex_TexelSize.zw) / maskSizeDiv).x;
+                real mask = tex2D(_MaskTex, (uv * upscaleTargetSize.zw) / maskSizeDiv).x;
 
                 // mask Y
-                //[branch] if (sin(uv.y * _MainTex_TexelSize.w * 3.14) <= 0.0)
                 [branch] if (mask <= .5)
                 {
                     //return 0.0;
-                    float2 offset = float2(0.0, _MainTex_TexelSize.y);
+                    float2 offset = float2(0.0, upscaleTargetSize.y);
                     for (int x = 0; x < 4; x++)
                     {
                         half f = x / (4.0 - 1.0);
                         f = (1.0 - f) * (1.0 / 4.0);
 
                         float2 uvOffset = uv + offset;
-                        real maskY = tex2D(_MaskTex, (uvOffset * _MainTex_TexelSize.zw) / maskSizeDiv).x;
+                        real maskY = tex2D(_MaskTex, (uvOffset * upscaleTargetSize.zw) / maskSizeDiv).x;
                         [branch] if (maskY > .5) color += saturate(tex2D(_MainTex, uvOffset)) * f;
 
                         uvOffset = uv - offset;
-                        maskY = tex2D(_MaskTex, (uvOffset * _MainTex_TexelSize.zw) / maskSizeDiv).x;
+                        maskY = tex2D(_MaskTex, (uvOffset * upscaleTargetSize.zw) / maskSizeDiv).x;
                         [branch] if (maskY > .5) color += saturate(tex2D(_MainTex, uvOffset)) * f;
 
-                        offset += float2(0.0, _MainTex_TexelSize.y);
+                        offset += float2(0.0, upscaleTargetSize.y);
                     }
 
                     //return color;// CRT mode this should be off
@@ -84,22 +84,13 @@
 
                 for (int x = 0; x < 8; x++)
                 {
-                    //uv.x -= _MainTex_TexelSize.x;
                     half f = x / (8.0 - 1.0);
                     f = (1.0 - f) * (1.0 / 8.0);
 
-                    float2 uvOffset = float2(_MainTex_TexelSize.x * (x + 1), 0.0);
+                    float2 uvOffset = float2(upscaleTargetSize.x * (x + 1), 0.0);
 
-                    color += saturate(tex2D(_MainTex, uv - uvOffset)) * f;// * pow(f, 1.5);
-                    color += saturate(tex2D(_MainTex, uv + uvOffset)) * f;// * pow(f, 1.5);
-
-                    //color.r += saturate(tex2D(_MainTex, uv - uvOffset * 0.25).r) * f;// * pow(f, 1.25);
-                    //color.g += saturate(tex2D(_MainTex, uv - uvOffset * 0.5).g) * f;// * pow(f, 1.5);
-                    //color.b += saturate(tex2D(_MainTex, uv - uvOffset * 0.75).b) * f;// * pow(f, 1.75);
-
-                    //color.r += saturate(tex2D(_MainTex, uv + uvOffset * 0.25).r) * f;// * pow(f, 1.25);
-                    //color.g += saturate(tex2D(_MainTex, uv + uvOffset * 0.5).g) * f;// * pow(f, 1.5);
-                    //color.b += saturate(tex2D(_MainTex, uv + uvOffset * 0.75).b) * f;// * pow(f, 1.75);
+                    color += saturate(tex2D(_MainTex, uv - uvOffset)) * f;
+                    color += saturate(tex2D(_MainTex, uv + uvOffset)) * f;
                 }
 
                 // brightness contrast

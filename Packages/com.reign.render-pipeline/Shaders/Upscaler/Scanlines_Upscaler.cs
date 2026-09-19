@@ -38,6 +38,8 @@ namespace Reign.SRP
 			// blit scanlines
 			material.SetTexture("_MaskTex", mask);
 			material.SetVector("args", new Vector4(brightness, contrast, pow, maskScale));
+			var camera = resources.camera;
+			cmd.SetGlobalVector("upscaleTargetSize", new Vector4(1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight, camera.pixelWidth, camera.pixelHeight));
 			cmd.Blit(src, dst, material, 0);
 
 			// execute cmd
