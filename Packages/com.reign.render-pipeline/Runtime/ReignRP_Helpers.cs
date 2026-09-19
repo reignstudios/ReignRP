@@ -604,7 +604,7 @@ namespace Reign.SRP
                 else ResolveCompositedMSAATexture(cmd, colorTexture, colorTextureClone);
 
                 // blur texture mipmaps
-                if (asset.compositionColorCloneBlurredMipmaps) pipeline.BlurRoughnessTexture(colorTextureClone, RenderTextureSubElement.Color, compositingTextures[0]);
+                if (asset.compositionColorCloneBlurredMipmaps) pipeline.BlurTexture(colorTextureClone, RenderTextureSubElement.Color, compositingTextures[0]);
 
                 // set texture
                 cmd.SetGlobalTexture("_CameraColorTexture", colorTextureCloneID, RenderTextureSubElement.Color);

@@ -12,7 +12,7 @@ namespace Reign.SRP
 
 		public Texture2D mask;
 		public float brightness = 0, contrast = 1, pow = 1;
-		public float maskScale = 2;
+		public float maskScale = 1;
 
 		private void Start()
 		{

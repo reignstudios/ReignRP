@@ -221,7 +221,7 @@ namespace Reign.SRP
 			for (int i = 0; i != size; ++i) data[i] = 0;
 		}
 
-		private static RenderTexture GetTemporaryRenderTexture(RenderTextureDescriptor desc)
+		public static RenderTexture GetTemporaryRenderTexture(RenderTextureDescriptor desc)
         {
             desc.width = Mathf.Max(1, desc.width);
             desc.height = Mathf.Max(1, desc.height);
@@ -231,7 +231,7 @@ namespace Reign.SRP
             return texture;
         }
 
-		private static void ReleaseTempRenderTexture(ref RenderTexture texture)
+		public static void ReleaseTempRenderTexture(ref RenderTexture texture)
 		{
 			if (texture)
 			{
@@ -247,7 +247,7 @@ namespace Reign.SRP
             }
         }
 
-        private static void DisposeTexture(ref Texture2D texture)
+        public static void DisposeTexture(ref Texture2D texture)
 		{
 			if (texture)
 			{
@@ -263,7 +263,7 @@ namespace Reign.SRP
             }
         }
 
-        private static void DisposeNativeArray<T>(in NativeArray<T> array) where T : struct
+        public static void DisposeNativeArray<T>(in NativeArray<T> array) where T : struct
 		{
 			if (array.IsCreated)
 			{
@@ -278,7 +278,7 @@ namespace Reign.SRP
             }
         }
 
-		private Vector4 GetTextureMipLvlTexelSize(int textureWidth, int textureHeight, int mipLvl)
+		public Vector4 GetTextureMipLvlTexelSize(int textureWidth, int textureHeight, int mipLvl)
 		{
 			int width = textureWidth / mipLvl;
 			int height = textureHeight / mipLvl;
@@ -300,7 +300,7 @@ namespace Reign.SRP
 			cmd.DrawMesh(blitMesh, Matrix4x4.identity, blitMaterial, 0, (int)mode);// Normal Blit shader pass
 		}
 
-		private void BlurRoughnessTexture(RenderTexture roughnessTexture, RenderTextureSubElement roughnessElement, RenderTexture compositingTexture)
+		private void BlurTexture(RenderTexture roughnessTexture, RenderTextureSubElement roughnessElement, RenderTexture compositingTexture)
 		{
 			// start at half size
 			int mipWidth = roughnessTexture.width / 2;

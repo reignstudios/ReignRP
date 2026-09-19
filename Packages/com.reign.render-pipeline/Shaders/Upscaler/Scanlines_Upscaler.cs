@@ -9,8 +9,9 @@ namespace Reign.SRP
 		private Material material;
 
 		public Texture2D mask;
-		public float brightness = 0, contrast = 1, pow = 1;
+		public float brightness = 0, contrast = 1, pow = 1, postContrast = 1;
 		public float maskScale = 2;
+		public float bloomPosX, bloomNegX, bloomPosY, bloomNegY;
 
 		private void Start()
 		{
@@ -35,15 +36,25 @@ namespace Reign.SRP
 			// clear cmd
 			cmd.Clear();
 
+			// get temps
+			var desc = new RenderTextureDescriptor(resources.width, resources.height, src.format, 0, 1);
+			var maskedTexture = RenderTexture.GetTemporary(desc);
+
 			// blit scanlines
 			material.SetTexture("_MaskTex", mask);
-			material.SetVector("args", new Vector4(brightness, contrast, pow, maskScale));
+			material.SetVector("args", new Vector4(brightness, contrast, pow, postContrast));
+			material.SetFloat("maskScale", maskScale);
+			material.SetVector("bloomCounts", new Vector4(bloomPosX, bloomNegX, bloomPosY, bloomNegY));
 			var camera = resources.camera;
 			cmd.SetGlobalVector("upscaleTargetSize", new Vector4(1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight, camera.pixelWidth, camera.pixelHeight));
-			cmd.Blit(src, dst, material, 0);
+			cmd.Blit(src, maskedTexture, material, 0);
+			cmd.Blit(maskedTexture, dst, material, 1);
 
 			// execute cmd
 			context.ExecuteCommandBuffer(cmd);
+
+			// release temps
+			RenderTexture.ReleaseTemporary(maskedTexture);
 		}
 	}
 }
