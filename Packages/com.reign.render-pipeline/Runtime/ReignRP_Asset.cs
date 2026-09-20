@@ -34,7 +34,6 @@ namespace Reign.SRP
 
 		[Tooltip("Requires Composition enabled and CompositionScale to be less than 1")]
 		public bool enableUpscalers = false;
-		public float upscalerScale = 1;
 
 		public ShadowType shadowType = ShadowType.Off;
 		public ShadowSampler shadowSampler = ShadowSampler.Point;
