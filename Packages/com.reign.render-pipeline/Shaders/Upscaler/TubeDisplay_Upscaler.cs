@@ -3,7 +3,7 @@ using UnityEngine.Rendering;
 
 namespace Reign.SRP
 {
-	public sealed class Scanlines_Upscaler : ReignRP_Upscaler
+	public sealed class TubeDisplay_Upscaler : ReignRP_Upscaler
 	{
 		public Shader shader;
 		private Material material;

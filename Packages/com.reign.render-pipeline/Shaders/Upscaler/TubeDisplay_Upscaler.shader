@@ -1,4 +1,4 @@
-﻿Shader "ReignRP/PostProcess/Scanlines_Upscaler"
+﻿Shader "ReignRP/Upscaler/TubeDisplay_Upscaler"
 {
     Properties
     {
@@ -7,7 +7,7 @@
     }
     SubShader
     {
-        Tags { "RenderType"="PostProcess" }
+        Tags { "RenderType"="Upscaler" }
         ZWrite Off
         ZTest Always
 
