@@ -91,7 +91,7 @@ namespace Reign.SRP
 			if (compositionScale < .1f) compositionScale = .1f;
 			else if (compositionScale > 2) compositionScale = 2;
 
-			if (enableUpscalers && !enableComposition || compositionScale >= 1) enableUpscalers = false;
+			if (enableUpscalers && !enableComposition) enableUpscalers = false;
 
 			if (xrTargetScale < .1f) xrTargetScale = .1f;
 			else if (xrTargetScale > 2) xrTargetScale = 2;
