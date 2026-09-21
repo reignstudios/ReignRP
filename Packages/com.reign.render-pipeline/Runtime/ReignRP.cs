@@ -752,12 +752,13 @@ namespace Reign.SRP
 				// grab initial target
 				var finalTexture = cameraResource.colorTexture;
 				int postProcessCount = cameraResource.postProcesses != null ? cameraResource.postProcesses.Length : 0;
+				bool activeUpscaler = cameraResource.upscaler != null;
 				
 				// pre-resolve MSAA texture ONLY if needed
 				bool msaaResolved = false;
 				if (cameraResource.msaaComposition != MSAA_Level.Off)
 				{
-					if (!msaaTextureLoadSupported || postProcessCount != 0)// resolve if MSAA-Load not supported or PostProcess tasks are needed
+					if (!msaaTextureLoadSupported || postProcessCount != 0 || activeUpscaler)// resolve if MSAA-Load not supported or PostProcess tasks are needed
 					{
 						cmd.Clear();
 						cameraResource.ResolveCompositedMSAATexture(cmd, finalTexture, cameraResource.compositingTextures[0]);
@@ -803,20 +804,6 @@ namespace Reign.SRP
 				}
 				else
 				{
-					// choose MSAA target
-					RenderTexture msaaTargetTexture;
-					RenderTargetIdentifier msaaTarget;
-					if (upscalerActive)
-					{
-						if (finalTexture == cameraResource.compositingTextures[1]) msaaTarget = msaaTargetTexture = cameraResource.compositingTextures[0];
-						else msaaTarget = msaaTargetTexture = cameraResource.compositingTextures[1];
-					}
-					else
-					{
-						msaaTargetTexture = null;
-						msaaTarget = cameraResource.cameraTargetTextureID;
-					}
-
 					// blit MSAA
 					var blitMode = BlitMode.Load;
 					switch (cameraResource.msaaComposition)
@@ -826,13 +813,7 @@ namespace Reign.SRP
 						case MSAA_Level.X8: blitMode = BlitMode.MSAA_8X; break;
 						default: Debug.LogError("Invalid MSAA BlitMode: " + cameraResource.msaaComposition); break;
 					}
-					Blit(finalTexture, msaaTarget, blitMesh:blitMesh, mode:blitMode);
-
-					// blit upscale
-					if (upscalerActive)
-					{
-						cameraResource.upscaler.OnUpscale(cameraResource.upscalerResources, cmd, context, msaaTargetTexture, cameraResource.cameraTargetTextureID);
-					}
+					Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh:blitMesh, mode:blitMode);
 				}
 				context.ExecuteCommandBuffer(cmd);
 			}
