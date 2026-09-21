@@ -495,7 +495,7 @@ namespace Reign.SRP
                             var upscalers = camera.GetComponents<ReignRP_Upscaler>();
                             foreach (var u in upscalers)
                             {
-                                if (u.isActiveAndEnabled)
+                                if (u.enabled)
                                 {
                                     upscaler = u;
                                     break;
@@ -507,7 +507,7 @@ namespace Reign.SRP
                         var upscalers = camera.GetComponents<ReignRP_Upscaler>();
                         foreach (var u in upscalers)
                         {
-                            if (u.isActiveAndEnabled)
+                            if (u.enabled)
                             {
                                 upscaler = u;
                                 break;

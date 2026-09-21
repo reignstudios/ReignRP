@@ -795,7 +795,7 @@ namespace Reign.SRP
 				}
 				
 				// copy final result
-				bool upscalerActive = asset.enableUpscalers && cameraResource.upscaler;
+				bool upscalerActive = asset.enableUpscalers && cameraResource.upscaler && cameraResource.upscaler.IsSupported(cameraResource.upscalerResources);
 				cmd.Clear();
 				if (msaaResolved)
 				{
