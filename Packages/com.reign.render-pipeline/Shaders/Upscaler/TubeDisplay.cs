@@ -3,14 +3,14 @@ using UnityEngine.Rendering;
 
 namespace Reign.SRP
 {
-	public sealed class TubeDisplay_Upscaler : ReignRP_Upscaler
+	public sealed class TubeDisplay : ReignRP_Upscaler
 	{
 		public Shader shader;
 		private Material material;
 
 		public Texture2D mask;
+		public int maskScale = 1;
 		public float brightness = 0, contrast = 1, pow = 1, postContrast = 1;
-		public float maskScale = 2;
 		public float bloomPosX, bloomNegX, bloomPosY, bloomNegY;
 
 		private void Start()
@@ -23,7 +23,7 @@ namespace Reign.SRP
 			// validate resources
 			if (shader == null)
 			{
-				Debug.LogError("Scanlines resource is null");
+				Debug.LogError("TubeDisplay resource is null");
 				return;
 			}
 
@@ -31,22 +31,22 @@ namespace Reign.SRP
 			if (material == null) material = new Material(shader);
 
 			// ensure src sampler state
-			ReignRP.SetTextureSamplerState(src, FilterMode.Bilinear, TextureWrapMode.Clamp);
-
-			// clear cmd
-			cmd.Clear();
+			ReignRP.SetTextureSamplerState(src, FilterMode.Point, TextureWrapMode.Clamp);
 
 			// get temps
 			var desc = new RenderTextureDescriptor(resources.width, resources.height, src.format, 0, 1);
 			var maskedTexture = RenderTexture.GetTemporary(desc);
+			ReignRP.SetTextureSamplerState(maskedTexture, FilterMode.Point, TextureWrapMode.Clamp);
+
+			// clear cmd
+			cmd.Clear();
 
 			// blit scanlines
 			material.SetTexture("_MaskTex", mask);
-			material.SetVector("args", new Vector4(brightness, contrast, pow, postContrast));
 			material.SetFloat("maskScale", maskScale);
+			material.SetVector("args", new Vector4(brightness, contrast, pow, postContrast));
 			material.SetVector("bloomCounts", new Vector4(bloomPosX, bloomNegX, bloomPosY, bloomNegY));
-			var camera = resources.camera;
-			cmd.SetGlobalVector("upscaleTargetSize", new Vector4(1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight, camera.pixelWidth, camera.pixelHeight));
+			cmd.SetGlobalVector("upscaleTargetSize", new Vector4(1.0f / resources.width, 1.0f / resources.height, resources.width, resources.height));
 			cmd.Blit(src, maskedTexture, material, 0);
 			cmd.Blit(maskedTexture, dst, material, 1);
 

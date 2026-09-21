@@ -1,4 +1,4 @@
-﻿Shader "ReignRP/Upscaler/TubeDisplay_Upscaler"
+﻿Shader "ReignRP/Upscaler/TubeDisplay"
 {
     Properties
     {
