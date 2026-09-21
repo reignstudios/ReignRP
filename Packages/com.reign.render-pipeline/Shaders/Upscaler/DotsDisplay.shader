@@ -19,7 +19,7 @@
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature _ _ENABLE_SIN
+            #pragma multi_compile _ _ENABLE_SIN
 
             #include "../_Shared/Common.hlsl"
 
