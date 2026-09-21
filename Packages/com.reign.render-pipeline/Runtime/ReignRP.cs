@@ -11,6 +11,8 @@ using System.Threading;
 using Unity.Collections;
 using static UnityEngine.GraphicsBuffer;
 using System.Linq;
+using UnityEngine.SceneManagement;
+
 
 
 #if UNITY_EDITOR
@@ -84,7 +86,7 @@ namespace Reign.SRP
 		public static bool msaaTextureLoadSupported { get; private set; }
 		public static bool msaaSwapChainSupported { get; private set; }
 
-		public static bool refreshPostProcessState = true;
+		public static bool refreshCompositeScriptState = true;
 
 		private XRDisplaySubsystem xrSubsystem;
 		private List<XRDisplaySubsystem> xrSubsystemList;
@@ -138,6 +140,26 @@ namespace Reign.SRP
 			texturesSupported_32Bit = SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, GraphicsFormatUsage.Sample) && SystemInfo.IsFormatSupported(GraphicsFormat.R32G32B32A32_SFloat, GraphicsFormatUsage.SetPixels);
 			msaaTextureLoadSupported = SystemInfo.supportsMultisampledTextures > 0 && !asset.compositionMSAA_ForceHardwareResolve;
 			msaaSwapChainSupported = SystemInfo.supportsMultisampledBackBuffer;
+
+			// watch for scene changes
+			SceneManager.sceneLoaded += activeSceneChanged_sceneLoaded;
+			SceneManager.sceneUnloaded += activeSceneChanged_sceneUnloaded;
+			SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
+		}
+
+		private void activeSceneChanged_sceneLoaded(Scene scene, LoadSceneMode mode)
+		{
+			refreshCompositeScriptState = true;
+		}
+
+		private void activeSceneChanged_sceneUnloaded(Scene scene)
+		{
+			refreshCompositeScriptState = true;
+		}
+
+		private void SceneManager_activeSceneChanged(Scene oldScene, Scene newScene)
+		{
+			refreshCompositeScriptState = true;
 		}
 
 		private bool CheckResourceInit()
@@ -182,7 +204,7 @@ namespace Reign.SRP
         protected override void Render(ScriptableRenderContext context, List<Camera> cameras)
         {
 			#if UNITY_EDITOR
-			refreshPostProcessState = true;// force refresh in editor each frame
+			refreshCompositeScriptState = true;// force refresh in editor each frame
 			#endif
 
 			// ensure asset settings are valid
@@ -427,7 +449,7 @@ namespace Reign.SRP
 			
             // render scene
             EndContextRendering(context, cameras);
-			refreshPostProcessState = false;// stop refresh
+			refreshCompositeScriptState = false;// stop refresh
         }
 
 		private void SetShaderTimeValues(CommandBuffer cmd, float time, float deltaTime, float smoothDeltaTime)

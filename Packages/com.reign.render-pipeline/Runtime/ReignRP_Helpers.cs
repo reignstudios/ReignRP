@@ -440,7 +440,7 @@ namespace Reign.SRP
                     // post-process resources
                     if (postProcessResources == null) postProcessResources = new ReignRP_PostProcessResources();
                     postProcessResources.Update(widthComposited, heightComposited, camera, colorTexture);
-                    if (refreshPostProcessState)
+                    if (refreshCompositeScriptState)
                     {
                         #if UNITY_EDITOR
                         if (camera.cameraType == CameraType.SceneView)
@@ -472,25 +472,38 @@ namespace Reign.SRP
                     {
                         if (upscalerResources == null) upscalerResources = new ReignRP_UpscalerResources(postProcessResources);
                         upscalerResources.Update(widthTarget, heightTarget, camera);
-
-                        #if UNITY_EDITOR
-                        if (camera.cameraType == CameraType.SceneView)
+                        if (refreshCompositeScriptState)
                         {
-                            upscaler = null;
-                            foreach (var u in GameObject.FindObjectsByType<ReignRP_Upscaler>(FindObjectsSortMode.None))
+                            #if UNITY_EDITOR
+                            if (camera.cameraType == CameraType.SceneView)
                             {
-                                if (!u.previewInSceneView || !u.enabled) continue;
+                                upscaler = null;
+                                foreach (var u in GameObject.FindObjectsByType<ReignRP_Upscaler>(FindObjectsSortMode.None))
+                                {
+                                    if (!u.previewInSceneView || !u.enabled) continue;
 
-                                var obj = u.gameObject;
-                                var c = obj.GetComponent<Camera>();
-                                if (!obj.activeInHierarchy || (c && c.targetTexture)) continue;
+                                    var obj = u.gameObject;
+                                    var c = obj.GetComponent<Camera>();
+                                    if (!obj.activeInHierarchy || (c && c.targetTexture)) continue;
                                 
-                                upscaler = u;
-                                break;
+                                    upscaler = u;
+                                    break;
+                                }
                             }
-                        }
-                        else
-                        {
+                            else
+                            {
+                                upscaler = null;
+                                var upscalers = camera.GetComponents<ReignRP_Upscaler>();
+                                foreach (var u in upscalers)
+                                {
+                                    if (u.enabled)
+                                    {
+                                        upscaler = u;
+                                        break;
+                                    }
+                                }
+                            }
+                            #else
                             upscaler = null;
                             var upscalers = camera.GetComponents<ReignRP_Upscaler>();
                             foreach (var u in upscalers)
@@ -501,19 +514,8 @@ namespace Reign.SRP
                                     break;
                                 }
                             }
+                            #endif
                         }
-                        #else
-                        upscaler = null;
-                        var upscalers = camera.GetComponents<ReignRP_Upscaler>();
-                        foreach (var u in upscalers)
-                        {
-                            if (u.enabled)
-                            {
-                                upscaler = u;
-                                break;
-                            }
-                        }
-                        #endif
                     }
 				}
                 else
