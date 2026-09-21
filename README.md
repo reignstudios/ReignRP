@@ -9,7 +9,7 @@ Further there are other ways to increase performance beyond BuiltInRP.
 * Unlit features
 * Lightmap features
 * PostProcessing (Bloom, custom)
-* Upscalers (Scanlines/CRT, custom)
+* Upscalers (TubeDisplay/CRT, DotsDisplay/GB, custom)
 
 ## WIP
 * VR support (missing SinglePass instanced)
