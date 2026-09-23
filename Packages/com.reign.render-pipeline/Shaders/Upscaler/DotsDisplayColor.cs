@@ -3,16 +3,17 @@ using UnityEngine.Rendering;
 
 namespace Reign.SRP
 {
-	public sealed class DotsDisplay : ReignRP_Upscaler
+	public sealed class DotsDisplayColor : ReignRP_Upscaler
 	{
 		public Shader shader;
 		private Material material;
+
+		public int displayBit = 56;
 		
 		public Texture2D mask;
 		public int maskScale = 1;
 
-		public Texture2D pallet;
-		public bool sin;
+		public Texture2D background;
 
 		public int shadowSamples = 4;
 
@@ -51,11 +52,10 @@ namespace Reign.SRP
 			if (shadowSamples <= 0) shadowSamples = 1;
 
 			// blit scanlines
-			if (sin) material.EnableKeyword("_ENABLE_SIN");
-			else material.DisableKeyword("_ENABLE_SIN");
 			material.SetTexture("_MaskTex", mask);
-			material.SetTexture("_PalletTex", pallet);
+			material.SetTexture("_BackgroundTex", background);
 			material.SetFloat("shadowSamples", shadowSamples);
+			material.SetFloat("displayBit", displayBit);
 			cmd.SetGlobalVector("upscaleTargetSize", new Vector4(1.0f / resources.width, 1.0f / resources.height, resources.width, resources.height));
 			cmd.Blit(dotsSource, dst, material, 1);
 

@@ -1,12 +1,10 @@
-﻿Shader "ReignRP/Upscaler/DotsDisplay"
+﻿Shader "ReignRP/Upscaler/DotsDisplayColor"
 {
     Properties
     {
-        [Toggle(ENABLE_SIN)] _ENABLE_SIN ("Enable Alpha Clip", Float) = 0
-
         _MainTex ("Texture", 2D) = "white" {}
         _MaskTex ("Mask", 2D) = "white" {}
-        _PalletTex ("Pallet", 2D) = "white" {}
+        _BackgroundTex ("Background", 2D) = "white" {}
     }
     SubShader
     {
@@ -35,7 +33,8 @@
                 float4 positionCS : SV_POSITION;
             };
 
-            sampler2D _MainTex, _PalletTex;
+            sampler2D _MainTex, _BackgroundTex;
+            float displayBit;
 
             v2f vert (appdata v)
             {
@@ -51,11 +50,13 @@
                 half4 color = saturate(tex2D(_MainTex, i.uv));
 
                 // apply display color
-                half grayscale = dot(color.rgb, half3(.3333, .3333, .3333));
-                #ifdef _ENABLE_SIN
-                grayscale = sin(grayscale * 3.14 * 2.0);
-                #endif
-                return tex2D(_PalletTex, half2(grayscale, 0.0));
+                half4 background = tex2D(_BackgroundTex, i.uv);
+                color = floor(color * displayBit) / displayBit;// lower pixel bit
+                color.r = lerp(background.r, color.r, 1.0 - color.r);
+                color.g = lerp(background.g, color.g, 1.0 - color.g);
+                color.b = lerp(background.b, color.b, 1.0 - color.b);
+
+                return color;
             }
             ENDHLSL
         }
@@ -81,7 +82,7 @@
                 float4 positionCS : SV_POSITION;
             };
 
-            sampler2D _MainTex, _MaskTex, _PalletTex;
+            sampler2D _MainTex, _MaskTex;
             float4 _MainTex_TexelSize, _MaskTex_TexelSize;
             float4 upscaleTargetSize;
             float shadowSamples;
@@ -104,14 +105,17 @@
 
                 // apply mask
                 half4 mask = tex2D(_MaskTex, ((i.uv * upscaleTargetSize.zw) / _MaskTex_TexelSize.zw) * i.pixelScale);
-                color = lerp(saturate(tex2D(_PalletTex, half2(0.0, 0.0)) * 1.1), color, mask);
+                color *= mask;
 
                 // add shadow
                 float2 offset = float2(upscaleTargetSize.x, -upscaleTargetSize.y);
                 half4 shadow = 0.0;
+                bool maskHit = false;
                 [loop] for (int x = 0; x < shadowSamples; x++)
                 {
-                    shadow += tex2D(_MainTex, uv - offset * (x + 1.0));
+                    float2 uvOffset = uv - offset * (x + 1.0);
+                    half4 s = tex2D(_MainTex, uvOffset);
+                    shadow += s * tex2D(_MaskTex, ((uvOffset * upscaleTargetSize.zw) / _MaskTex_TexelSize.zw) * i.pixelScale);
                 }
                 color = (color + (shadow / shadowSamples)) * .5;
 
