@@ -8,6 +8,7 @@ namespace Reign.SRP
 		public Shader shader;
 		private Material material;
 
+		[Tooltip("GBC is max 56 colors. GBA is max 512 colors")]
 		public int displayBit = 56;
 		
 		public Texture2D mask;
