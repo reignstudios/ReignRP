@@ -30,7 +30,7 @@ namespace Reign.SRP
 			if (material == null) material = new Material(shader);
 
 			// ensure src sampler state
-			ReignRP.SetTextureSamplerState(src, FilterMode.Point, TextureWrapMode.Clamp);
+			ReignRP.SetTextureSamplerState(src, FilterMode.Bilinear, TextureWrapMode.Clamp);
 
 			// clear cmd
 			cmd.Clear();

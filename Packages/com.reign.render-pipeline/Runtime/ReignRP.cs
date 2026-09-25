@@ -773,14 +773,14 @@ namespace Reign.SRP
 				
 				// grab initial target
 				var finalTexture = cameraResource.colorTexture;
-				int postProcessCount = cameraResource.postProcesses != null ? cameraResource.postProcesses.Length : 0;
-				bool activeUpscaler = cameraResource.upscaler != null;
+				int postProcessCount = cameraResource.GetPostProcessCount();
+				int upscalerCount = cameraResource.GetUpscalerCount();
 				
 				// pre-resolve MSAA texture ONLY if needed
 				bool msaaResolved = false;
 				if (cameraResource.msaaComposition != MSAA_Level.Off)
 				{
-					if (!msaaTextureLoadSupported || postProcessCount != 0 || activeUpscaler)// resolve if MSAA-Load not supported or PostProcess tasks are needed
+					if (!msaaTextureLoadSupported || postProcessCount != 0 || upscalerCount != 0)// resolve if MSAA-Load not supported or PostProcess tasks are needed
 					{
 						cmd.Clear();
 						cameraResource.ResolveCompositedMSAATexture(cmd, finalTexture, cameraResource.compositingTextures[0]);
@@ -802,11 +802,7 @@ namespace Reign.SRP
 					int compositingIndex = 0;
 					foreach (var postProcess in cameraResource.postProcesses)
 					{
-						if (!postProcess.enabled || !postProcess.IsSupported(cameraResource.postProcessResources)) continue;
-
-						#if UNITY_EDITOR
-						if (!postProcess.previewInSceneView && camera.cameraType == CameraType.SceneView) continue;
-						#endif
+						if (!cameraResource.IsPostProcessActive(postProcess)) continue;
 
 						postProcess.OnPostProcess(cameraResource.postProcessResources, cmd, context, postProcessSrc, postProcessDst);
 						postProcessDst = cameraResource.compositingTextures[compositingIndex];
@@ -817,12 +813,56 @@ namespace Reign.SRP
 				}
 				
 				// copy final result
-				bool upscalerActive = asset.enableUpscalers && cameraResource.upscaler && cameraResource.upscaler.IsSupported(cameraResource.upscalerResources);
 				cmd.Clear();
 				if (msaaResolved)
 				{
-					if (upscalerActive) cameraResource.upscaler.OnUpscale(cameraResource.upscalerResources, cmd, context, finalTexture, cameraResource.cameraTargetTextureID);// upscale blit
-					else Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh:blitMesh, mode:(asset.compositionFinalBlitSampler ? BlitMode.Sampler : BlitMode.Load));// normal blit
+					bool upscalerRan = false;
+					if (upscalerCount != 0)
+					{
+						if (upscalerCount == 1)
+						{
+							foreach (var upscaler in cameraResource.upscalers)
+							{
+								if (!cameraResource.IsUpscalerActive(upscaler)) continue;
+
+								upscaler.OnUpscale(cameraResource.upscalerResources, cmd, context, finalTexture, cameraResource.cameraTargetTextureID);// upscale blit
+								upscalerRan = true;
+								break;
+							}
+						}
+						else
+						{
+							var upscalerSrc = finalTexture;
+							var upscalerDst = cameraResource.upscalerTextures[1];
+							int upscaleIndex = 0;
+							int i = 0;
+							foreach (var upscaler in cameraResource.upscalers)
+							{
+								if (!cameraResource.IsUpscalerActive(upscaler)) continue;
+
+								// final blit
+								if (i == upscalerCount - 1)
+								{
+									upscaler.OnUpscale(cameraResource.upscalerResources, cmd, context, upscalerSrc, cameraResource.cameraTargetTextureID);
+									upscalerRan = true;
+									break;
+								}
+
+								// chained blit
+								upscaler.OnUpscale(cameraResource.upscalerResources, cmd, context, upscalerSrc, upscalerDst);
+								upscalerDst = cameraResource.upscalerTextures[upscaleIndex];
+								upscaleIndex = 1 - upscaleIndex;
+								upscalerSrc = cameraResource.upscalerTextures[upscaleIndex];
+
+								i++;
+							}
+						}
+					}
+					
+					if (!upscalerRan)
+					{
+						Blit(finalTexture, cameraResource.cameraTargetTextureID, blitMesh:blitMesh, mode:(asset.compositionFinalBlitSampler ? BlitMode.Sampler : BlitMode.Load));// normal blit
+					}
 				}
 				else
 				{

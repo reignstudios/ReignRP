@@ -181,7 +181,7 @@ namespace Reign.SRP
             public ReignRP_PostProcess[] postProcesses;
 
             public ReignRP_UpscalerResources upscalerResources;
-            public ReignRP_Upscaler upscaler;
+            public ReignRP_Upscaler[] upscalers;
 
             public RenderTexture cameraTargetTexture;
             public RenderTargetIdentifier cameraTargetTextureID, cameraTargetDepthTextureID;
@@ -190,12 +190,12 @@ namespace Reign.SRP
 
             public RenderTexture depthTexture, depthTextureClone;
 			public RenderTexture colorTexture, colorTextureClone;
-            public RenderTexture[] compositingTextures;
+            public RenderTexture[] compositingTextures, upscalerTextures;
 			//public RenderTexture velocityTexture;
 
             public RenderTargetIdentifier depthTextureID, depthTextureCloneID;
 			public RenderTargetIdentifier colorTextureID, colorTextureCloneID;
-            public RenderTargetIdentifier[] compositingTexturesID;
+            public RenderTargetIdentifier[] compositingTexturesID, upscalerTexturesID;
             public RenderTargetIdentifier velocityTextureID;
             public RenderPassDesc renderPass_Opaque, renderPass_Transparent;
 			public int widthTarget, heightTarget, widthComposited, heightComposited;
@@ -290,8 +290,8 @@ namespace Reign.SRP
                         cameraTargetDepthTextureID = BuiltinRenderTextureType.Depth;// swap-buffer
                         cameraTargetFormat = asset.hdr ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;// assume defaults
                         cameraTargetDepth = 24;// assume 24
-                        widthTarget = camera.pixelWidth;//Screen.width;
-                        heightTarget = camera.pixelHeight;//Screen.height;
+                        widthTarget = camera.pixelWidth;
+                        heightTarget = camera.pixelHeight;
                     }
                 }
                 else
@@ -446,7 +446,7 @@ namespace Reign.SRP
                         if (camera.cameraType == CameraType.SceneView)
                         {
                             var scenePostProcesses = new List<ReignRP_PostProcess>();
-                            foreach (var p in GameObject.FindObjectsByType<ReignRP_PostProcess>(FindObjectsSortMode.None))
+                            foreach (var p in GameObject.FindObjectsByType<ReignRP_PostProcess>(FindObjectsSortMode.InstanceID))
                             {
                                 if (!p.previewInSceneView || !p.enabled) continue;
 
@@ -470,51 +470,58 @@ namespace Reign.SRP
                     // upscaler resources
                     if (asset.enableUpscalers)
                     {
+                        // resources
                         if (upscalerResources == null) upscalerResources = new ReignRP_UpscalerResources(postProcessResources);
                         upscalerResources.Update(widthTarget, heightTarget, camera);
+
+                        // get upscalers
                         if (refreshCompositeScriptState)
                         {
                             #if UNITY_EDITOR
                             if (camera.cameraType == CameraType.SceneView)
                             {
-                                upscaler = null;
-                                foreach (var u in GameObject.FindObjectsByType<ReignRP_Upscaler>(FindObjectsSortMode.None))
+                                var sceneUpscalers = new List<ReignRP_Upscaler>();
+                                foreach (var p in GameObject.FindObjectsByType<ReignRP_Upscaler>(FindObjectsSortMode.InstanceID))
                                 {
-                                    if (!u.previewInSceneView || !u.enabled) continue;
+                                    if (!p.previewInSceneView || !p.enabled) continue;
 
-                                    var obj = u.gameObject;
+                                    var obj = p.gameObject;
                                     var c = obj.GetComponent<Camera>();
                                     if (!obj.activeInHierarchy || (c && c.targetTexture)) continue;
                                 
-                                    upscaler = u;
-                                    break;
+                                    sceneUpscalers.Add(p);
                                 }
+                                upscalers = sceneUpscalers.ToArray();
                             }
                             else
                             {
-                                upscaler = null;
-                                var upscalers = camera.GetComponents<ReignRP_Upscaler>();
-                                foreach (var u in upscalers)
-                                {
-                                    if (u.enabled)
-                                    {
-                                        upscaler = u;
-                                        break;
-                                    }
-                                }
+                                upscalers = camera.GetComponents<ReignRP_Upscaler>();
                             }
                             #else
-                            upscaler = null;
-                            var upscalers = camera.GetComponents<ReignRP_Upscaler>();
-                            foreach (var u in upscalers)
-                            {
-                                if (u.enabled)
-                                {
-                                    upscaler = u;
-                                    break;
-                                }
-                            }
+                            upscalers = camera.GetComponents<ReignRP_Upscaler>();
                             #endif
+                        }
+
+                        // upscaler textures
+                        if (upscalers.Length >= 2)
+                        {
+                            desc = new RenderTextureDescriptor(widthTarget, heightTarget, compositionFormat, 0, 1);
+                            desc.stencilFormat = GraphicsFormat.None;
+                            desc.mipCount = 1;// no mipmaps on final textures
+                            desc.useMipMap = false;
+                            desc.msaaSamples = 1;// no MSAA on final textures
+                            desc.bindMS = false;
+                            if (upscalerTextures == null)
+                            {
+                                upscalerTextures = new RenderTexture[2];
+                                upscalerTexturesID = new RenderTargetIdentifier[2];
+                            }
+                            for (int i = 0; i != 2; ++i)
+                            {
+                                upscalerTextures[i] = GetTemporaryRenderTexture(desc);
+                                upscalerTexturesID[i] = upscalerTextures[i];
+                                SetTextureSamplerState(upscalerTextures[i], FilterMode.Point, TextureWrapMode.Clamp);
+                            }
                         }
                     }
 				}
@@ -577,9 +584,15 @@ namespace Reign.SRP
 				ReleaseTempRenderTexture(ref colorTexture);
                 ReleaseTempRenderTexture(ref colorTextureClone);
 				//ReleaseTempRenderTexture(ref velocityTexture);
+
                 if (compositingTextures != null)
                 {
                     for (int i = 0; i != compositingTextures.Length; ++i) ReleaseTempRenderTexture(ref compositingTextures[i]);
+                }
+
+                if (upscalerTextures != null)
+                {
+                    for (int i = 0; i != upscalerTextures.Length; ++i) ReleaseTempRenderTexture(ref upscalerTextures[i]);
                 }
 
                 if (fullDispose)
@@ -587,6 +600,50 @@ namespace Reign.SRP
                     renderPass_Opaque.Dispose();
                     renderPass_Transparent.Dispose();
                 }
+            }
+
+            public bool IsPostProcessActive(ReignRP_PostProcess postProcess)
+            {
+                if (!postProcess.enabled || !postProcess.IsSupported(postProcessResources)) return false;
+
+				#if UNITY_EDITOR
+				if (!postProcess.previewInSceneView && camera.cameraType == CameraType.SceneView) return false;
+				#endif
+
+                return true;
+            }
+
+            public bool IsUpscalerActive(ReignRP_Upscaler upscaler)
+            {
+                if (!upscaler.enabled || !upscaler.IsSupported(upscalerResources)) return false;
+
+				#if UNITY_EDITOR
+				if (!upscaler.previewInSceneView && camera.cameraType == CameraType.SceneView) return false;
+				#endif
+
+                return true;
+            }
+
+            public int GetPostProcessCount()
+            {
+                if (postProcesses == null) return 0;
+                int count = 0;
+                foreach (var postProcess in postProcesses)
+                {
+                    if (IsPostProcessActive(postProcess)) count++;
+                }
+                return count;
+            }
+
+            public int GetUpscalerCount()
+            {
+                if (!asset.enableUpscalers || upscalers == null) return 0;
+                int count = 0;
+                foreach (var upscaler in upscalers)
+                {
+                    if (IsUpscalerActive(upscaler)) count++;
+                }
+                return count;
             }
 
             public void SetFakeCompositedTextures(CommandBuffer cmd)
